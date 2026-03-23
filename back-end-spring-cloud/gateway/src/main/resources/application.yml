@@ -1,0 +1,20 @@
+server:
+  port: 8500  # ????
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            # ????
+                    - id: auth-center
+                      uri: http://localhost:8080
+                      predicates:
+                        - Path=/api/auth/**,/api/user/**,/api/admin/**
+
+                    # ????
+#        - id: highschool-service
+#          uri: http://localhost:8082
+#          predicates:
+#            - Path=/highschool/**,/score/**,/volunteer/**
