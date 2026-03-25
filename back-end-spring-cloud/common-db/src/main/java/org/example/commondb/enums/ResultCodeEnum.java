@@ -1,4 +1,4 @@
-package org.example.commoncore.enums;
+package org.example.commondb.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;

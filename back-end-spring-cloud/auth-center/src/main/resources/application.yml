@@ -18,3 +18,25 @@ mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true
+
+  # ✅ Redis 配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+jwt:
+  secret: mySecretKeyForJWTGenerationWithEnoughLength12345678
+  expiration: 900000       # 1小时
+  refreshExpiration: 604800000  # 7天
+
+logging:
+  level:
+    org.example.authcenter: DEBUG

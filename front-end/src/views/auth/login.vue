@@ -1,12 +1,39 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import request from '@/utils/request';
-import {message} from "ant-design-vue";
+import { message } from "ant-design-vue";
+import router from '@/router/index.js';
+
+// 导入主题工具
+import { getStoredTheme, toggleTheme, ThemeType } from '@/utils/theme';
+import AdvancedPageTransition from '@/components/AdvancedPageTransition.vue';
+
+// 页面过渡组件引用
+const transitionRef = ref(null);
 
 const [messageApi, contextHolder] = message.useMessage();
 
+// ========== 核心修改：主题状态 ==========
+// 初始化主题状态（从本地存储读取）
+const isDark = ref(getStoredTheme() === ThemeType.DARK);
+
+// 主题切换方法（调用全局工具 + 同步本地状态）
+const handleToggleTheme = () => {
+  const newTheme = toggleTheme();
+  isDark.value = newTheme === ThemeType.DARK;
+  // 添加切换反馈
+  messageApi.success(`已切换至${isDark.value ? '深色' : '浅色'}模式`);
+};
+
+// 监听系统主题变化（可选，同步组件状态）
+const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+const handleSystemThemeChange = (e) => {
+  if (!localStorage.getItem('app_theme')) {
+    isDark.value = e.matches;
+  }
+};
+
 // 主题状态：false = 浅色, true = 深色(纯黑)
-const isDark = ref(false)
 // 面板位置标记：true=默认布局（左欢迎/右表单） false=互换布局（左表单/右欢迎）
 const isDefaultLayout = ref(true)
 // 动画状态
@@ -36,12 +63,17 @@ const resetMessage = ref('')
 // 计算当前激活的面板类型
 const activePanel = computed(() => isDefaultLayout.value ? 'login' : 'register')
 
-// 计算类名：控制主题过渡
-const themeClasses = computed(() =>
-  isDark.value
-    ? 'bg-black text-white transition-colors duration-500'
-    : 'bg-slate-100 text-slate-900 transition-colors duration-500'
-)
+// 优化：统一主题类名计算逻辑
+const themeClasses = computed(() => ({
+  base: isDark.value
+    ? 'bg-black text-white'
+    : 'bg-slate-100 text-slate-900',
+  transition: 'transition-colors duration-500 ease-in-out',
+  // 按钮主题样式
+  themeBtn: isDark.value
+    ? 'bg-white/10 text-white hover:bg-white/20 border-white/20'
+    : 'bg-black/10 text-black hover:bg-black/20 border-black/10'
+}))
 
 // ==================== 打字机效果相关 ====================
 // 打字机文本配置
@@ -104,8 +136,20 @@ const startTypewriter = () => {
 
 // 组件挂载时启动打字机
 onMounted(() => {
-  startTypewriter()
-})
+  startTypewriter();
+  // 监听系统主题变化
+  mediaQuery.addEventListener('change', handleSystemThemeChange);
+  // 初始化根元素主题类
+  document.documentElement.classList.toggle('dark', isDark.value);
+  document.documentElement.classList.toggle('light', !isDark.value);
+});
+
+onUnmounted(() => {
+  // 移除监听，防止内存泄漏
+  mediaQuery.removeEventListener('change', handleSystemThemeChange);
+  // 清除打字机定时器
+  if (typewriterTimer) clearTimeout(typewriterTimer);
+});
 
 // 监听面板切换，重置打字机效果（可选）
 watch(activePanel, () => {
@@ -148,14 +192,13 @@ const togglePanel = () => {
   }, 300)
 }
 
-// 主题切换
-const toggleTheme = () => {
-  isDark.value = !isDark.value
-  document.documentElement.classList.toggle('dark', isDark.value)
-}
+// 优化：监听主题变化，同步根元素类名 + 添加过渡效果
+watch(isDark, (newVal) => {
+  // 更新根元素主题类
+  document.documentElement.classList.toggle('dark', newVal);
+  document.documentElement.classList.toggle('light', !newVal);
 
-// 监听主题变化，添加过渡效果
-watch(isDark, () => {
+  // 添加全局过渡效果
   document.documentElement.classList.add('theme-transition')
   setTimeout(() => {
     document.documentElement.classList.remove('theme-transition')
@@ -165,11 +208,11 @@ watch(isDark, () => {
 // 忘记密码处理
 const handleForgotPassword = () => {
   if (!forgotEmail.value) {
-    alert('请输入邮箱地址')
+    messageApi.warning('请输入邮箱地址'); // 替换 alert 为统一的 message 提示
     return
   }
   if (!/^[^\s@]+@([^\s@]+\.)+[^\s@]+$/.test(forgotEmail.value)) {
-    alert('请输入有效的邮箱地址')
+    messageApi.error('请输入有效的邮箱地址'); // 替换 alert 为统一的 message 提示
     return
   }
 
@@ -179,7 +222,7 @@ const handleForgotPassword = () => {
     resetMessage.value = ''
     showForgotPassword.value = false
     forgotEmail.value = ''
-    alert('密码重置链接已发送，请查收邮件')
+    messageApi.success('密码重置链接已发送，请查收邮件'); // 替换 alert 为统一的 message 提示
   }, 2000)
 }
 
@@ -187,28 +230,93 @@ const handleForgotPassword = () => {
 const handleSocialLogin = (provider: string) => {
   console.log(`使用 ${provider} 登录`)
   // 这里添加第三方登录逻辑
-  alert(`正在跳转到 ${provider} 登录...`)
+  messageApi.info(`正在跳转到 ${provider} 登录...`); // 替换 alert 为统一的 message 提示
 }
 
 // 表单提交处理
 const handleLogin = () => {
+  // 表单验证
+  if (!loginForm.value.username) {
+    messageApi.warning('请输入用户名/邮箱');
+    return;
+  }
+  if (!loginForm.value.password) {
+    messageApi.warning('请输入密码');
+    return;
+  }
+
   console.log('登录:', loginForm.value)
-  // 这里添加登录逻辑
-  request.post("auth/login",loginForm.value,(message,data)=>{
-    messageApi.success(message)
+
+  // 添加登录逻辑
+  request.post("auth/login", loginForm.value, (msg, data) => {
+    messageApi.success(msg)
+
+    // 方案三：根据是否记住我选择存储方式
+    if (data?.accessToken) {
+      if (loginForm.value.rememberMe) {
+        // 记住我：accessToken 和 refreshToken 都存 localStorage
+        localStorage.setItem('token', data.accessToken)
+        localStorage.setItem('refresh_token', data.refreshToken)
+        console.log('✅ 记住我模式：Token 已存储到 localStorage')
+      } else {
+        // 普通登录：accessToken 存 sessionStorage，refreshToken 存 localStorage
+        sessionStorage.setItem('token', data.accessToken)
+        localStorage.setItem('refresh_token', data.refreshToken)
+        console.log('✅ 普通登录：accessToken 存 sessionStorage，refreshToken 存 localStorage')
+      }
+    }
+
+    // 存储用户信息（可选）
+    if (data?.userInfo) {
+      localStorage.setItem('user_info', JSON.stringify(data.userInfo))
+    }
+
+    // 登录成功后跳转
+    navigateWithTransition('/home')
+  }, (errorMsg) => {
+    messageApi.error(errorMsg || '登录失败，请重试');
   })
- // router.push('/')
 }
 
 const handleRegister = () => {
+  // 表单验证
+  if (!registerForm.value.name) {
+    messageApi.warning('请输入姓名');
+    return;
+  }
+  if (!registerForm.value.username) {
+    messageApi.warning('请输入用户名');
+    return;
+  }
+  if (!registerForm.value.password) {
+    messageApi.warning('请输入密码');
+    return;
+  }
+
   console.log('注册:', registerForm.value)
   // 这里添加注册逻辑
+  messageApi.success('注册成功，请登录');
+  togglePanel(); // 注册成功后切换到登录面板
+}
+
+// 带过渡效果的导航
+const navigateWithTransition = (path) => {
+  if (transitionRef.value) {
+    transitionRef.value.show()
+    setTimeout(() => {
+      router.push(path)
+    }, 500)
+  } else {
+    router.push(path)
+  }
 }
 </script>
 
 <template>
-  <contextHolder/>
-  <div :class="themeClasses" class="min-h-screen flex items-center justify-center p-4 overflow-hidden">
+  <contextHolder />
+
+  <!-- 优化：使用计算属性拼接类名，更清晰 -->
+  <div :class="[themeClasses.base, themeClasses.transition]" class="min-h-screen flex items-center justify-center p-4 overflow-hidden">
     <!-- 背景装饰（增强毛玻璃效果） -->
     <div class="absolute inset-0 z-0">
       <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
@@ -226,21 +334,23 @@ const handleRegister = () => {
           </svg>
         </div>
         <span class="font-bold text-lg" :class="isDark ? 'text-white' : 'text-gray-800'">
-          YourBrand
+          拾光记
         </span>
       </div>
 
-      <!-- 主题切换按钮 -->
+      <!-- 优化：主题切换按钮 - 统一样式逻辑，增强交互 -->
       <button
-        @click="toggleTheme"
-        class="p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 backdrop-blur-md border border-white/20"
-        :class="[
-          isDark ? 'bg-white/10 text-white' : 'bg-black/10 text-black',
-          isDark ? 'hover:bg-white/20' : 'hover:bg-black/20'
-        ]"
+        @click="handleToggleTheme"
+        class="p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 backdrop-blur-md border"
+        :class="themeClasses.themeBtn"
+        aria-label="切换主题"
       >
-        {{ isDark ? '☀️' : '🌙' }}
+        <!-- 优化：使用更美观的图标，添加过渡 -->
+        <span class="transition-all duration-300">
+          {{ isDark ? '☀️' : '🌙' }}
+        </span>
       </button>
+      <!-- 移除重复的 ThemeToggleButton 组件 -->
     </div>
 
     <!-- 外层容器 - 添加3D效果 -->
@@ -250,8 +360,7 @@ const handleRegister = () => {
         class="rounded-2xl overflow-hidden relative transform-gpu transition-all duration-700 ease-in-out border border-white/20 shadow-2xl min-h-[600px]"
         :class="[
           isAnimating ? 'shadow-2xl scale-105' : '',
-          isDark ? 'bg-gray-900/60' : 'bg-white/60',
-          isDark ? 'backdrop-blur-xl' : 'backdrop-blur-md'
+          isDark ? 'bg-gray-900/60 backdrop-blur-xl' : 'bg-white/60 backdrop-blur-md'
         ]"
         :style="{
           transform: `perspective(1000px) rotateY(${cardRotation}deg) scale(${isAnimating ? 0.98 : 1})`,
@@ -261,9 +370,7 @@ const handleRegister = () => {
         <!-- 动画容器，使用 flex 确保两个面板高度一致 -->
         <div
           class="flex w-full transition-all duration-700 ease-in-out min-h-[600px]"
-          :class="[
-            isDefaultLayout ? '' : 'flex-row-reverse'
-          ]"
+          :class="[isDefaultLayout ? '' : 'flex-row-reverse']"
         >
           <!-- 欢迎面板（毛玻璃子面板） -->
           <div
@@ -286,9 +393,7 @@ const handleRegister = () => {
             <!-- 内容区域 -->
             <div
               class="relative z-10 transform transition-all duration-700 ease-in-out w-full"
-              :class="[
-                isAnimating ? 'scale-95' : 'scale-100'
-              ]"
+              :class="[isAnimating ? 'scale-95' : 'scale-100']"
             >
               <!-- 打字机标题 -->
               <div class="mb-6">
@@ -316,10 +421,7 @@ const handleRegister = () => {
               <button
                 @click="togglePanel"
                 :disabled="isAnimating"
-                class="px-10 py-3 rounded-full font-semibold shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-md border border-white/20"
-                :class="[
-                  isDark ? 'bg-blue-600/80 text-white hover:bg-blue-700/80' : 'bg-blue-600/80 text-white hover:bg-blue-700/80'
-                ]"
+                class="px-10 py-3 rounded-full font-semibold shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-md border border-white/20 bg-blue-600/80 text-white hover:bg-blue-700/80"
               >
                 {{ activePanel === 'login' ? '去注册' : '去登录' }}
               </button>
@@ -396,10 +498,7 @@ const handleRegister = () => {
 
                   <button
                     type="submit"
-                    class="w-full py-3 rounded-full font-semibold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md border border-white/20"
-                    :class="[
-                      isDark ? 'bg-blue-600/80 text-white hover:bg-blue-700/80' : 'bg-blue-600/80 text-white hover:bg-blue-700/80'
-                    ]"
+                    class="w-full py-3 rounded-full font-semibold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-md border border-white/20 bg-blue-600/80 text-white hover:bg-blue-700/80"
                     :disabled="isAnimating"
                   >
                     登录
@@ -451,10 +550,7 @@ const handleRegister = () => {
                   </div>
                   <button
                     type="submit"
-                    class="w-full py-3 rounded-full font-semibold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md border border-white/20"
-                    :class="[
-                      isDark ? 'bg-blue-600/80 text-white hover:bg-blue-700/80' : 'bg-blue-600/80 text-white hover:bg-blue-700/80'
-                    ]"
+                    class="w-full py-3 rounded-full font-semibold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-md border border-white/20 bg-blue-600/80 text-white hover:bg-blue-700/80"
                     :disabled="isAnimating"
                   >
                     注册
@@ -495,7 +591,7 @@ const handleRegister = () => {
                       type="button"
                       @click="handleSocialLogin('GitHub')"
                       class="p-2 rounded-full hover:bg-white/10 transition-all duration-300"
-                      :class="isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'"
+                      :class="isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-black'"
                     >
                       <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.03-2.682-.103-.253-.447-1.27.098-2.646 0 0 .84-.269 2.75 1.025.8-.223 1.65-.334 2.5-.334.85 0 1.7.111 2.5.334 1.91-1.294 2.75-1.025 2.75-1.025.545 1.376.201 2.393.099 2.646.64.698 1.03 1.591 1.03 2.682 0 3.841-2.337 4.687-4.565 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
@@ -507,7 +603,7 @@ const handleRegister = () => {
                       type="button"
                       @click="handleSocialLogin('WeChat')"
                       class="p-2 rounded-full hover:bg-white/10 transition-all duration-300"
-                      :class="isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'"
+                      :class="isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-black'"
                     >
                       <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8.5 10.5c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm7 0c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm4.5-4.5c-3.6 0-6.5 2.6-6.5 5.9 0 3.3 2.9 5.9 6.5 5.9.7 0 1.4-.1 2.1-.3.3-.1.6 0 .8.2l1.6 1.1c.2.1.4.1.6 0 .1-.1.1-.3.1-.4l-.3-1.5c0-.2 0-.4-.1-.6-.2-.5-.3-1-.3-1.5.1-1.1.5-2.1 1.2-3 .5-.7.8-1.5.8-2.4 0-3.3-2.9-5.9-6.5-5.9z"/>
@@ -529,8 +625,8 @@ const handleRegister = () => {
       @click.self="showForgotPassword = false"
     >
       <div
-        class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all"
-        :class="isDark ? 'bg-gray-800' : 'bg-white'"
+        class="rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all scale-100 hover:scale-[1.01]"
+        :class="isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-100'"
       >
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">
@@ -538,7 +634,8 @@ const handleRegister = () => {
           </h3>
           <button
             @click="showForgotPassword = false"
-            class="text-gray-400 hover:text-gray-600 transition-colors"
+            class="p-1 rounded-full hover:bg-gray-200 transition-colors"
+            :class="isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100'"
           >
             ✕
           </button>
@@ -552,11 +649,11 @@ const handleRegister = () => {
           v-model="forgotEmail"
           type="email"
           placeholder="请输入邮箱地址"
-          class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+          class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 transition-all duration-300"
           :class="[
             isDark
-              ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-400'
-              : 'bg-gray-50 border-gray-200 text-gray-900'
+              ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-gray-500'
+              : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-gray-300'
           ]"
         />
 
@@ -567,14 +664,18 @@ const handleRegister = () => {
         <div class="flex space-x-3">
           <button
             @click="handleForgotPassword"
-            class="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            class="flex-1 py-2 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-blue-600 text-white hover:bg-blue-700"
           >
             发送重置链接
           </button>
           <button
             @click="showForgotPassword = false"
-            class="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            :class="isDark ? 'border-gray-600 hover:bg-gray-700' : ''"
+            class="flex-1 py-2 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border"
+            :class="[
+              isDark
+                ? 'border-gray-600 bg-gray-700/50 text-gray-200 hover:bg-gray-700'
+                : 'border-gray-300 bg-gray-50 text-gray-700 hover:bg-gray-100'
+            ]"
           >
             取消
           </button>
@@ -658,5 +759,32 @@ button:active:not(:disabled) {
   50% {
     opacity: 0;
   }
+}
+</style>
+
+<!-- 全局主题样式 -->
+<style>
+/* 全局主题过渡（确保切换时所有元素都有过渡效果） */
+:root {
+  transition: color 0.5s, background-color 0.5s, border-color 0.5s;
+}
+
+/* 深色模式全局样式 */
+.dark {
+  color-scheme: dark;
+  --bg-primary: #000;
+  --text-primary: #fff;
+}
+
+/* 浅色模式全局样式 */
+.light {
+  color-scheme: light;
+  --bg-primary: #f5f5f5;
+  --text-primary: #333;
+}
+
+/* 修复动画延迟类 */
+.animation-delay-2000 {
+  animation-delay: 2s;
 }
 </style>

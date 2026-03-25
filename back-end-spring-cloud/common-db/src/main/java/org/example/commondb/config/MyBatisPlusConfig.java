@@ -1,4 +1,4 @@
-package org.example.commoncore.config;
+package org.example.commondb.config;
 
 import com.baomidou.mybatisplus.autoconfigure.ConfigurationCustomizer;
 import com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler;

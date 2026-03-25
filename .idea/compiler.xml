@@ -9,6 +9,7 @@
         <module name="auth-center" />
         <module name="gateway" />
         <module name="common-core" />
+        <module name="common-db" />
       </profile>
     </annotationProcessing>
   </component>
@@ -17,6 +18,7 @@
       <module name="auth-center" options="" />
       <module name="back-end-spring-cloud" options="" />
       <module name="common-core" options="" />
+      <module name="common-db" options="" />
       <module name="gateway" options="" />
     </option>
   </component>

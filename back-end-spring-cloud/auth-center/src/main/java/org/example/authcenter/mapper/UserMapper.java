@@ -1,6 +1,9 @@
 package org.example.authcenter.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.example.authcenter.entity.User;
+import org.example.authcenter.vo.UserVO;
 
 /*
  * @Author:总会落叶
@@ -8,5 +11,5 @@ import org.apache.ibatis.annotations.Mapper;
  * @Description:
  */
 @Mapper
-public interface UserMapper {
+public interface UserMapper extends BaseMapper<User> {
 }

@@ -1,4 +1,4 @@
-package org.example.commoncore.utils;
+package org.example.commondb.utils;
 
 /*
  * @Author:总会落叶
