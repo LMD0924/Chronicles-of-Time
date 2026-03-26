@@ -9,6 +9,7 @@
         <option value="$PROJECT_DIR$/back-end-spring-cloud/common-core/pom.xml" />
         <option value="$PROJECT_DIR$/back-end-spring-cloud/gateway/pom.xml" />
         <option value="$PROJECT_DIR$/back-end-spring-cloud/common-db/pom.xml" />
+        <option value="$PROJECT_DIR$/back-end-spring-cloud/file-upload/pom.xml" />
       </list>
     </option>
   </component>

@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="auth-center" />
+        <module name="file-upload" />
         <module name="gateway" />
         <module name="common-core" />
         <module name="common-db" />
@@ -19,6 +20,7 @@
       <module name="back-end-spring-cloud" options="" />
       <module name="common-core" options="" />
       <module name="common-db" options="" />
+      <module name="file-upload" options="" />
       <module name="gateway" options="" />
     </option>
   </component>

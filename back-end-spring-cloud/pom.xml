@@ -17,6 +17,7 @@
         <module>common-db</module>
         <module>auth-center</module>
         <module>gateway</module>
+        <module>file-upload</module>
     </modules>
 
     <properties>
@@ -62,7 +63,12 @@
                 <artifactId>common-db</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
+            <!-- ✅ 文件上传模块 -->
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>file-upload</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <!-- ========== 数据库相关 ========== -->
             <!-- MyBatis-Plus -->
             <dependency>

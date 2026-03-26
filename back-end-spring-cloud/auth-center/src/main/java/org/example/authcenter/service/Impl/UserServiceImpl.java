@@ -25,4 +25,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public User getUserById(Long id){
         return userMapper.selectById(id);
     }
+
+    /**
+     * 上传头像
+     */
+    @Override
+    public boolean uploadAvatar(Long userId,String avatarUrl){
+        User user = new User();
+        user.setId(userId);
+        user.setAvatar(avatarUrl);
+        return userMapper.updateById(user) > 0;
+    }
 }

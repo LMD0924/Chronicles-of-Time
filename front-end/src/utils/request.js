@@ -1,3 +1,4 @@
+// src/utils/request.js
 import axios from 'axios';
 import { ElMessage } from "element-plus";
 import router from '@/router';
@@ -20,11 +21,9 @@ const getRefreshToken = () => {
 // 设置 Token
 const setToken = (accessToken, refreshToken, rememberMe = false) => {
   if (rememberMe) {
-    // 记住我：都存 localStorage
     localStorage.setItem(TOKEN_KEY, accessToken)
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
   } else {
-    // 普通登录：accessToken 存 sessionStorage，refreshToken 存 localStorage
     sessionStorage.setItem(TOKEN_KEY, accessToken)
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
   }
@@ -58,7 +57,6 @@ const isTokenExpired = (token) => {
 
 // 是否正在刷新 Token
 let isRefreshing = false
-// 等待队列
 let pendingRequests = []
 
 // 处理等待队列
@@ -102,7 +100,6 @@ const refreshAccessToken = async () => {
     if (response.data.code === 200 && response.data.data) {
       const { accessToken, refreshToken: newRefreshToken, userInfo } = response.data.data
 
-      // 判断是否是记住我模式（通过 localStorage 是否有 token 判断）
       const isRememberMe = !!localStorage.getItem(TOKEN_KEY)
       setToken(accessToken, newRefreshToken || refreshToken, isRememberMe)
 
@@ -131,16 +128,13 @@ const service = axios.create({
 // 2. 请求拦截器：添加 token
 service.interceptors.request.use(
   (config) => {
-    // 排除刷新 Token 的请求，避免死循环
     if (config.url === 'auth/refresh') {
       return config
     }
 
     const token = getToken()
     if (token) {
-      // 检查 Token 是否过期
       if (isTokenExpired(token)) {
-        // Token 已过期，但不在这里处理，让响应拦截器处理 401
         console.log('Token 已过期，等待响应拦截器处理')
       }
       config.headers.Authorization = `Bearer ${token}`
@@ -153,17 +147,14 @@ service.interceptors.request.use(
   }
 );
 
-// 3. 响应拦截器：统一处理响应结果 + Token 自动刷新
+// 3. 响应拦截器
 service.interceptors.response.use(
   (response) => {
     const res = response.data;
     if (res.code !== 200) {
-      // 401 未授权，尝试刷新 Token
       if (res.code === 401) {
-        // 获取原始请求配置
         const originalRequest = response.config
 
-        // 避免重复刷新
         if (originalRequest._retry) {
           handleUnauthorized()
           return Promise.reject(res)
@@ -171,7 +162,6 @@ service.interceptors.response.use(
 
         originalRequest._retry = true
 
-        // 如果已经在刷新中，加入等待队列
         if (isRefreshing) {
           return new Promise((resolve, reject) => {
             pendingRequests.push((err, token) => {
@@ -208,7 +198,6 @@ service.interceptors.response.use(
     return res;
   },
   (error) => {
-    // 处理网络错误/状态码错误
     if (error.response?.status === 401) {
       handleUnauthorized()
     } else {
@@ -221,7 +210,7 @@ service.interceptors.response.use(
   }
 );
 
-// 4. 通用请求方法封装
+// 4. 通用请求方法封装（支持文件上传）
 const request = {
   // GET请求
   get: (url, params = {}, successCallback) => {
@@ -230,33 +219,49 @@ const request = {
         successCallback && successCallback(res.msg, res.data);
         return res;
       })
-      .catch(err => {
-        return Promise.reject(err);
-      });
+      .catch(err => Promise.reject(err));
   },
 
-  // POST请求
-  post: (url, data = {}, successCallback) => {
-    return service.post(url, data)
+  // POST请求 - 自动判断是否为 FormData
+  post: (url, data = {}, successCallback, customConfig = {}) => {
+    // 判断是否为 FormData 对象
+    const isFormData = data instanceof FormData
+
+    const config = {
+      ...customConfig,
+      headers: {
+        ...customConfig.headers,
+        // 如果是 FormData，不设置 Content-Type（让浏览器自动设置 boundary）
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' })
+      }
+    }
+
+    return service.post(url, data, config)
       .then(res => {
         successCallback && successCallback(res.msg, res.data);
         return res;
       })
-      .catch(err => {
-        return Promise.reject(err);
-      });
+      .catch(err => Promise.reject(err));
   },
 
-  // PUT请求
-  put: (url, data = {}, successCallback) => {
-    return service.put(url, data)
+  // PUT请求 - 自动判断是否为 FormData
+  put: (url, data = {}, successCallback, customConfig = {}) => {
+    const isFormData = data instanceof FormData
+
+    const config = {
+      ...customConfig,
+      headers: {
+        ...customConfig.headers,
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' })
+      }
+    }
+
+    return service.put(url, data, config)
       .then(res => {
         successCallback && successCallback(res.msg, res.data);
         return res;
       })
-      .catch(err => {
-        return Promise.reject(err);
-      });
+      .catch(err => Promise.reject(err));
   },
 
   // DELETE请求
@@ -266,12 +271,60 @@ const request = {
         successCallback && successCallback(res.msg, res.data);
         return res;
       })
-      .catch(err => {
-        return Promise.reject(err);
-      });
+      .catch(err => Promise.reject(err));
   },
 
-  // 导出工具方法供外部使用
+  // ✅ 文件上传专用方法
+  upload: (url, file, onProgress = null, successCallback = null) => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const config = {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }
+
+    if (onProgress && typeof onProgress === 'function') {
+      config.onUploadProgress = (progressEvent) => {
+        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        onProgress(percent)
+      }
+    }
+
+    return service.post(url, formData, config)
+      .then(res => {
+        successCallback && successCallback(res.msg, res.data)
+        return res
+      })
+      .catch(err => Promise.reject(err))
+  },
+
+  // ✅ 多文件上传
+  uploadMultiple: (url, files, onProgress = null, successCallback = null) => {
+    const formData = new FormData()
+    files.forEach(file => {
+      formData.append('files', file)
+    })
+
+    const config = {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }
+
+    if (onProgress && typeof onProgress === 'function') {
+      config.onUploadProgress = (progressEvent) => {
+        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        onProgress(percent)
+      }
+    }
+
+    return service.post(url, formData, config)
+      .then(res => {
+        successCallback && successCallback(res.msg, res.data)
+        return res
+      })
+      .catch(err => Promise.reject(err))
+  },
+
+  // 导出工具方法
   _utils: {
     getToken,
     setToken,
@@ -280,5 +333,4 @@ const request = {
   }
 };
 
-// 导出通用请求对象
 export default request;

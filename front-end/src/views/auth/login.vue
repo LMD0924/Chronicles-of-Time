@@ -6,7 +6,6 @@ import router from '@/router/index.js';
 
 // 导入主题工具
 import { getStoredTheme, toggleTheme, ThemeType } from '@/utils/theme';
-import AdvancedPageTransition from '@/components/AdvancedPageTransition.vue';
 
 // 页面过渡组件引用
 const transitionRef = ref(null);

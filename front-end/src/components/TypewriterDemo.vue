@@ -156,7 +156,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import Typewriter from '@/components/Typewriter.vue'
 import AdvancedTypewriter from '@/components/Typewriter.vue'
 
 // 示例数据

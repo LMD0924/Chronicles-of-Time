@@ -15,4 +15,9 @@ public interface UserService extends IService<User> {
      * 根据id获取用户信息
      */
     User getUserById(Long id);
+
+    /**
+     * 上传头像
+     */
+    boolean uploadAvatar(Long userId,String avatarUrl);
 }
