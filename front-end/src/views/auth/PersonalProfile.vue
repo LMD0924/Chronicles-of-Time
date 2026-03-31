@@ -1,11 +1,14 @@
 <script setup>
 import { ref, onMounted, computed, nextTick, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
 import { getStoredTheme, onThemeChange, ThemeType } from '@/utils/theme';
+import {message} from "ant-design-vue";
 
+const [messageApi, contextHolder] = message.useMessage();
 const router = useRouter()
+const route = useRoute()
 const loading = ref(true)
 const userInfo = ref(null)
 const activeTab = ref('overview')
@@ -106,7 +109,7 @@ const fetchUserInfo = async () => {
       console.log("用户信息：", userInfo.value)
     })
   } catch (error) {
-    ElMessage.error('获取用户信息失败')
+    messageApi.error('获取用户信息失败')
   } finally {
     loading.value = false
     // 延迟执行入场动画
@@ -124,7 +127,7 @@ const startEdit = () => {
     name: userInfo.value.name || '',
     email: userInfo.value.email || '',
     phone: userInfo.value.phone || '',
-    bio: userInfo.value.bio || ''
+    introduction: userInfo.value.introduction || userInfo.value.bio || ''
   }
   isEditing.value = true
 }
@@ -132,13 +135,22 @@ const startEdit = () => {
 // 保存编辑
 const saveEdit = async () => {
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-    userInfo.value = { ...userInfo.value, ...editForm.value }
-    localStorage.setItem('user_info', JSON.stringify(userInfo.value))
-    ElMessage.success('资料更新成功')
-    isEditing.value = false
+    const response = await request.put('/user/updateUserInfo', editForm.value, (msg, data) => {
+      return data
+    })
+
+    if (response.code === 200) {
+      // 更新本地用户信息
+      userInfo.value = { ...userInfo.value, ...editForm.value }
+      localStorage.setItem('user_info', JSON.stringify(userInfo.value))
+      messageApi.success('资料更新成功')
+      isEditing.value = false
+    } else {
+      messageApi.error('保存失败，请重试')
+    }
   } catch (error) {
-    ElMessage.error('保存失败，请重试')
+    messageApi.error('保存失败，请重试')
+    console.error('更新资料失败', error)
   }
 }
 
@@ -169,12 +181,12 @@ const uploadAvatar = async (file) => {
   // 验证文件类型
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
   if (!allowedTypes.includes(file.type)) {
-    ElMessage.error('请选择图片文件（JPG、PNG、GIF、WEBP）')
+    messageApi.error('请选择图片文件（JPG、PNG、GIF、WEBP）')
     return
   }
 
   if (file.size > 5 * 1024 * 1024) {
-    ElMessage.error('图片大小不能超过5MB')
+    messageApi.error('图片大小不能超过5MB')
     return
   }
 
@@ -208,12 +220,12 @@ const uploadAvatar = async (file) => {
         localStorage.setItem('user_info', JSON.stringify(userInfoData))
       }
 
-      ElMessage.success('头像更新成功')
+      messageApi.success('头像更新成功')
     } else {
-      ElMessage.error(updateRes.message || '更新头像失败')
+      messageApi.error(updateRes.message || '更新头像失败')
     }
   } catch (error) {
-    ElMessage.error(error.message || '上传头像失败')
+    messageApi.error(error.message || '上传头像失败')
     console.error('上传头像失败', error)
   } finally {
     uploadLoading.value = false
@@ -262,48 +274,75 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <contextHolder />
   <div :class="[isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900', 'min-h-screen']">
-    <!-- 顶部导航 -->
-    <nav
-      :class="[isDark ? 'bg-black/80 backdrop-blur-xl border-b border-gray-800' : 'bg-white/80 backdrop-blur-xl border-b border-gray-100', 'sticky top-0 z-50 transition-all duration-300 nav-animation']"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center gap-3 cursor-pointer group" @click="$router.push('/home')">
-            <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all group-hover:scale-110 group-hover:rotate-12">
-              <span class="text-xl">⏰</span>
-            </div>
-            <span class="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">拾光记</span>
-          </div>
-          <div class="flex items-center gap-3">
-            <button @click="$router.push('/home')" :class="[isDark ? 'text-gray-300 hover:text-indigo-400 hover:bg-indigo-900/30' : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50', 'px-4 py-2 rounded-lg relative overflow-hidden group hover:shadow-lg transition-all']">
-              <span class="relative z-10">返回首页</span>
-              <div :class="[isDark ? 'bg-indigo-900/30' : 'bg-indigo-50', 'absolute inset-0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left']"></div>
-            </button>
-            <button @click="handleLogout" :class="[isDark ? 'text-red-400 hover:bg-red-900/30' : 'text-red-600 hover:bg-red-50', 'px-4 py-2 rounded-lg transition-all relative overflow-hidden group hover:shadow-lg']">
-              <span class="relative z-10">退出登录</span>
-              <div :class="[isDark ? 'bg-red-900/30' : 'bg-red-50', 'absolute inset-0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left']"></div>
-            </button>
-          </div>
-        </div>
+    <div class="flex justify-between items-center">
+      <!-- 左侧占位，保持平衡 -->
+      <div class="w-32"></div>
+
+      <!-- 中间：个人简历按钮 -->
+      <div class="mt-4 shadow-lg" :class="[isDark ? 'bg-gray-900/80 backdrop-blur-sm' : 'bg-gray-50/80 backdrop-blur-sm', 'flex items-center gap-1 rounded-full p-1 shadow-sm']">
+        <button
+          @click="$router.push('/Resume')"
+          class="relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group hover:shadow-lg"
+          :class="[
+        route.path === '/Resume'
+          ? (isDark ? 'bg-indigo-900/50 text-indigo-400' : 'bg-indigo-100 text-indigo-600')
+          : (isDark ? 'text-gray-300 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600')
+      ]"
+        >
+      <span class="relative flex items-center gap-2 z-10">
+        <span class="text-base">👤</span>
+        <span>个人简历</span>
+      </span>
+        </button>
+        <button
+          @click="$router.push('/PersonalProfile')"
+          class="relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group hover:shadow-lg"
+          :class="[
+        route.path === '/PersonalProfile'
+          ? (isDark ? 'bg-indigo-900/50 text-indigo-400' : 'bg-indigo-100 text-indigo-600 shadow-lg')
+          : (isDark ? 'text-gray-300 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600')
+      ]"
+        >
+      <span class="relative flex items-center gap-2 z-10">
+        <span class="text-base">👤</span>
+        <span>个人档案</span>
+      </span>
+        </button>
       </div>
-    </nav>
+
+      <!-- 右侧按钮组 -->
+      <div class="mt-4 mr-56" :class="[isDark ? 'bg-gray-900/80 backdrop-blur-sm' : 'bg-gray-50/80 backdrop-blur-sm', 'flex items-center gap-1 rounded-full p-1 shadow-sm']">
+        <button
+          @click="$router.push('/home')"
+          class="relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group hover:shadow-lg"
+          :class="[
+        isDark ? 'text-gray-300 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600'
+      ]"
+        >
+      <span class="relative flex items-center gap-2 z-10">
+        <span class="text-base">🏠</span>
+        <span>返回首页</span>
+      </span>
+        </button>
+        <button
+          @click="handleLogout"
+          class="relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group hover:shadow-lg"
+          :class="[
+        isDark ? 'text-gray-300 hover:text-red-400' : 'text-gray-600 hover:text-red-600'
+      ]"
+        >
+      <span class="relative flex items-center gap-2 z-10">
+        <span class="text-base">🚪</span>
+        <span>退出登录</span>
+      </span>
+        </button>
+      </div>
+    </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- 加载状态 -->
-      <div v-if="loading" class="flex justify-center items-center h-96">
-        <div class="text-center">
-          <div class="relative">
-            <div class="w-16 h-16 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4"></div>
-            <div class="absolute inset-0 flex items-center justify-center">
-              <div class="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full animate-ping opacity-75"></div>
-            </div>
-          </div>
-          <p class="text-gray-500 mt-4 animate-pulse">加载中...</p>
-        </div>
-      </div>
-
-      <div v-else>
+      <div>
         <!-- 个人资料卡片 - 暗色模式使用 bg-white/10 -->
         <div :class="[isDark ? 'bg-white/10 backdrop-blur-sm border border-white/20' : 'bg-white border border-gray-100', 'rounded-2xl shadow-sm overflow-hidden mb-8 fade-in-up']">
           <div class="relative h-32 bg-gradient-to-r from-indigo-500 to-purple-600">
@@ -328,7 +367,7 @@ onUnmounted(() => {
               <div class="flex-1 md:ml-6 mt-4 md:mt-0">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <h1 class="text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-800'">{{ userInfo?.name || userInfo?.username }}</h1>
+                    <h1 class="text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-800'">{{ userInfo?.name }}</h1>
                     <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="mt-1">@{{ userInfo?.username }}</p>
                     <p :class="isDark ? 'text-gray-500' : 'text-gray-400'" class="text-sm mt-2 flex items-center gap-1">
                       <svg class="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -364,14 +403,14 @@ onUnmounted(() => {
                     </div>
                     <div class="md:col-span-2">
                       <label :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="block text-xs mb-1">个人简介</label>
-                      <textarea v-model="editForm.bio" rows="3" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200 text-gray-900', 'w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-none']"></textarea>
+                      <textarea v-model="editForm.introduction" rows="3" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200 text-gray-900', 'w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-none']"></textarea>
                     </div>
                   </div>
                 </div>
 
                 <!-- 显示模式 -->
                 <div v-else>
-                  <p :class="isDark ? 'text-gray-300' : 'text-gray-600'" class="mt-3">{{ userInfo?.bio || '这个人很懒，还没写介绍~' }}</p>
+                  <p :class="isDark ? 'text-gray-300' : 'text-gray-600'" class="mt-3">{{ userInfo?.introduction || userInfo?.bio || '这个人很懒，还没写介绍~' }}</p>
                   <div class="flex flex-wrap gap-4 mt-4 text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
                     <span v-if="userInfo?.email" :class="isDark ? 'hover:text-indigo-400' : 'hover:text-indigo-500'" class="flex items-center gap-1 transition-colors duration-300">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>

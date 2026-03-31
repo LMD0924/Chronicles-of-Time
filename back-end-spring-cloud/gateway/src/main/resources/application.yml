@@ -35,7 +35,10 @@ spring:
                 - Path=/api/upload/**
               filters:
                 - StripPrefix=0
-
+            - id: user-center
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/resume/**
 # JWT 配置
 jwt:
   secret: mySecretKeyForJWTGenerationWithEnoughLength12345678

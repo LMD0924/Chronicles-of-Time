@@ -29,6 +29,7 @@ public class User {
     private String phone;           // 手机号
     private String role;            // 角色
     private String avatar;          // 头像
+    private String introduction;    // 简介
     private Integer status;         // 状态：0-禁用，1-启用
     private LocalDateTime createTime;
     private LocalDateTime updateTime;

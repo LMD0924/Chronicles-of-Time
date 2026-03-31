@@ -1,10 +1,13 @@
 package org.example.authcenter.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.authcenter.entity.User;
 import org.example.authcenter.service.UserService;
 import org.example.authcenter.vo.UserVO;
+import org.example.commoncore.utils.MyBeanUtils;
 import org.example.commondb.utils.RestBean;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +19,7 @@ import java.util.Map;
  * @Date:2026/3/24
  * @Description:
  */
+@Slf4j
 @RestController
 @RequestMapping("api/user")
 @RequiredArgsConstructor
@@ -74,4 +78,45 @@ public class UserController {
         }
         return RestBean.fail("头像上传失败");
     }
+
+    /**
+     * 修改用户信息
+     * */
+    @PutMapping("/updateUserInfo")
+    public RestBean<UserVO> updateUserInfo(@Valid @RequestBody UserVO userVO,
+                                           HttpServletRequest request) {
+        log.info("用户信息：{}", userVO);
+        // 1. 获取当前用户ID（如果没有传）
+        if (userVO.getId() == null) {
+            String userIdStr = request.getHeader("X-User-Id");
+            if (userIdStr == null) {
+                return RestBean.fail("用户不存在");
+            }
+            Long userId = Long.parseLong(userIdStr);
+            userVO.setId(userId);
+        }
+
+        // 2. 检查用户是否存在
+        User existingUser = userService.getUserById(userVO.getId());
+        if (existingUser == null) {
+            return RestBean.fail("用户不存在");
+        }
+
+        // 3. 使用 BeanUtils 复制需要更新的字段
+        MyBeanUtils.copyNonNullProperties(userVO, existingUser,
+                "id", "password", "createTime", "updateTime");
+
+        // 4. 更新用户信息
+        boolean success = userService.updateUserInfo(existingUser);
+
+        if (success) {
+            User latestUser = userService.getUserById(userVO.getId());
+            UserVO latestUserVO = new UserVO();
+            BeanUtils.copyProperties(latestUser, latestUserVO);
+            return RestBean.success("更新成功", latestUserVO);
+        } else {
+            return RestBean.fail("更新失败");
+        }
+    }
+
 }

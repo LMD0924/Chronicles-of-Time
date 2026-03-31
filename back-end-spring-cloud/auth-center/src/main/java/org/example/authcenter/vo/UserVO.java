@@ -24,6 +24,7 @@ public class UserVO implements Serializable {
     private String phone;               // 手机号
     private String role;                // 角色
     private String avatar;              // 头像URL
+    private String introduction;        // 个人简介
     private Integer status;             // 状态：0-禁用，1-启用
     private LocalDateTime createTime;   // 创建时间
     private LocalDateTime lastLoginTime; // 最后登录时间

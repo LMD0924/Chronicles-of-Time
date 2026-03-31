@@ -2,9 +2,21 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import ThemeToggleButton from '@/components/ThemeToggleButton.vue';
-import { getStoredTheme, onThemeChange, ThemeType } from '@/utils/theme';
 import AdvancedTypewriter from '@/components/Typewriter.vue'
+import {
+  ThemeType,
+  getStoredTheme,
+  setTheme,
+  toggleTheme as toggleGlobalTheme,
+  initTheme,
+  onThemeChange
+} from "@/utils/theme.js";
+import AdvancedPageTransition from '@/components/AdvancedPageTransition.vue';
+import request from "@/utils/request.js";
+import {message} from "ant-design-vue";
 
+// 页面过渡组件引用
+const transitionRef = ref(null);
 const router = useRouter()
 const isScrolled = ref(false)
 const showBackTop = ref(false)
@@ -13,6 +25,23 @@ const activeStage = ref(0)
 const showUserMenu = ref(false)
 const isDark = ref(getStoredTheme() === ThemeType.DARK)
 const texts = ref(['拾光记 · 成长时光机'])
+const UserInfo = ref({})
+const [MessageApi,contextHolder] = message.useMessage();
+// 带过渡效果的导航 - 修改这个函数
+const navigateWithTransition = (path) => {
+  closeUserMenu()
+  if (transitionRef.value) {
+    // 显示过渡层
+    transitionRef.value.show()
+    // 延迟跳转，让过渡动画显示足够长时间
+    setTimeout(() => {
+      router.push(path)
+    }, 3000)  // 1.5秒后跳转，配合组件的duration
+  } else {
+    // 如果没有过渡组件，直接跳转
+    router.push(path)
+  }
+}
 
 // 动画统计数据
 const animatedStats = ref({
@@ -21,8 +50,12 @@ const animatedStats = ref({
   days: 0
 })
 
-// 滚动动画观察器
-const observedElements = ref([])
+//获取用户信息
+const getUserInfo =()=>{
+  request.get('/user/getUserById',{},(message,data)=>{
+    UserInfo.value=data
+  })
+}
 
 // 时光轴节点预览
 const timelineNodes = [
@@ -197,13 +230,16 @@ const closeUserMenu = () => {
 
 // 处理菜单项点击
 const handleMenuItemClick = (action) => {
-  closeUserMenu()
+
   switch (action) {
     case 'profile':
       router.push('/PersonalProfile')
       break
     case 'settings':
       router.push('/settings')
+      break
+    case 'Resume':
+      router.push('/Resume')
       break
     case 'logout':
       console.log('退出登录')
@@ -264,6 +300,7 @@ const handleThemeChange = (theme) => {
 }
 
 onMounted(() => {
+  getUserInfo()
   // 初始化主题
   if (isDark.value) {
     document.documentElement.classList.add('dark')
@@ -291,6 +328,11 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <contextHolder></contextHolder>
+  <!-- 页面过渡组件 -->
+  <AdvancedPageTransition ref="transitionRef"  :duration="10000" @complete="handleTransitionComplete" />
+
+
   <div :class="[isDark ? 'dark' : '', 'min-h-screen overflow-x-hidden']">
     <div :class="[
       isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900',
@@ -356,26 +398,28 @@ onUnmounted(() => {
               <!-- 用户名和头像 -->
               <div class="hidden md:flex items-center gap-2 cursor-pointer group" @click="toggleUserMenu">
                 <div class="relative w-9 h-9 rounded-full overflow-hidden border-2 border-indigo-200 group-hover:border-indigo-400 transition-colors">
-                  <div class="w-full h-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-medium">
-                    用
-                  </div>
+                  <img :src="UserInfo.avatar" alt="User Avatar">
                 </div>
-                <span :class="[isDark ? 'text-gray-300 group-hover:text-indigo-400' : 'text-gray-700 group-hover:text-indigo-600', 'text-sm font-medium transition-colors']">用户名</span>
+                <span :class="[isDark ? 'text-gray-300 group-hover:text-indigo-400' : 'text-gray-700 group-hover:text-indigo-600', 'text-sm font-medium transition-colors']">{{UserInfo.name}}</span>
               </div>
 
               <!-- 下拉菜单 -->
               <div v-if="showUserMenu" :class="[isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-100', 'absolute top-full right-0 mt-2 w-48 rounded-lg shadow-xl border overflow-hidden z-50']">
                 <div class="py-2">
-                  <button @click="handleMenuItemClick('profile')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
+                  <button @click="navigateWithTransition('PersonalProfile')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
                     <span>👤</span>
                     <span>个人档案</span>
                   </button>
-                  <button @click="handleMenuItemClick('settings')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
+                  <button @click="navigateWithTransition('Resume')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
+                    <span>👤</span>
+                    <span>个人简历</span>
+                  </button>
+                  <button @click="navigateWithTransition('settings')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
                     <span>⚙️</span>
                     <span>设置</span>
                   </button>
                   <div :class="[isDark ? 'border-gray-800' : 'border-gray-100', 'border-t my-1']"></div>
-                  <button @click="handleMenuItemClick('logout')" :class="[isDark ? 'text-red-400 hover:bg-gray-800' : 'text-red-600 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
+                  <button @click="navigateWithTransition('logout')" :class="[isDark ? 'text-red-400 hover:bg-gray-800' : 'text-red-600 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
                     <span>🚪</span>
                     <span>退出登录</span>
                   </button>

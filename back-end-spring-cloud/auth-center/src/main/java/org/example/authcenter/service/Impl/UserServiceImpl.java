@@ -36,4 +36,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setAvatar(avatarUrl);
         return userMapper.updateById(user) > 0;
     }
+
+    /**
+     * 修改用户信息
+     */
+    @Override
+    public boolean updateUserInfo(User user){
+        if(user.getId()==null) return false;
+        return userMapper.updateById(user) > 0;
+    }
 }

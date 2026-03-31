@@ -1,4 +1,3 @@
-// src/utils/request.js
 import axios from 'axios';
 import { ElMessage } from "element-plus";
 import router from '@/router';
@@ -8,12 +7,12 @@ const TOKEN_KEY = 'token'
 const REFRESH_TOKEN_KEY = 'refresh_token'
 const USER_INFO_KEY = 'user_info'
 
-// 获取 accessToken（优先 sessionStorage，其次 localStorage）
+// 获取 accessToken
 const getToken = () => {
   return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY)
 }
 
-// 获取 refreshToken（始终从 localStorage）
+// 获取 refreshToken
 const getRefreshToken = () => {
   return localStorage.getItem(REFRESH_TOKEN_KEY)
 }
@@ -37,7 +36,7 @@ const clearToken = () => {
   localStorage.removeItem(USER_INFO_KEY)
 }
 
-// 解析 Token 获取过期时间
+// 解析 Token
 const getTokenExpireTime = (token) => {
   if (!token) return null
   try {
@@ -48,36 +47,30 @@ const getTokenExpireTime = (token) => {
   }
 }
 
-// 检查 Token 是否过期
+// 是否过期
 const isTokenExpired = (token) => {
   const expireTime = getTokenExpireTime(token)
   if (!expireTime) return true
   return Date.now() >= expireTime
 }
 
-// 是否正在刷新 Token
+// 刷新队列
 let isRefreshing = false
 let pendingRequests = []
 
-// 处理等待队列
 const processQueue = (error, token = null) => {
   pendingRequests.forEach(callback => {
-    if (error) {
-      callback(error)
-    } else {
-      callback(null, token)
-    }
+    if (error) callback(error)
+    else callback(null, token)
   })
   pendingRequests = []
 }
 
-// 处理未授权
+// 统一登出
 const handleUnauthorized = () => {
   clearToken()
   ElMessage.warning('登录已过期，请重新登录')
-  if (router.currentRoute.value.path !== '/login') {
-    router.push('/login')
-  }
+  router.push('/login')
 }
 
 // 刷新 Token
@@ -85,252 +78,146 @@ const refreshAccessToken = async () => {
   const refreshToken = getRefreshToken()
   if (!refreshToken) {
     handleUnauthorized()
-    throw new Error('No refresh token')
+    throw new Error('无刷新令牌')
   }
 
   try {
-    const response = await axios.post(
-      'http://localhost:8500/api/auth/refresh',
-      {},
-      {
-        headers: { Authorization: `Bearer ${refreshToken}` }
-      }
-    )
+    const res = await axios.post('http://localhost:8500/api/auth/refresh', {}, {
+      headers: { Authorization: `Bearer ${refreshToken}` }
+    })
 
-    if (response.data.code === 200 && response.data.data) {
-      const { accessToken, refreshToken: newRefreshToken, userInfo } = response.data.data
-
-      const isRememberMe = !!localStorage.getItem(TOKEN_KEY)
-      setToken(accessToken, newRefreshToken || refreshToken, isRememberMe)
-
-      if (userInfo) {
-        localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo))
-      }
-
+    if (res.data.code === 200 && res.data.data) {
+      const { accessToken, refreshToken: newRefreshToken } = res.data.data
+      const remember = !!localStorage.getItem(TOKEN_KEY)
+      setToken(accessToken, newRefreshToken || refreshToken, remember)
       return accessToken
     }
-    throw new Error('Refresh failed')
-  } catch (error) {
+    throw new Error('刷新失败')
+  } catch (e) {
     handleUnauthorized()
-    throw error
+    throw e
   }
 }
 
-// 1. 创建 Axios 实例
+// ==========================
+// 创建 axios 实例
+// ==========================
 const service = axios.create({
   baseURL: 'http://localhost:8500/api/',
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json;charset=utf-8'
   }
-});
+})
 
-// 2. 请求拦截器：添加 token
+// ==========================
+// 请求拦截器（只写一次！）
+// ==========================
 service.interceptors.request.use(
   (config) => {
-    if (config.url === 'auth/refresh') {
-      return config
-    }
+    // 刷新接口不处理
+    if (config.url.includes('refresh')) return config
 
     const token = getToken()
     if (token) {
-      if (isTokenExpired(token)) {
-        console.log('Token 已过期，等待响应拦截器处理')
-      }
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
   },
   (error) => {
-    ElMessage.error('请求参数异常，请检查！');
-    return Promise.reject(error);
+    ElMessage.error('请求异常')
+    return Promise.reject(error)
   }
-);
+)
 
-// 3. 响应拦截器
+// ==========================
+// 响应拦截器（只写一次！）
+// ==========================
 service.interceptors.response.use(
   (response) => {
-    const res = response.data;
+    const res = response.data
     if (res.code !== 200) {
+      // 401 处理
       if (res.code === 401) {
-        const originalRequest = response.config
-
-        if (originalRequest._retry) {
+        const original = response.config
+        if (original._retry) {
           handleUnauthorized()
           return Promise.reject(res)
         }
-
-        originalRequest._retry = true
+        original._retry = true
 
         if (isRefreshing) {
           return new Promise((resolve, reject) => {
             pendingRequests.push((err, token) => {
-              if (err) {
-                reject(err)
-              } else {
-                originalRequest.headers.Authorization = `Bearer ${token}`
-                resolve(service(originalRequest))
+              if (err) reject(err)
+              else {
+                original.headers.Authorization = `Bearer ${token}`
+                resolve(service(original))
               }
             })
           })
         }
 
         isRefreshing = true
-
         return refreshAccessToken()
           .then(newToken => {
             processQueue(null, newToken)
-            originalRequest.headers.Authorization = `Bearer ${newToken}`
-            return service(originalRequest)
+            original.headers.Authorization = `Bearer ${newToken}`
+            return service(original)
           })
-          .catch(error => {
-            processQueue(error, null)
-            return Promise.reject(error)
+          .catch(err => {
+            processQueue(err, null)
+            return Promise.reject(err)
           })
           .finally(() => {
             isRefreshing = false
           })
       }
 
-      ElMessage.error(res.msg || res.message || '请求失败');
-      return Promise.reject(res);
+      ElMessage.error(res.msg || '请求失败')
+      return Promise.reject(res)
     }
-    return res;
+    return res
   },
   (error) => {
-    if (error.response?.status === 401) {
-      handleUnauthorized()
-    } else {
-      const errMsg = error.response
-        ? `请求失败 [${error.response.status}]：${error.response.data?.msg || '服务器错误'}`
-        : '网络异常，请检查网络连接！';
-      ElMessage.error(errMsg);
-    }
-    return Promise.reject(error);
+    if (error.response?.status === 401) handleUnauthorized()
+    else ElMessage.error('网络或服务器异常')
+    return Promise.reject(error)
   }
-);
+)
 
-// 4. 通用请求方法封装（支持文件上传）
+// ==========================
+// 通用请求方法
+// ==========================
 const request = {
-  // GET请求
-  get: (url, params = {}, successCallback) => {
-    return service.get(url, { params })
-      .then(res => {
-        successCallback && successCallback(res.msg, res.data);
-        return res;
-      })
-      .catch(err => Promise.reject(err));
+  get(url, params, cb) {
+    return service.get(url, { params }).then(r => { cb && cb(r.msg, r.data); return r })
   },
-
-  // POST请求 - 自动判断是否为 FormData
-  post: (url, data = {}, successCallback, customConfig = {}) => {
-    // 判断是否为 FormData 对象
-    const isFormData = data instanceof FormData
-
-    const config = {
-      ...customConfig,
-      headers: {
-        ...customConfig.headers,
-        // 如果是 FormData，不设置 Content-Type（让浏览器自动设置 boundary）
-        ...(isFormData ? {} : { 'Content-Type': 'application/json' })
-      }
-    }
-
-    return service.post(url, data, config)
-      .then(res => {
-        successCallback && successCallback(res.msg, res.data);
-        return res;
-      })
-      .catch(err => Promise.reject(err));
+  post(url, data, cb, config = {}) {
+    const isForm = data instanceof FormData
+    return service.post(url, data, {
+      ...config,
+      headers: isForm ? {} : { 'Content-Type': 'application/json' }
+    }).then(r => { cb && cb(r.msg, r.data); return r })
   },
-
-  // PUT请求 - 自动判断是否为 FormData
-  put: (url, data = {}, successCallback, customConfig = {}) => {
-    const isFormData = data instanceof FormData
-
-    const config = {
-      ...customConfig,
-      headers: {
-        ...customConfig.headers,
-        ...(isFormData ? {} : { 'Content-Type': 'application/json' })
-      }
-    }
-
-    return service.put(url, data, config)
-      .then(res => {
-        successCallback && successCallback(res.msg, res.data);
-        return res;
-      })
-      .catch(err => Promise.reject(err));
+  put(url, data, cb, config = {}) {
+    const isForm = data instanceof FormData
+    return service.put(url, data, {
+      ...config,
+      headers: isForm ? {} : { 'Content-Type': 'application/json' }
+    }).then(r => { cb && cb(r.msg, r.data); return r })
   },
-
-  // DELETE请求
-  delete: (url, params = {}, successCallback) => {
-    return service.delete(url, { params })
-      .then(res => {
-        successCallback && successCallback(res.msg, res.data);
-        return res;
-      })
-      .catch(err => Promise.reject(err));
+  delete(url, params, cb) {
+    return service.delete(url, { params }).then(r => { cb && cb(r.msg, r.data); return r })
   },
-
-  // ✅ 文件上传专用方法
-  upload: (url, file, onProgress = null, successCallback = null) => {
-    const formData = new FormData()
-    formData.append('file', file)
-
-    const config = {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    }
-
-    if (onProgress && typeof onProgress === 'function') {
-      config.onUploadProgress = (progressEvent) => {
-        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-        onProgress(percent)
-      }
-    }
-
-    return service.post(url, formData, config)
-      .then(res => {
-        successCallback && successCallback(res.msg, res.data)
-        return res
-      })
-      .catch(err => Promise.reject(err))
+  upload(url, file, progress, cb) {
+    const fd = new FormData()
+    fd.append('file', file)
+    const cfg = {}
+    if (progress) cfg.onUploadProgress = e => progress(Math.round(e.loaded / e.total * 100))
+    return service.post(url, fd, cfg).then(r => { cb && cb(r.msg, r.data); return r })
   },
+  _utils: { getToken, setToken, clearToken, isTokenExpired }
+}
 
-  // ✅ 多文件上传
-  uploadMultiple: (url, files, onProgress = null, successCallback = null) => {
-    const formData = new FormData()
-    files.forEach(file => {
-      formData.append('files', file)
-    })
-
-    const config = {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    }
-
-    if (onProgress && typeof onProgress === 'function') {
-      config.onUploadProgress = (progressEvent) => {
-        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-        onProgress(percent)
-      }
-    }
-
-    return service.post(url, formData, config)
-      .then(res => {
-        successCallback && successCallback(res.msg, res.data)
-        return res
-      })
-      .catch(err => Promise.reject(err))
-  },
-
-  // 导出工具方法
-  _utils: {
-    getToken,
-    setToken,
-    clearToken,
-    isTokenExpired
-  }
-};
-
-export default request;
+export default request

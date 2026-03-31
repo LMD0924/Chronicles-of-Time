@@ -20,4 +20,9 @@ public interface UserService extends IService<User> {
      * 上传头像
      */
     boolean uploadAvatar(Long userId,String avatarUrl);
+
+    /**
+     * 修改用户信息
+     */
+    boolean updateUserInfo(User user);
 }
