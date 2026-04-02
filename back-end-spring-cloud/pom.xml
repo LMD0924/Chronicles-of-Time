@@ -19,6 +19,7 @@
         <module>gateway</module>
         <module>file-upload</module>
         <module>user-center</module>
+        <module>high-service</module>
     </modules>
 
     <properties>

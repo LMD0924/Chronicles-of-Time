@@ -38,6 +38,16 @@ const router = createRouter({
       component: () => import('@/views/auth/Resume.vue')
     },
     {
+      path:'/HighRecords',
+      name:'高中记录',
+      component: () => import('@/views/high/HighRecords.vue')
+    },
+    {
+      path:'/CourseSelection',
+      name:'选科',
+      component: () => import('@/views/high/CourseSelection/CourseSelection.vue')
+    },
+    {
       path: '/test',
       name: '测试',
       component: () => import('@/views/test.vue')

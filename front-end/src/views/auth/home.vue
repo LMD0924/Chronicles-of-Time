@@ -27,21 +27,6 @@ const isDark = ref(getStoredTheme() === ThemeType.DARK)
 const texts = ref(['拾光记 · 成长时光机'])
 const UserInfo = ref({})
 const [MessageApi,contextHolder] = message.useMessage();
-// 带过渡效果的导航 - 修改这个函数
-const navigateWithTransition = (path) => {
-  closeUserMenu()
-  if (transitionRef.value) {
-    // 显示过渡层
-    transitionRef.value.show()
-    // 延迟跳转，让过渡动画显示足够长时间
-    setTimeout(() => {
-      router.push(path)
-    }, 3000)  // 1.5秒后跳转，配合组件的duration
-  } else {
-    // 如果没有过渡组件，直接跳转
-    router.push(path)
-  }
-}
 
 // 动画统计数据
 const animatedStats = ref({
@@ -67,11 +52,36 @@ const timelineNodes = [
 
 // 人生阶段
 const lifeStages = [
-  { icon: '📚', name: '高中时代', years: '15-18岁' },
-  { icon: '🎓', name: '大学时光', years: '18-22岁' },
-  { icon: '💼', name: '职场新人', years: '22-25岁' },
-  { icon: '🚀', name: '进阶之路', years: '25岁+' }
+  { icon: '📚', name: '高中时代', years: '15-18岁', path: '/HighRecords' },
+  { icon: '🎓', name: '大学时光', years: '18-22岁', path: '/bigRecords' },
+  { icon: '💼', name: '职场新人', years: '22-25岁', path: '/WorkRecords' },
+  { icon: '🚀', name: '进阶之路', years: '25岁+', path: '/AdvanceRecords' }
 ]
+
+// 带过渡效果的导航
+const navigateWithTransition = (path) => {
+  if (transitionRef.value) {
+    // 显示过渡层
+    transitionRef.value.show()
+    // 延迟跳转，让过渡动画显示足够长时间
+    setTimeout(() => {
+      router.push(path)
+    }, 3000) // 3秒后跳转，配合组件的duration
+  } else {
+    // 如果没有过渡组件，直接跳转
+    router.push(path)
+  }
+}
+
+// 处理阶段点击
+const handleStageClick = (stage, idx) => {
+  activeStage.value = idx
+
+  // 如果该阶段配置了路径，则跳转
+  if (stage.path) {
+    navigateWithTransition(stage.path)
+  }
+}
 
 // 时光轴数据
 const timelineData = [
@@ -228,25 +238,6 @@ const closeUserMenu = () => {
   showUserMenu.value = false
 }
 
-// 处理菜单项点击
-const handleMenuItemClick = (action) => {
-
-  switch (action) {
-    case 'profile':
-      router.push('/PersonalProfile')
-      break
-    case 'settings':
-      router.push('/settings')
-      break
-    case 'Resume':
-      router.push('/Resume')
-      break
-    case 'logout':
-      console.log('退出登录')
-      break
-  }
-}
-
 // 点击页面其他地方关闭菜单
 const handleClickOutside = (event) => {
   const userMenu = document.querySelector('.user-menu-container')
@@ -338,6 +329,7 @@ onUnmounted(() => {
       isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900',
       'min-h-screen transition-colors duration-300'
     ]">
+
       <!-- 导航栏 -->
       <nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" :class="[
         isScrolled
@@ -506,22 +498,33 @@ onUnmounted(() => {
       <section class="py-16" :class="isDark ? 'bg-black' : 'bg-white'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
           <div class="flex justify-center gap-5 flex-wrap">
-            <div v-for="(stage, idx) in lifeStages" :key="idx"
-                 class="px-8 py-5 rounded-2xl text-center cursor-pointer transition-all min-w-[140px]"
-                 :class="[
-                   isDark
-                     ? activeStage === idx
-                       ? 'bg-black border-indigo-400 shadow-lg -translate-y-1'
-                       : 'bg-gray-900 border-gray-700 hover:border-indigo-500'
-                     : activeStage === idx
-                       ? 'bg-white/10 border-white/50 shadow-lg -translate-y-1'
-                       : 'bg-gray-50 border-gray-200 hover:border-indigo-400',
-                   'border hover:shadow-lg hover:-translate-y-1'
-                 ]"
-                 @click="activeStage = idx">
-              <div class="text-3xl mb-2">{{ stage.icon }}</div>
-              <div class="font-semibold mb-1" :class="isDark ? 'text-white' : 'text-gray-800'">{{ stage.name }}</div>
-              <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-500'">{{ stage.years }}</div>
+            <div class="flex justify-center gap-5 flex-wrap">
+              <div
+                v-for="(stage, idx) in lifeStages"
+                :key="idx"
+                class="px-8 py-5 rounded-2xl text-center cursor-pointer transition-all min-w-[140px]"
+                :class="[
+          isDark
+            ? activeStage === idx
+              ? 'bg-black border-indigo-400 shadow-lg -translate-y-1'
+              : 'bg-gray-900 border-gray-700 hover:border-indigo-500'
+            : activeStage === idx
+              ? 'bg-white/10 border-white/50 shadow-lg -translate-y-1'
+              : 'bg-gray-50 border-gray-200 hover:border-indigo-400',
+          'border hover:shadow-lg hover:-translate-y-1'
+        ]"
+                @click="handleStageClick(stage, idx)">
+                <div class="text-3xl mb-2">{{ stage.icon }}</div>
+                <div class="font-semibold mb-1" :class="isDark ? 'text-white' : 'text-gray-800'">{{ stage.name }}</div>
+                <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-500'">{{ stage.years }}</div>
+
+                <!-- 跳转指示器 -->
+                <div v-if="stage.path" class="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <svg class="w-4 h-4 mx-auto" :class="isDark ? 'text-indigo-400' : 'text-indigo-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
         </div>

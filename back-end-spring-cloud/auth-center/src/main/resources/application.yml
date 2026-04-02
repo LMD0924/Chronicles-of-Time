@@ -34,7 +34,7 @@ mybatis-plus:
 
 jwt:
   secret: mySecretKeyForJWTGenerationWithEnoughLength12345678
-  expiration: 900000       # 1小时
+  expiration: 3600000       # 1小时
   refreshExpiration: 604800000  # 7天
 
 logging:
