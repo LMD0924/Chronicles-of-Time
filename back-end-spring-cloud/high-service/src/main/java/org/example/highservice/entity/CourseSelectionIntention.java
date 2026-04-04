@@ -18,7 +18,6 @@ public class CourseSelectionIntention {
     private Long studentId;
     private String studentName;
     private String grade;
-    private String className;
     private String firstSubjectIntention;
 
     // ====================== 【核心修复：手动绑定数据库字段】======================

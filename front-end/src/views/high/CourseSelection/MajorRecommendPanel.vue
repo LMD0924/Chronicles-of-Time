@@ -33,8 +33,6 @@ const fetchRecommendations = async () => {
 
   loading.value = true
   try {
-    // 不依赖 advice 接口，直接用当前选科组合去匹配专业
-    // MajorRequirementController: GET /api/major/match
     const res = await request.get('/major/match', {
       firstSubject: currentSelection.value.firstSubjectName,
       subject1Id: currentSelection.value.firstSubjectId,
@@ -81,12 +79,19 @@ const fetchHotMajors = async () => {
 
 const getUniversityLevelClass = (level) => {
   const map = {
-    '985': 'bg-amber-100 text-amber-600',
-    '211': 'bg-emerald-100 text-emerald-600',
-    '双一流': 'bg-blue-100 text-blue-600',
-    '普通': 'bg-gray-100 text-gray-600'
+    '985': 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
+    '211': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+    '双一流': 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
+    '普通': 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
   }
-  return map[level] || 'bg-gray-100 text-gray-600'
+  return map[level] || 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+}
+
+const getMatchingScoreColor = (score) => {
+  if (score >= 80) return 'from-green-500 to-emerald-500'
+  if (score >= 60) return 'from-blue-500 to-cyan-500'
+  if (score >= 40) return 'from-yellow-500 to-amber-500'
+  return 'from-gray-500 to-gray-600'
 }
 
 watch(() => props.studentId, (val) => {
@@ -96,51 +101,93 @@ watch(() => props.studentId, (val) => {
   }
 }, { immediate: true })
 </script>
+
 <template>
   <div class="space-y-6">
     <!-- 当前选科组合 -->
-    <div v-if="currentSelection" class="rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 p-4">
-      <div class="flex items-center gap-2 mb-2">
-        <span class="text-xl">🎯</span>
-        <span class="font-semibold">当前选科组合</span>
+    <div v-if="currentSelection" class="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/5 dark:to-purple-500/5 rounded-2xl p-5 border border-indigo-200/30 dark:border-indigo-500/20">
+      <div class="flex items-center gap-3 mb-3">
+        <span class="text-2xl">🎯</span>
+        <span class="font-semibold text-gray-800 dark:text-gray-200">当前选科组合</span>
+        <span class="px-2 py-0.5 rounded-full text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">已选</span>
       </div>
-      <div class="flex flex-wrap gap-3 mt-2">
-        <span class="px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40">{{ currentSelection.firstSubjectName }}</span>
-        <span class="px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40">{{ currentSelection.secondSubject1Name }}</span>
-        <span class="px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40">{{ currentSelection.secondSubject2Name }}</span>
+      <div class="flex flex-wrap gap-3 mt-3">
+        <span class="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-medium shadow-md">
+          {{ currentSelection.firstSubjectName }}
+        </span>
+        <span class="px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white font-medium shadow-md">
+          {{ currentSelection.secondSubject1Name }}
+        </span>
+        <span class="px-4 py-2 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 text-white font-medium shadow-md">
+          {{ currentSelection.secondSubject2Name }}
+        </span>
       </div>
-      <p class="text-sm text-slate-600 dark:text-slate-300 mt-2">组合名称：{{ currentSelection.combinationName }}</p>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mt-3 flex items-center gap-2">
+        <span class="text-base">📋</span>
+        组合名称：{{ currentSelection.combinationName }}
+      </p>
     </div>
 
     <!-- 推荐专业 -->
     <div>
-      <h3 class="text-lg font-semibold mb-3">🎓 推荐专业</h3>
-      <div v-if="loading" class="flex justify-center py-8">
-        <div class="w-8 h-8 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl">🎓</span>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">推荐专业</h3>
+        <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400">智能匹配</span>
       </div>
-      <div v-else-if="recommendedMajors.length === 0" class="text-center py-8 text-slate-500">
-        暂无推荐专业，请先完成选课
+
+      <div v-if="loading" class="flex justify-center py-12">
+        <div class="flex flex-col items-center gap-3">
+          <div class="w-10 h-10 border-3 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">正在分析匹配专业...</p>
+        </div>
       </div>
+
+      <div v-else-if="recommendedMajors.length === 0" class="text-center py-12 bg-gray-50/50 dark:bg-gray-800/30 rounded-2xl">
+        <span class="text-5xl opacity-50">📭</span>
+        <p class="mt-3 text-gray-500 dark:text-gray-400">暂无推荐专业，请先完成选课</p>
+      </div>
+
       <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div v-for="major in recommendedMajors" :key="major.id"
-             class="rounded-xl bg-white/70 dark:bg-white/10 backdrop-blur-sm border border-white/30 p-4 hover:shadow-lg transition-all">
-          <div class="flex items-start justify-between mb-2">
-            <div>
-              <div class="font-semibold text-lg">{{ major.majorName }}</div>
-              <div class="text-sm text-slate-500">{{ major.universityName }}</div>
+             class="group bg-white/60 dark:bg-gray-800/40 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 p-4 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex-1">
+              <div class="font-bold text-lg text-gray-800 dark:text-gray-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                {{ major.majorName }}
+              </div>
+              <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{{ major.universityName }}</div>
             </div>
-            <span class="px-2 py-1 rounded-full text-xs" :class="getUniversityLevelClass(major.universityLevel)">
+            <span class="px-2.5 py-1 rounded-full text-xs font-medium" :class="getUniversityLevelClass(major.universityLevel)">
               {{ major.universityLevel }}
             </span>
           </div>
-          <div class="text-sm text-slate-600 dark:text-slate-300 mt-2">
-            <div>📚 专业类别：{{ major.category }}</div>
-            <div>📖 选科要求：{{ major.firstSubjectRequired }} + {{ major.secondSubjectRequired }}</div>
-            <div v-if="major.matchedSubjects" class="mt-1">
-              🎯 匹配科目：{{ major.matchedSubjects }}
+
+          <div class="space-y-2 text-sm">
+            <div class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+              <span>📚</span>
+              <span>专业类别：{{ major.category }}</span>
             </div>
-            <div v-if="major.avgMatchingScore" class="mt-1">
-              匹配度：{{ major.avgMatchingScore }}%
+            <div class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+              <span>📖</span>
+              <span>选科要求：{{ major.firstSubjectRequired }} + {{ major.secondSubjectRequired }}</span>
+            </div>
+            <div v-if="major.matchedSubjects" class="flex items-center gap-2 text-green-600 dark:text-green-400">
+              <span>✅</span>
+              <span>匹配科目：{{ major.matchedSubjects }}</span>
+            </div>
+            <div v-if="major.avgMatchingScore" class="mt-2">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs text-gray-500 dark:text-gray-400">匹配度</span>
+                <span class="text-sm font-semibold" :class="major.avgMatchingScore >= 60 ? 'text-green-600 dark:text-green-400' : 'text-yellow-600'">
+                  {{ major.avgMatchingScore }}%
+                </span>
+              </div>
+              <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r rounded-full transition-all duration-500"
+                     :class="getMatchingScoreColor(major.avgMatchingScore)"
+                     :style="{ width: major.avgMatchingScore + '%' }"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -148,52 +195,96 @@ watch(() => props.studentId, (val) => {
     </div>
 
     <!-- 按专业搜索 -->
-    <div class="rounded-xl bg-white/70 dark:bg-white/10 backdrop-blur-sm border border-white/30 p-4">
-      <h3 class="text-lg font-semibold mb-3">🔍 搜索专业</h3>
-      <div class="flex gap-3">
-        <input v-model="searchKeyword" type="text"
-               class="flex-1 px-4 py-2 rounded-xl border dark:border-slate-600 dark:bg-slate-800"
-               placeholder="输入专业名称、专业代码或类别" @keyup.enter="searchMajors">
-        <button @click="searchMajors"
-                class="px-6 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all">
-          搜索
-        </button>
+    <div class="bg-white/60 dark:bg-gray-800/40 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+      <div class="flex items-center gap-3 px-5 py-4 bg-gradient-to-r from-blue-50/50 to-cyan-50/50 dark:from-blue-950/20 dark:to-cyan-950/20 border-b border-gray-200/50 dark:border-gray-700/50">
+        <span class="text-2xl">🔍</span>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">搜索专业</h3>
+        <span class="ml-auto text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400">全国高校</span>
       </div>
 
-      <div v-if="searchResults.length > 0" class="mt-4 space-y-3">
-        <div v-for="major in searchResults" :key="major.id"
-             class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/40">
-          <div class="flex items-start justify-between">
-            <div>
-              <div class="font-medium">{{ major.majorName }}</div>
-              <div class="text-sm text-slate-500">{{ major.universityName }}</div>
+      <div class="p-5">
+        <div class="flex gap-3">
+          <input v-model="searchKeyword" type="text"
+                 class="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                 placeholder="输入专业名称、专业代码或类别..." @keyup.enter="searchMajors">
+          <button @click="searchMajors"
+                  class="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200">
+            🔍 搜索
+          </button>
+        </div>
+
+        <div v-if="searchResults.length > 0" class="mt-5 space-y-3">
+          <div v-for="major in searchResults" :key="major.id"
+               class="p-4 rounded-xl bg-gray-50/50 dark:bg-gray-900/30 border border-gray-200/50 dark:border-gray-700/50 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div class="flex-1">
+                <div class="font-semibold text-gray-800 dark:text-gray-200">{{ major.majorName }}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{{ major.universityName }}</div>
+              </div>
+              <span class="text-xs font-mono text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{{ major.majorCode }}</span>
             </div>
-            <span class="text-xs text-slate-500">{{ major.majorCode }}</span>
+            <div class="text-sm mt-2 flex items-center gap-2 text-gray-600 dark:text-gray-300">
+              <span>📖</span>
+              <span>选科要求：{{ major.firstSubjectRequired }} + {{ major.secondSubjectRequired }}</span>
+            </div>
           </div>
-          <div class="text-sm mt-1">
-            <span class="text-slate-500">选科要求：</span>
-            {{ major.firstSubjectRequired }} + {{ major.secondSubjectRequired }}
-          </div>
+        </div>
+
+        <div v-else-if="searchKeyword && searchResults.length === 0" class="mt-5 text-center py-8 text-gray-500 dark:text-gray-400">
+          <span class="text-4xl opacity-50">🔍</span>
+          <p class="mt-2">未找到相关专业，请尝试其他关键词</p>
         </div>
       </div>
     </div>
 
     <!-- 热门专业排行 -->
     <div>
-      <h3 class="text-lg font-semibold mb-3">🔥 热门专业排行</h3>
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl">🔥</span>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">热门专业排行</h3>
+        <span class="px-2 py-0.5 rounded-full text-xs bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400">实时热度</span>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div v-for="(major, index) in hotMajors" :key="index"
-             class="flex items-center gap-3 p-3 rounded-xl bg-white/70 dark:bg-white/10 backdrop-blur-sm border border-white/30">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center justify-center font-bold">
-            {{ index + 1 }}
+             class="group flex items-center gap-4 p-4 rounded-xl bg-white/60 dark:bg-gray-800/40 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+          <div class="flex-shrink-0">
+            <div v-if="index === 0" class="w-10 h-10 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-white flex items-center justify-center text-lg shadow-lg">🥇</div>
+            <div v-else-if="index === 1" class="w-10 h-10 rounded-full bg-gradient-to-r from-gray-400 to-gray-500 text-white flex items-center justify-center text-lg shadow-lg">🥈</div>
+            <div v-else-if="index === 2" class="w-10 h-10 rounded-full bg-gradient-to-r from-amber-600 to-amber-700 text-white flex items-center justify-center text-lg shadow-lg">🥉</div>
+            <div v-else class="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center justify-center font-bold shadow-md">{{ index + 1 }}</div>
           </div>
           <div class="flex-1">
-            <div class="font-medium">{{ major.major_name }}</div>
-            <div class="text-sm text-slate-500">{{ major.category }}</div>
+            <div class="font-semibold text-gray-800 dark:text-gray-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              {{ major.major_name }}
+            </div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">{{ major.category }}</div>
           </div>
-          <div class="text-sm text-indigo-600">{{ major.count }}所院校</div>
+          <div class="text-right">
+            <div class="text-sm font-semibold text-indigo-600 dark:text-indigo-400">{{ major.count }}所院校</div>
+            <div class="text-xs text-gray-400 dark:text-gray-500">开设院校</div>
+          </div>
         </div>
+      </div>
+
+      <div v-if="hotMajors.length === 0" class="text-center py-8 bg-gray-50/50 dark:bg-gray-800/30 rounded-2xl">
+        <span class="text-4xl opacity-50">🔥</span>
+        <p class="mt-2 text-gray-500 dark:text-gray-400">暂无热门专业数据</p>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 0.8s linear infinite;
+}
+
+.border-3 {
+  border-width: 3px;
+}
+</style>

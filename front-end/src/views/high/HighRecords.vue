@@ -265,7 +265,7 @@ onMounted(() => {
     <!-- 共用导航栏 -->
     <HighNav :isDark="isDark" />
     
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-28">
+    <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-28">
       <!-- 头部区域 -->
       <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
         <div class="space-y-2">

@@ -48,6 +48,12 @@ const router = createRouter({
       component: () => import('@/views/high/CourseSelection/CourseSelection.vue')
     },
     {
+      path:'/StudyDashboard',
+      name:'学习仪表盘',
+      component: () => import('@/views/high/StudyDashboard/StudyDashboard.vue')
+    },
+
+    {
       path: '/test',
       name: '测试',
       component: () => import('@/views/test.vue')
