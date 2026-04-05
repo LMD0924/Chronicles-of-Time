@@ -134,7 +134,7 @@ watch(() => props.studentId, fetchList, { immediate: true })
 </script>
 
 <template>
-  <div class="intention-container space-y-4">
+  <div class="cs-panel intention-container space-y-4">
     <!-- 意向填报表单 -->
     <div class="form-card">
       <div class="form-header">

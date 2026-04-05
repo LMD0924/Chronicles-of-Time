@@ -52,6 +52,11 @@ const router = createRouter({
       name:'学习仪表盘',
       component: () => import('@/views/high/StudyDashboard/StudyDashboard.vue')
     },
+    {
+      path:'/Volunteer',
+      name:'志愿填报',
+      component: () => import('@/views/high/volunteer/volunteer.vue')
+    },
 
     {
       path: '/test',

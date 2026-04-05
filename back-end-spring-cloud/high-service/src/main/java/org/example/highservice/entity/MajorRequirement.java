@@ -59,13 +59,11 @@ public class MajorRequirement {
     /**
      * 匹配度均值（仅在 match 查询里返回）
      */
-    @TableField(exist = false)
     private Double avgMatchingScore;
 
     /**
      * 匹配科目列表（仅在 match 查询里返回）
      */
-    @TableField(exist = false)
     private String matchedSubjects;
 
     /**

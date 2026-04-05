@@ -193,12 +193,37 @@ const request = {
   get(url, params, cb) {
     return service.get(url, { params }).then(r => { cb && cb(r.msg, r.data); return r })
   },
-  post(url, data, cb, config = {}) {
+  post(url, data, paramsOrCb, cbOrConfig, config = {}) {
+    let params = null
+    let cb = null
+    let finalConfig = config
+    
+    // 处理参数重载
+    if (typeof paramsOrCb === 'function') {
+      cb = paramsOrCb
+      if (typeof cbOrConfig === 'object') {
+        finalConfig = cbOrConfig
+      }
+    } else if (typeof paramsOrCb === 'object') {
+      params = paramsOrCb
+      if (typeof cbOrConfig === 'function') {
+        cb = cbOrConfig
+      } else if (typeof cbOrConfig === 'object') {
+        finalConfig = cbOrConfig
+      }
+    }
+    
     const isForm = data instanceof FormData
-    return service.post(url, data, {
-      ...config,
+    const axiosConfig = {
+      ...finalConfig,
       headers: isForm ? {} : { 'Content-Type': 'application/json' }
-    }).then(r => { cb && cb(r.msg, r.data); return r })
+    }
+    
+    if (params) {
+      axiosConfig.params = params
+    }
+    
+    return service.post(url, data, axiosConfig).then(r => { cb && cb(r.msg, r.data); return r })
   },
   put(url, data, cb, config = {}) {
     const isForm = data instanceof FormData

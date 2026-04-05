@@ -1,5 +1,192 @@
+<template>
+  <div class="min-h-screen relative overflow-x-hidden" :class="isDark ? 'dark' : ''">
+    <div class="fixed inset-0 bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/40 -z-10"></div>
+
+    <HighNav :isDark="isDark" />
+
+    <div class="max-w-[min(92vw,1420px)] mx-auto px-4 sm:px-6 lg:px-10 py-20 md:py-24">
+      <!-- 头部 -->
+      <div class="mb-8 md:mb-10">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm mb-4 ring-1 ring-slate-200/60 dark:ring-slate-600/40">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span class="text-xs font-medium text-slate-600 dark:text-slate-300">3+1+2新高考选课系统</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent tracking-tight">
+          新高考选课系统
+        </h1>
+        <p class="text-slate-500 dark:text-slate-400 mt-2 text-sm sm:text-base max-w-2xl">物理/历史二选一 · 化学/生物/政治/地理四选二</p>
+      </div>
+
+      <!-- 统计卡片 -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 md:mb-8">
+        <div class="rounded-xl p-4 bg-white/50 dark:bg-white/10 backdrop-blur-sm border border-white/20">
+          <div class="text-2xl mb-1">📊</div>
+          <div class="text-2xl font-bold">{{ statistics.totalStudents || 0 }}</div>
+          <div class="text-xs text-slate-500">总选课人数</div>
+        </div>
+        <div class="rounded-xl p-4 bg-white/50 dark:bg-white/10 backdrop-blur-sm border border-white/20">
+          <div class="text-2xl mb-1">🏆</div>
+          <div class="text-2xl font-bold">{{ statistics.confirmedCount || 0 }}</div>
+          <div class="text-xs text-slate-500">已确认人数</div>
+        </div>
+        <div class="rounded-xl p-4 bg-white/50 dark:bg-white/10 backdrop-blur-sm border border-white/20">
+          <div class="text-2xl mb-1">📚</div>
+          <div class="text-2xl font-bold">{{ statistics.combinationCount || 0 }}</div>
+          <div class="text-xs text-slate-500">可选组合</div>
+        </div>
+        <div class="rounded-xl p-4 bg-white/50 dark:bg-white/10 backdrop-blur-sm border border-white/20">
+          <div class="text-2xl mb-1">🎯</div>
+          <div class="text-2xl font-bold">{{ statistics.hotCombination || '物化生' }}</div>
+          <div class="text-xs text-slate-500">最热门组合</div>
+        </div>
+      </div>
+
+      <!-- 左侧菜单 + 右侧内容 -->
+      <el-container class="selection-container">
+        <el-aside width="280px" class="selection-sidebar">
+          <!-- 方案1：使用 @select 事件 -->
+          <el-menu
+            :default-active="activeTab"
+            class="selection-menu"
+            :background-color="isDark ? '#1e293b' : '#ffffff'"
+            :text-color="isDark ? '#94a3b8' : '#334155'"
+            :active-text-color="isDark ? '#818cf8' : '#6366f1'"
+            mode="vertical"
+            @select="handleMenuSelect"
+          >
+            <el-menu-item index="mySelection" class="menu-item">
+              <span class="menu-icon">📝</span>
+              <span>我的选课</span>
+            </el-menu-item>
+
+            <el-menu-item index="selectionCenter" class="menu-item">
+              <span class="menu-icon">🎯</span>
+              <span>选课中心</span>
+            </el-menu-item>
+
+            <el-menu-item index="majorRecommend" class="menu-item">
+              <span class="menu-icon">🎓</span>
+              <span>专业推荐</span>
+            </el-menu-item>
+
+            <el-menu-item index="intention" class="menu-item">
+              <span class="menu-icon">🧭</span>
+              <span>选课意向</span>
+            </el-menu-item>
+
+            <el-menu-item index="guidance" class="menu-item">
+              <span class="menu-icon">👨‍🏫</span>
+              <span>选科指导</span>
+            </el-menu-item>
+
+            <el-menu-item index="statistics" class="menu-item">
+              <span class="menu-icon">📈</span>
+              <span>统计分析</span>
+            </el-menu-item>
+
+            <el-menu-item index="history" class="menu-item">
+              <span class="menu-icon">📜</span>
+              <span>历史记录</span>
+            </el-menu-item>
+
+            <el-menu-item v-if="isAdmin" index="approval" class="menu-item">
+              <span class="menu-icon">✅</span>
+              <span>审批管理</span>
+            </el-menu-item>
+
+            <el-menu-item index="grading" class="menu-item">
+              <span class="menu-icon">🧮</span>
+              <span>赋分规则</span>
+            </el-menu-item>
+
+            <el-menu-item index="majorAdmin" class="menu-item">
+              <span class="menu-icon">🧩</span>
+              <span>专业库管理</span>
+            </el-menu-item>
+          </el-menu>
+        </el-aside>
+
+        <el-main class="selection-content">
+          <!-- 使用 v-if 而不是 v-show，确保完全重新渲染 -->
+          <MySelectionPanel
+            v-if="activeTab === 'mySelection'"
+            :isDark="isDark"
+            :studentId="currentStudentId"
+            @refresh="fetchMySelection"
+            @edit="openEditDialog"
+          />
+
+          <SelectionCenterPanel
+            v-if="activeTab === 'selectionCenter'"
+            :isDark="isDark"
+            :studentId="currentStudentId"
+            @success="handleSelectionSuccess"
+          />
+
+          <MajorRecommendPanel
+            v-if="activeTab === 'majorRecommend'"
+            :isDark="isDark"
+            :studentId="currentStudentId"
+          />
+
+          <CourseSelectionIntentionPanel
+            v-if="activeTab === 'intention'"
+            :isDark="isDark"
+            :studentId="currentStudentId"
+            :studentName="User?.username || User?.nickname || User?.name || ''"
+          />
+
+          <CourseGuidancePanel
+            v-if="activeTab === 'guidance'"
+            :isDark="isDark"
+            :studentId="currentStudentId"
+            :studentName="User?.username || User?.nickname || User?.name || ''"
+          />
+
+          <StatisticsPanel
+            v-if="activeTab === 'statistics'"
+            :isDark="isDark"
+          />
+
+          <HistoryPanel
+            v-if="activeTab === 'history'"
+            :isDark="isDark"
+            :studentId="currentStudentId"
+          />
+
+          <ApprovalPanel
+            v-if="activeTab === 'approval' && isAdmin"
+            :isDark="isDark"
+          />
+
+          <GradingScalePanel
+            v-if="activeTab === 'grading'"
+          />
+
+          <MajorAdminPanel
+            v-if="activeTab === 'majorAdmin'"
+          />
+        </el-main>
+      </el-container>
+    </div>
+
+    <el-dialog v-model="editDialogVisible" title="修改选课" width="700px" :class="{ 'dark-dialog': isDark }">
+      <EditSelectionForm
+        v-if="editSelectionData"
+        :selectionData="editSelectionData"
+        :isDark="isDark"
+        @success="handleEditSuccess"
+        @cancel="editDialogVisible = false"
+      />
+    </el-dialog>
+  </div>
+</template>
+
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 import HighNav from '@/components/HighNav.vue'
@@ -36,15 +223,19 @@ const statistics = ref({
   hotCombination: '物化生'
 })
 
-//获取用户信息
-const getUserInfo=()=>{
-  return request.get('/user/getUserById',{},(message,data)=>{
-    User.value=data || {}
+// 处理菜单选择
+const handleMenuSelect = (index) => {
+  console.log('菜单被点击:', index)
+  activeTab.value = index
+}
+
+const getUserInfo = () => {
+  return request.get('/user/getUserById', {}, (message, data) => {
+    User.value = data || {}
     currentStudentId.value = data?.id != null ? String(data.id) : ''
   })
 }
 
-// 获取我的选课
 const fetchMySelection = async () => {
   try {
     const res = await request.get(`/selection/student/${currentStudentId.value}`)
@@ -56,7 +247,6 @@ const fetchMySelection = async () => {
   }
 }
 
-// 获取统计数据
 const fetchStatistics = async () => {
   try {
     const res = await request.get('/selection/statistics/grade', {
@@ -96,6 +286,10 @@ const handleEditSuccess = () => {
   ElMessage.success('修改成功')
 }
 
+watch(activeTab, (newValue, oldValue) => {
+  console.log('activeTab changed:', oldValue, '->', newValue)
+})
+
 onMounted(async () => {
   await getUserInfo()
   if (currentStudentId.value) {
@@ -105,147 +299,27 @@ onMounted(async () => {
 })
 </script>
 
-<template>
-  <div class="min-h-screen relative overflow-x-hidden" :class="isDark ? 'dark' : ''">
-    <!-- 纯黑渐变背景 -->
-    <div class="fixed inset-0 bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-black dark:via-black dark:to-black -z-10"></div>
-
-    <HighNav :isDark="isDark" />
-
-    <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-28">
-      <div class="mb-8">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/40 dark:bg-black/40 backdrop-blur-sm mb-4">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span class="text-xs font-medium text-slate-600 dark:text-white/80">3+1+2新高考选课系统</span>
-        </div>
-        <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-          新高考选课系统
-        </h1>
-        <p class="text-slate-500 dark:text-white/60 mt-2">物理/历史二选一 · 化学/生物/政治/地理四选二</p>
-      </div>
-
-      <!-- 统计卡片 - 纯黑模式 -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="rounded-xl p-4 bg-white/50 dark:bg-black/50 backdrop-blur-sm border border-white/20 dark:border-white/10">
-          <div class="text-2xl mb-1">📊</div>
-          <div class="text-2xl font-bold text-black dark:text-white">{{ statistics.totalStudents || 0 }}</div>
-          <div class="text-xs text-slate-500 dark:text-white/60">总选课人数</div>
-        </div>
-        <div class="rounded-xl p-4 bg-white/50 dark:bg-black/50 backdrop-blur-sm border border-white/20 dark:border-white/10">
-          <div class="text-2xl mb-1">🏆</div>
-          <div class="text-2xl font-bold text-black dark:text-white">{{ statistics.confirmedCount || 0 }}</div>
-          <div class="text-xs text-slate-500 dark:text-white/60">已确认人数</div>
-        </div>
-        <div class="rounded-xl p-4 bg-white/50 dark:bg-black/50 backdrop-blur-sm border border-white/20 dark:border-white/10">
-          <div class="text-2xl mb-1">📚</div>
-          <div class="text-2xl font-bold text-black dark:text-white">{{ statistics.combinationCount || 0 }}</div>
-          <div class="text-xs text-slate-500 dark:text-white/60">可选组合</div>
-        </div>
-        <div class="rounded-xl p-4 bg-white/50 dark:bg-black/50 backdrop-blur-sm border border-white/20 dark:border-white/10">
-          <div class="text-2xl mb-1">🎯</div>
-          <div class="text-2xl font-bold text-black dark:text-white">{{ statistics.hotCombination || '物化生' }}</div>
-          <div class="text-xs text-slate-500 dark:text-white/60">最热门组合</div>
-        </div>
-      </div>
-
-      <el-container class="selection-container">
-        <!-- 左侧纯原生菜单 -->
-        <el-aside width="280px" class="selection-sidebar">
-          <div class="selection-menu">
-            <div class="menu-item" :class="{ active: activeTab === 'mySelection' }" @click="activeTab = 'mySelection'">
-              <span class="menu-icon">📝</span>
-              <span>我的选课</span>
-            </div>
-            <div class="menu-item" :class="{ active: activeTab === 'selectionCenter' }" @click="activeTab = 'selectionCenter'">
-              <span class="menu-icon">🎯</span>
-              <span>选课中心</span>
-            </div>
-            <div class="menu-item" :class="{ active: activeTab === 'majorRecommend' }" @click="activeTab = 'majorRecommend'">
-              <span class="menu-icon">🎓</span>
-              <span>专业推荐</span>
-            </div>
-            <div class="menu-item" :class="{ active: activeTab === 'intention' }" @click="activeTab = 'intention'">
-              <span class="menu-icon">🧭</span>
-              <span>选课意向</span>
-            </div>
-            <div class="menu-item" :class="{ active: activeTab === 'guidance' }" @click="activeTab = 'guidance'">
-              <span class="menu-icon">👨‍🏫</span>
-              <span>选科指导</span>
-            </div>
-            <div class="menu-item" :class="{ active: activeTab === 'statistics' }" @click="activeTab = 'statistics'">
-              <span class="menu-icon">📈</span>
-              <span>统计分析</span>
-            </div>
-            <div class="menu-item" :class="{ active: activeTab === 'history' }" @click="activeTab = 'history'">
-              <span class="menu-icon">📜</span>
-              <span>历史记录</span>
-            </div>
-            <div v-if="isAdmin" class="menu-item" :class="{ active: activeTab === 'approval' }" @click="activeTab = 'approval'">
-              <span class="menu-icon">✅</span>
-              <span>审批管理</span>
-            </div>
-            <div class="menu-item" :class="{ active: activeTab === 'grading' }" @click="activeTab = 'grading'">
-              <span class="menu-icon">🧮</span>
-              <span>赋分规则</span>
-            </div>
-            <div class="menu-item" :class="{ active: activeTab === 'majorAdmin' }" @click="activeTab = 'majorAdmin'">
-              <span class="menu-icon">🧩</span>
-              <span>专业库管理</span>
-            </div>
-          </div>
-        </el-aside>
-
-        <!-- 右侧内容：限制高度 + 自动滚动 -->
-        <el-main class="selection-content-wrapper">
-          <div class="selection-content">
-            <MySelectionPanel v-show="activeTab === 'mySelection'" :isDark="isDark" :studentId="currentStudentId" @refresh="fetchMySelection" @edit="openEditDialog" />
-            <SelectionCenterPanel v-show="activeTab === 'selectionCenter'" :isDark="isDark" :studentId="currentStudentId" @success="handleSelectionSuccess" />
-            <MajorRecommendPanel v-show="activeTab === 'majorRecommend'" :isDark="isDark" :studentId="currentStudentId" />
-            <CourseSelectionIntentionPanel v-show="activeTab === 'intention'" :isDark="isDark" :studentId="currentStudentId" :studentName="User?.username || User?.nickname || User?.name || ''" />
-            <CourseGuidancePanel v-show="activeTab === 'guidance'" :isDark="isDark" :studentId="currentStudentId" :studentName="User?.username || User?.nickname || User?.name || ''" />
-            <StatisticsPanel v-show="activeTab === 'statistics'" :isDark="isDark" />
-            <HistoryPanel v-show="activeTab === 'history'" :isDark="isDark" :studentId="currentStudentId" />
-            <ApprovalPanel v-show="activeTab === 'approval' && isAdmin" :isDark="isDark" />
-            <GradingScalePanel v-show="activeTab === 'grading'" />
-            <MajorAdminPanel v-show="activeTab === 'majorAdmin'" />
-          </div>
-        </el-main>
-      </el-container>
-    </div>
-
-    <!-- 编辑弹窗 - 纯黑 -->
-    <el-dialog v-model="editDialogVisible" title="修改选课" width="700px" :class="{ 'dark-dialog': isDark }">
-      <EditSelectionForm
-        v-if="editSelectionData"
-        :selectionData="editSelectionData"
-        :isDark="isDark"
-        @success="handleEditSuccess"
-        @cancel="editDialogVisible = false"
-      />
-    </el-dialog>
-  </div>
-</template>
-
 <style scoped>
 .selection-container {
-  min-height: 600px;
+  /* 大屏略增高工作区；矮屏随视口收缩，避免 min/max 冲突 */
+  min-height: min(520px, calc(100vh - 12rem));
+  max-height: min(780px, calc(100vh - 10rem));
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
-  background: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 4px 6px -1px rgba(15, 23, 42, 0.06),
+    0 20px 50px -12px rgba(99, 102, 241, 0.12);
+  background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   display: flex;
+  align-items: stretch;
 }
 
-/* 纯黑暗色主题 */
 .dark .selection-container {
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(30, 41, 59, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
 .selection-sidebar {
@@ -261,7 +335,12 @@ onMounted(async () => {
 .selection-menu {
   border: none !important;
   height: 100%;
+  max-height: min(780px, calc(100vh - 10rem));
   padding: 20px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.35) transparent;
 }
 
 .menu-item {
@@ -272,32 +351,16 @@ onMounted(async () => {
   font-size: 15px;
   font-weight: 500;
   transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  padding: 0 15px;
   cursor: pointer;
-  color: #4f4d4e;
-}
-
-.dark .menu-item {
-  color: rgba(255, 255, 255, 0.7);
 }
 
 .menu-item:hover {
   background: rgba(99, 102, 241, 0.1) !important;
 }
 
-.menu-item.active {
-  background: rgba(99, 102, 241, 0.08) !important;
-  border-left: 3px solid transparent;
-  color: #6366f1;
-  position: relative;
-  box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.2), 0 2px 8px rgba(99, 102, 241, 0.1);
-}
-
-.dark .menu-item.active {
-  color: #818cf8;
-  background: rgba(99, 102, 241, 0.12) !important;
+:deep(.el-menu-item.is-active) {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15)) !important;
+  border-left: 4px solid #6366f1;
 }
 
 .menu-icon {
@@ -307,38 +370,24 @@ onMounted(async () => {
   text-align: center;
 }
 
-/* 右侧限制高度 + 滚动 */
-.selection-content-wrapper {
-  background: transparent;
-  height: 750px; /* 固定最大高度 */
-  overflow: hidden;
-}
-
 .selection-content {
-  height: 100%;
-  padding: 30px;
-  overflow-y: auto; /* 内容多了自动滚动 */
+  flex: 1;
+  min-width: 0;
+  padding: 24px 28px 28px;
+  background: transparent;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
 }
 
-/* 滚动条美化 */
-.selection-content::-webkit-scrollbar {
-  width: 6px;
-}
-.selection-content::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 3px;
-}
-.dark .selection-content::-webkit-scrollbar-thumb {
-  background: #444;
-}
-
-/* 纯黑弹窗 */
 :deep(.el-dialog) {
   border-radius: 24px !important;
 }
 
 .dark :deep(.el-dialog) {
-  background: #000000 !important;
+  background: rgba(15, 23, 42, 0.95) !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -346,36 +395,68 @@ onMounted(async () => {
   .selection-sidebar {
     width: 240px !important;
   }
-  .selection-content-wrapper {
-    height: 650px;
+
+  .selection-content {
+    padding: 20px;
   }
 }
 
 @media (max-width: 768px) {
   .selection-container {
     flex-direction: column;
+    min-height: auto;
+    max-height: none;
   }
+
+  .selection-menu {
+    max-height: none;
+  }
+
   .selection-sidebar {
     width: 100% !important;
     border-right: none;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   }
+
   .dark .selection-sidebar {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
+
   .selection-menu {
     display: flex;
     overflow-x: auto;
     padding: 10px 0;
   }
+
   .menu-item {
     white-space: nowrap;
     margin: 0 10px;
     height: 50px;
     line-height: 50px;
   }
-  .selection-content-wrapper {
-    height: 600px;
-  }
+}
+
+.selection-content::-webkit-scrollbar,
+.selection-menu::-webkit-scrollbar {
+  width: 7px;
+}
+.selection-content::-webkit-scrollbar-thumb,
+.selection-menu::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.35);
+  border-radius: 999px;
+}
+.selection-content::-webkit-scrollbar-track,
+.selection-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+</style>
+
+<!-- 子面板根节点统一类名，保证在滚动区内宽度与排版一致 -->
+<style>
+.cs-panel {
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  box-sizing: border-box;
 }
 </style>

@@ -57,7 +57,7 @@ onMounted(fetchList)
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="cs-panel space-y-4">
     <div class="rounded-xl bg-white/70 dark:bg-white/10 border border-white/30 p-4">
       <div class="flex gap-2 mb-3">
         <input v-model="year" class="px-3 py-2 rounded-lg border" placeholder="学年" />

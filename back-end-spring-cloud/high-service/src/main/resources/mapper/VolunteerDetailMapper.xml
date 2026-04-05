@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.highservice.mapper.volunteer.VolunteerDetailMapper">
+
+    <!-- 获取完整志愿详情（含大学和专业信息） -->
+    <select id="getFullVolunteerDetail" resultType="java.util.HashMap">
+        SELECT
+            vd.*,
+            u.name as university_name,
+            u.level as university_level,
+            u.province as university_province,
+            m.name as major_name,
+            m.category as major_category,
+            ap.min_score,
+            ap.min_rank,
+            ap.avg_score
+        FROM volunteer_detail vd
+                 LEFT JOIN university u ON vd.university_id = u.id
+                 LEFT JOIN major m ON vd.major_id = m.id
+                 LEFT JOIN admission_plan ap ON ap.major_id = m.id AND ap.university_id = u.id
+        WHERE vd.volunteer_id = #{volunteerId}
+        ORDER BY vd.priority
+    </select>
+
+    <!-- 获取志愿匹配度分析 -->
+    <select id="getMatchingAnalysis" resultType="java.util.HashMap">
+        SELECT
+            vd.*,
+            msm.matching_score,
+            msm.importance_level,
+            msm.description as matching_description
+        FROM volunteer_detail vd
+                 LEFT JOIN major_subject_matching msm ON msm.major_code = (
+            SELECT code FROM major WHERE id = vd.major_id
+        )
+        WHERE vd.id = #{volunteerDetailId}
+    </select>
+
+    <!-- 批量插入志愿详情 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO volunteer_detail (
+        volunteer_id, priority, university_id, major_id,
+        is_major_adjusted, matching_check, matching_score,
+        create_time, update_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.volunteerId}, #{item.priority}, #{item.universityId}, #{item.majorId},
+            #{item.isMajorAdjusted}, #{item.matchingCheck}, #{item.matchingScore},
+            #{item.createTime}, #{item.updateTime}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

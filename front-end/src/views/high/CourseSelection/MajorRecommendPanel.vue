@@ -103,7 +103,7 @@ watch(() => props.studentId, (val) => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="cs-panel space-y-6">
     <!-- 当前选科组合 -->
     <div v-if="currentSelection" class="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/5 dark:to-purple-500/5 rounded-2xl p-5 border border-indigo-200/30 dark:border-indigo-500/20">
       <div class="flex items-center gap-3 mb-3">

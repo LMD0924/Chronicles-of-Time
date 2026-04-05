@@ -51,7 +51,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="cs-panel space-y-6">
     <!-- 筛选栏 -->
     <div class="bg-white/60 dark:bg-gray-800/40 backdrop-blur-sm rounded-2xl p-4 border border-white/30 dark:border-gray-700/50">
       <div class="flex flex-wrap gap-3 items-end">

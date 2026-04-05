@@ -159,7 +159,7 @@ watch(selectedSecondSubjects, () => {
 fetchSubjects()
 </script>
 <template>
-  <div class="space-y-6">
+  <div class="cs-panel space-y-6">
     <!-- 选课步骤提示 -->
     <div class="rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 p-4">
       <div class="flex items-center gap-2 mb-2">

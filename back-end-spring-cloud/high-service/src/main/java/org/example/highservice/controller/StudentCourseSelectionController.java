@@ -77,19 +77,7 @@ public class StudentCourseSelectionController {
         return RestBean.success(stats);
     }
 
-    /**
-     * 获取班级选课统计
-     */
-    @GetMapping("/statistics/class")
-    public RestBean<?> getClassStatistics(@RequestParam String grade,
-                                          @RequestParam(required = false) String className) {
-        if (className == null || className.trim().isEmpty()) {
-            List<Map<String, Object>> stats = selectionService.getClassScoreStatistics(grade);
-            return RestBean.success(stats);
-        }
-        Map<String, Object> stats = selectionService.getClassStatistics(grade, className);
-        return RestBean.success(stats);
-    }
+
 
     /**
      * 更新公开状态
@@ -178,5 +166,14 @@ public class StudentCourseSelectionController {
     public RestBean<?> getSelectionTrend() {
         List<Map<String, Object>> trend = selectionService.getSelectionTrend();
         return RestBean.success(trend);
+    }
+
+    /**
+     * 获取学生选课建议
+     */
+    @GetMapping("/advice/{studentId}")
+    public RestBean<?> getSelectionAdvice(@PathVariable Long studentId) {
+        Map<String, Object> advice = selectionService.getSelectionAdvice(studentId);
+        return RestBean.success(advice);
     }
 }

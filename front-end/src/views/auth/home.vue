@@ -411,7 +411,7 @@ onUnmounted(() => {
                     <span>设置</span>
                   </button>
                   <div :class="[isDark ? 'border-gray-800' : 'border-gray-100', 'border-t my-1']"></div>
-                  <button @click="navigateWithTransition('logout')" :class="[isDark ? 'text-red-400 hover:bg-gray-800' : 'text-red-600 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
+                  <button @click="navigateWithTransition('/')" :class="[isDark ? 'text-red-400 hover:bg-gray-800' : 'text-red-600 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
                     <span>🚪</span>
                     <span>退出登录</span>
                   </button>

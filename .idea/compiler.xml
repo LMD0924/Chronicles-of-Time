@@ -10,6 +10,7 @@
         <module name="file-upload" />
         <module name="user-center" />
         <module name="auth-center" />
+        <module name="university-service" />
         <module name="gateway" />
         <module name="common-core" />
         <module name="common-db" />
@@ -25,6 +26,7 @@
       <module name="file-upload" options="" />
       <module name="gateway" options="" />
       <module name="high-service" options="-parameters" />
+      <module name="university-service" options="-parameters" />
       <module name="user-center" options="" />
     </option>
   </component>

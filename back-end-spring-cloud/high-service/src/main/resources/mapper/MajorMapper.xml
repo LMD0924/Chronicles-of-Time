@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.highservice.mapper.volunteer.MajorMapper">
+
+    <select id="searchMajors" resultType="org.example.highservice.entity.volunteer.Major">
+        SELECT m.* FROM major m
+        <if test="universityId != null">
+            JOIN major_requirement mr ON m.code = mr.major_code
+        </if>
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (m.name LIKE CONCAT('%', #{keyword}, '%')
+                OR m.code LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="category != null and category != ''">
+                AND m.category = #{category}
+            </if>
+            <if test="universityId != null">
+                AND mr.university_id = #{universityId}
+            </if>
+        </where>
+        GROUP BY m.id
+        LIMIT 50
+    </select>
+
+</mapper>

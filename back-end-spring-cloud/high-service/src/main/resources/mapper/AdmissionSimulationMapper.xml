@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.highservice.mapper.volunteer.AdmissionSimulationMapper">
+
+    <!-- 模拟录取结果 -->
+    <select id="simulateAdmission" resultType="java.util.HashMap">
+        SELECT
+            vd.*,
+            u.name as university_name,
+            m.name as major_name,
+            uv.score as student_score,
+            uv.rank as student_rank,
+            ap.min_score,
+            ap.min_rank,
+            CASE
+                WHEN uv.score >= ap.min_score THEN 'admitted'
+                WHEN uv.score >= ap.min_score - 20 THEN 'waiting'
+                ELSE 'rejected'
+                END as simulation_status,
+            (uv.score - ap.min_score) as score_diff
+        FROM volunteer_detail vd
+                 JOIN user_volunteer uv ON vd.volunteer_id = uv.id
+                 JOIN university u ON vd.university_id = u.id
+                 JOIN major m ON vd.major_id = m.id
+                 LEFT JOIN admission_plan ap ON ap.major_id = m.id
+            AND ap.university_id = u.id
+            AND ap.year = uv.year
+        WHERE uv.user_id = #{userId}
+          AND uv.id = #{volunteerId}
+        ORDER BY vd.priority
+    </select>
+
+    <!-- 获取录取概率预测 -->
+    <select id="predictAdmissionProbability" resultType="java.lang.Double">
+        SELECT
+            ROUND(
+                    CASE
+                        WHEN uv.score >= ap.min_score THEN 0.95
+                        WHEN uv.score >= ap.min_score - 10 THEN 0.75
+                        WHEN uv.score >= ap.min_score - 20 THEN 0.50
+                        WHEN uv.score >= ap.min_score - 30 THEN 0.25
+                        ELSE 0.10
+                        END, 2
+            ) as probability
+        FROM volunteer_detail vd
+                 JOIN user_volunteer uv ON vd.volunteer_id = uv.id
+                 LEFT JOIN admission_plan ap ON ap.major_id = vd.major_id
+            AND ap.university_id = vd.university_id
+            AND ap.year = uv.year
+        WHERE vd.id = #{volunteerDetailId}
+    </select>
+
+    <!-- 批量更新模拟结果 -->
+    <update id="batchUpdateSimulation" parameterType="java.util.List">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE admission_simulation
+            SET
+            simulation_status = #{item.simulationStatus},
+            predicted_probability = #{item.predictedProbability},
+            score_diff = #{item.scoreDiff},
+            admitted_time = #{item.admittedTime}
+            WHERE volunteer_detail_id = #{item.volunteerDetailId}
+        </foreach>
+    </update>
+
+</mapper>

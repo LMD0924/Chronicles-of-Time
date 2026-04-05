@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.highservice.mapper.volunteer.UniversityMapper">
+
+    <select id="searchUniversities" resultType="org.example.highservice.entity.volunteer.University">
+        SELECT * FROM university
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (name LIKE CONCAT('%', #{keyword}, '%')
+                OR code LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="province != null and province != ''">
+                AND province = #{province}
+            </if>
+            <if test="level != null and level != ''">
+                AND level = #{level}
+            </if>
+        </where>
+        ORDER BY
+        CASE level
+        WHEN '985' THEN 1
+        WHEN '211' THEN 2
+        WHEN '双一流' THEN 3
+        WHEN '一本' THEN 4
+        WHEN '二本' THEN 5
+        ELSE 6
+        END,
+        name
+    </select>
+
+</mapper>

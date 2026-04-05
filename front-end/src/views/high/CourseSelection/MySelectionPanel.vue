@@ -110,7 +110,7 @@ watch(() => props.studentId, (val) => {
 }, { immediate: true })
 </script>
 <template>
-  <div class="space-y-4">
+  <div class="cs-panel space-y-4">
     <!-- 加载状态 -->
     <div v-if="loading" class="flex justify-center py-12">
       <div class="w-8 h-8 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>

@@ -114,7 +114,7 @@ watch(() => props.studentId, (val) => {
 </script>
 
 <template>
-  <div class="history-container space-y-4">
+  <div class="cs-panel history-container space-y-4">
     <!-- 筛选条件 -->
     <div class="filter-bar">
       <div class="filter-group">

@@ -92,7 +92,7 @@ onMounted(() => {
 })
 </script>
 <template>
-  <div class="space-y-4">
+  <div class="cs-panel space-y-4">
     <div class="flex justify-between items-center">
       <h3 class="text-lg font-semibold">待审批列表</h3>
       <button @click="fetchPendingList" class="px-3 py-1 rounded-lg bg-indigo-100 text-indigo-600 text-sm">刷新</button>
