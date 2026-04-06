@@ -460,7 +460,7 @@ watch(() => props.studentId, fetchList, { immediate: true })
 
 .dark .form-card,
 .dark .history-card {
-  background: rgba(30, 41, 59, 0.6);
+  background: rgba(0, 0, 0, 0.6);
 }
 
 /* 卡片头部 */
@@ -559,7 +559,7 @@ watch(() => props.studentId, fetchList, { immediate: true })
 .dark .form-input,
 .dark .form-select,
 .dark .form-textarea {
-  background: #1e293b;
+  background: #000000;
   border-color: #334155;
   color: #e5e7eb;
 }

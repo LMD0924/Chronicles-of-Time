@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/subject-combination")
+@RequestMapping("api/subject-combination")
 public class SubjectCombinationController {
 
     @Resource

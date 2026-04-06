@@ -1,0 +1,61 @@
+package org.example.generalservice.dto.growth;
+
+import lombok.Data;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+/*
+ * @Author:总会落叶
+ * @Date:2026/3/31
+ * @Description:
+ */
+/**
+ * 高中成长记录 DTO
+ */
+@Data
+public class GrowthDTO {
+
+    private Long id;
+    private Long userId;
+    private String stage;
+    private String semester;
+    private LocalDate recordDate;
+    private String examName;
+    private String examRank;
+    private BigDecimal examScore;
+    private String bestSubject;
+    private String weakestSubject;
+    private BigDecimal studyHours;
+    private String studyNotes;
+    private String competitionName;
+    private String competitionAward;
+    private String activityName;
+    private String activityRole;
+    private String interestTested;
+    private String interestContinued;
+    private String skillLearned;
+    private Integer stressLevel;
+    private Integer happinessLevel;
+    private String moodNotes;
+    private String challengeText;
+    private String helpNeeded;
+    private Integer closeFriendsCount;
+    private Integer newFriends;
+    private String conflictExperience;
+    private String leadershipExp;
+    private String selfAwareness;
+    private String careerInterest;
+    private String dreamCollege;
+    private String dreamMajor;
+    private BigDecimal sleepHours;
+    private Integer exerciseMinutes;
+    private BigDecimal screenTimeHours;
+    private Integer familyCommunicationQuality;
+    private String familySupport;
+    private Boolean isMilestone;
+    private String milestoneName;
+    private String achievementThisPeriod;
+    private String improvementNeeded;
+    private String nextGoal;
+}
+

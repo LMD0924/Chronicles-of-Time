@@ -1,118 +1,3 @@
-<script setup>
-import { ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
-import request from '@/utils/request'
-
-const props = defineProps({
-  isDark: Boolean,
-  studentId: [String, Number]
-})
-
-const loading = ref(false)
-const histories = ref([])
-const filterType = ref('all')
-const startDate = ref('')
-const endDate = ref('')
-const statistics = ref({
-  totalCount: 0,
-  pendingCount: 0,
-  approvedCount: 0,
-  rejectedCount: 0
-})
-const detailVisible = ref(false)
-const detail = ref(null)
-
-// 获取历史记录
-const fetchHistory = async () => {
-  loading.value = true
-  try {
-    const res = await request.get(`/history/student/${props.studentId}`)
-    if (res.code === 200) {
-      let data = res.data || []
-      if (filterType.value !== 'all') {
-        data = data.filter(h => h.changeType === filterType.value)
-      }
-      histories.value = data
-    }
-
-    // 获取统计
-    const statsRes = await request.get('/history/statistics', { days: 30 })
-    if (statsRes.code === 200) {
-      statistics.value = statsRes.data
-    }
-  } catch (error) {
-    console.error('获取历史失败', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-const getChangeTypeClass = (type) => {
-  const map = {
-    '1': 'change-type-add',
-    '2': 'change-type-edit',
-    '3': 'change-type-cancel',
-    '4': 'change-type-confirm'
-  }
-  return map[type] || 'change-type-default'
-}
-
-const getChangeTypeText = (type) => {
-  const map = {
-    '1': '新增',
-    '2': '修改',
-    '3': '退选',
-    '4': '确认'
-  }
-  return map[type] || type
-}
-
-const getChangeTypeIcon = (type) => {
-  const map = {
-    '1': '➕',
-    '2': '✏️',
-    '3': '🗑️',
-    '4': '✅'
-  }
-  return map[type] || '📋'
-}
-
-const getApproveStatusClass = (status) => {
-  if (status === 0) return 'status-pending'
-  if (status === 1) return 'status-approved'
-  if (status === 2) return 'status-rejected'
-  return 'status-default'
-}
-
-const getApproveStatusText = (status) => {
-  if (status === 0) return '待审批'
-  if (status === 1) return '已通过'
-  if (status === 2) return '已拒绝'
-  return '未知'
-}
-
-const formatDateTime = (date) => {
-  if (!date) return ''
-  return new Date(date).toLocaleString()
-}
-
-const openDetail = async (id) => {
-  try {
-    const res = await request.get(`/history/detail/${id}`)
-    if (res.code === 200) {
-      detail.value = res.data
-      detailVisible.value = true
-    }
-  } catch (error) {
-    ElMessage.error('获取详情失败')
-  }
-}
-
-watch(() => props.studentId, (val) => {
-  if (val) fetchHistory()
-}, { immediate: true })
-</script>
-
 <template>
   <div class="cs-panel history-container space-y-4">
     <!-- 筛选条件 -->
@@ -385,6 +270,121 @@ watch(() => props.studentId, (val) => {
   </div>
 </template>
 
+<script setup>
+import { ref, watch } from 'vue'
+import { ElMessage } from 'element-plus'
+import request from '@/utils/request'
+
+const props = defineProps({
+  isDark: Boolean,
+  studentId: [String, Number]
+})
+
+const loading = ref(false)
+const histories = ref([])
+const filterType = ref('all')
+const startDate = ref('')
+const endDate = ref('')
+const statistics = ref({
+  totalCount: 0,
+  pendingCount: 0,
+  approvedCount: 0,
+  rejectedCount: 0
+})
+const detailVisible = ref(false)
+const detail = ref(null)
+
+// 获取历史记录
+const fetchHistory = async () => {
+  loading.value = true
+  try {
+    const res = await request.get(`/history/student/${props.studentId}`)
+    if (res.code === 200) {
+      let data = res.data || []
+      if (filterType.value !== 'all') {
+        data = data.filter(h => h.changeType === filterType.value)
+      }
+      histories.value = data
+    }
+
+    // 获取统计
+    const statsRes = await request.get('/history/statistics', { days: 30 })
+    if (statsRes.code === 200) {
+      statistics.value = statsRes.data
+    }
+  } catch (error) {
+    console.error('获取历史失败', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const getChangeTypeClass = (type) => {
+  const map = {
+    '1': 'change-type-add',
+    '2': 'change-type-edit',
+    '3': 'change-type-cancel',
+    '4': 'change-type-confirm'
+  }
+  return map[type] || 'change-type-default'
+}
+
+const getChangeTypeText = (type) => {
+  const map = {
+    '1': '新增',
+    '2': '修改',
+    '3': '退选',
+    '4': '确认'
+  }
+  return map[type] || type
+}
+
+const getChangeTypeIcon = (type) => {
+  const map = {
+    '1': '➕',
+    '2': '✏️',
+    '3': '🗑️',
+    '4': '✅'
+  }
+  return map[type] || '📋'
+}
+
+const getApproveStatusClass = (status) => {
+  if (status === 0) return 'status-pending'
+  if (status === 1) return 'status-approved'
+  if (status === 2) return 'status-rejected'
+  return 'status-default'
+}
+
+const getApproveStatusText = (status) => {
+  if (status === 0) return '待审批'
+  if (status === 1) return '已通过'
+  if (status === 2) return '已拒绝'
+  return '未知'
+}
+
+const formatDateTime = (date) => {
+  if (!date) return ''
+  return new Date(date).toLocaleString()
+}
+
+const openDetail = async (id) => {
+  try {
+    const res = await request.get(`/history/detail/${id}`)
+    if (res.code === 200) {
+      detail.value = res.data
+      detailVisible.value = true
+    }
+  } catch (error) {
+    ElMessage.error('获取详情失败')
+  }
+}
+
+watch(() => props.studentId, (val) => {
+  if (val) fetchHistory()
+}, { immediate: true })
+</script>
+
 <style scoped>
 .history-container {
   padding: 4px;
@@ -399,8 +399,10 @@ watch(() => props.studentId, (val) => {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* 暗色模式 - 纯黑色背景 */
 .dark .filter-bar {
-  background: rgba(30, 41, 59, 0.5);
+  background: #000000;
+  border-color: #1a1a2e;
 }
 
 .filter-group {
@@ -442,13 +444,17 @@ watch(() => props.studentId, (val) => {
 }
 
 .dark .filter-btn {
-  background: #1e293b;
+  background: #111111;
   color: #94a3b8;
-  border-color: #334155;
+  border-color: #2a2a3e;
 }
 
 .filter-btn:hover {
   background: #e5e7eb;
+}
+
+.dark .filter-btn:hover {
+  background: #1a1a2e;
 }
 
 .filter-btn.active {
@@ -473,8 +479,8 @@ watch(() => props.studentId, (val) => {
 }
 
 .dark .date-input {
-  background: #1e293b;
-  border-color: #334155;
+  background: #0a0a0a;
+  border-color: #2a2a3e;
   color: #e5e7eb;
 }
 
@@ -519,7 +525,8 @@ watch(() => props.studentId, (val) => {
 }
 
 .dark .stat-card {
-  background: rgba(30, 41, 59, 0.5);
+  background: #000000;
+  border-color: #1a1a2e;
 }
 
 .stat-card:hover {
@@ -577,6 +584,10 @@ watch(() => props.studentId, (val) => {
   background: linear-gradient(180deg, #6366f1, #8b5cf6, transparent);
 }
 
+.dark .timeline-item::before {
+  background: linear-gradient(180deg, #818cf8, #a78bfa, transparent);
+}
+
 .timeline-item:last-child::before {
   display: none;
 }
@@ -608,12 +619,17 @@ watch(() => props.studentId, (val) => {
 }
 
 .dark .timeline-content {
-  background: rgba(30, 41, 59, 0.6);
+  background: #000000;
+  border-color: #1a1a2e;
 }
 
 .timeline-content:hover {
   transform: translateX(4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dark .timeline-content:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .content-header {
@@ -677,10 +693,19 @@ watch(() => props.studentId, (val) => {
 .change-type-cancel { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
 .change-type-confirm { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
 
+.dark .change-type-add { background: rgba(16, 185, 129, 0.25); color: #34d399; }
+.dark .change-type-edit { background: rgba(245, 158, 11, 0.25); color: #fbbf24; }
+.dark .change-type-cancel { background: rgba(239, 68, 68, 0.25); color: #f87171; }
+.dark .change-type-confirm { background: rgba(59, 130, 246, 0.25); color: #60a5fa; }
+
 /* 审批状态颜色 */
 .status-pending { background: rgba(234, 179, 8, 0.15); color: #eab308; }
 .status-approved { background: rgba(16, 185, 129, 0.15); color: #10b981; }
 .status-rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+.dark .status-pending { background: rgba(234, 179, 8, 0.25); color: #fbbf24; }
+.dark .status-approved { background: rgba(16, 185, 129, 0.25); color: #34d399; }
+.dark .status-rejected { background: rgba(239, 68, 68, 0.25); color: #f87171; }
 
 .content-body {
   margin-bottom: 12px;
@@ -693,7 +718,7 @@ watch(() => props.studentId, (val) => {
 }
 
 .dark .change-detail {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .detail-row {
@@ -765,6 +790,31 @@ watch(() => props.studentId, (val) => {
   color: #3b82f6;
 }
 
+.dark .subject-tag {
+  background: rgba(129, 140, 248, 0.15);
+  color: #a5b4fc;
+}
+
+.dark .subject-tag.old {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
+
+.dark .subject-tag.new {
+  background: rgba(52, 211, 153, 0.15);
+  color: #6ee7b7;
+}
+
+.dark .subject-tag.cancelled {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
+
+.dark .subject-tag.confirmed {
+  background: rgba(96, 165, 250, 0.15);
+  color: #93c5fd;
+}
+
 .subject-plus {
   font-size: 14px;
   color: #9ca3af;
@@ -775,6 +825,10 @@ watch(() => props.studentId, (val) => {
   font-size: 18px;
   color: #6366f1;
   margin: 4px 0;
+}
+
+.dark .detail-arrow {
+  color: #a5b4fc;
 }
 
 .content-footer {
@@ -801,11 +855,26 @@ watch(() => props.studentId, (val) => {
   color: white;
 }
 
+.dark .detail-btn {
+  color: #a5b4fc;
+  border-color: #a5b4fc;
+}
+
+.dark .detail-btn:hover {
+  background: #a5b4fc;
+  color: #000000;
+}
+
 /* 加载和空状态 */
 .loading-state, .empty-state {
   text-align: center;
   padding: 48px;
   color: #6b7280;
+}
+
+.dark .loading-state,
+.dark .empty-state {
+  color: #9ca3af;
 }
 
 .loading-spinner {
@@ -816,6 +885,11 @@ watch(() => props.studentId, (val) => {
   border-top-color: #6366f1;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+}
+
+.dark .loading-spinner {
+  border-color: #2a2a3e;
+  border-top-color: #818cf8;
 }
 
 @keyframes spin {
@@ -856,7 +930,7 @@ watch(() => props.studentId, (val) => {
 }
 
 .dark .detail-info-grid {
-  background: rgba(30, 41, 59, 0.5);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .detail-section {
@@ -869,6 +943,10 @@ watch(() => props.studentId, (val) => {
   margin-bottom: 12px;
   padding-bottom: 8px;
   border-bottom: 2px solid rgba(99, 102, 241, 0.3);
+}
+
+.dark .section-title {
+  color: #e5e7eb;
 }
 
 .info-grid {
@@ -892,6 +970,10 @@ watch(() => props.studentId, (val) => {
   color: #6b7280;
 }
 
+.dark .info-label {
+  color: #9ca3af;
+}
+
 .info-value {
   font-size: 13px;
   font-weight: 500;
@@ -913,7 +995,7 @@ watch(() => props.studentId, (val) => {
 }
 
 .dark .change-compare {
-  background: rgba(30, 41, 59, 0.5);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .compare-old, .compare-new {
@@ -925,6 +1007,10 @@ watch(() => props.studentId, (val) => {
   font-size: 12px;
   color: #6b7280;
   margin-bottom: 8px;
+}
+
+.dark .compare-label {
+  color: #9ca3af;
 }
 
 .compare-value {
@@ -941,9 +1027,39 @@ watch(() => props.studentId, (val) => {
   color: #10b981;
 }
 
+.dark .compare-old .compare-value {
+  color: #f87171;
+}
+
+.dark .compare-new .compare-value {
+  color: #6ee7b7;
+}
+
 .compare-arrow {
   font-size: 24px;
   color: #6366f1;
+}
+
+.dark .compare-arrow {
+  color: #a5b4fc;
+}
+
+/* Element Plus 弹窗暗色模式覆盖 */
+:deep(.dark-dialog .el-dialog) {
+  background: #000000 !important;
+  border: 1px solid #1a1a2e !important;
+}
+
+:deep(.dark-dialog .el-dialog__title) {
+  color: #e5e7eb !important;
+}
+
+:deep(.dark-dialog .el-dialog__headerbtn .el-dialog__close) {
+  color: #9ca3af !important;
+}
+
+:deep(.dark-dialog .el-dialog__body) {
+  background: #000000 !important;
 }
 
 @media (max-width: 768px) {

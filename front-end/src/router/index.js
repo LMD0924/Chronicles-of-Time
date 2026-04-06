@@ -38,9 +38,9 @@ const router = createRouter({
       component: () => import('@/views/auth/Resume.vue')
     },
     {
-      path:'/HighRecords',
-      name:'高中记录',
-      component: () => import('@/views/high/HighRecords.vue')
+      path:'/Records',
+      name:'记录拾光',
+      component: () => import('@/views/HighRecords.vue')
     },
     {
       path:'/CourseSelection',
@@ -50,7 +50,7 @@ const router = createRouter({
     {
       path:'/StudyDashboard',
       name:'学习仪表盘',
-      component: () => import('@/views/high/StudyDashboard/StudyDashboard.vue')
+      component: () => import('@/views/StudyDashboard/StudyDashboard.vue')
     },
     {
       path:'/Volunteer',

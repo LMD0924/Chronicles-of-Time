@@ -175,7 +175,7 @@ fetchSubjects()
     </div>
 
     <!-- 选课表单 -->
-    <div class="rounded-xl bg-white/70 dark:bg-white/10 backdrop-blur-sm border border-white/30 p-6">
+    <div class="rounded-xl bg-white/70 dark:bg-black backdrop-blur-sm border border-white/30 p-6">
       <h3 class="text-lg font-semibold mb-4">新高考选课</h3>
 
       <!-- 首选科目 -->
@@ -187,7 +187,7 @@ fetchSubjects()
                class="p-4 rounded-xl border-2 cursor-pointer transition-all text-center"
                :class="[
                  selectedFirstSubject?.id === subject.id
-                   ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30'
+                   ? 'border-indigo-500 bg-indigo-50 dark:bg-black'
                    : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300'
                ]">
             <div class="text-2xl mb-1">{{ subject.name === '物理' ? '⚡' : '📜' }}</div>
@@ -206,7 +206,7 @@ fetchSubjects()
                class="p-3 rounded-xl border-2 cursor-pointer transition-all text-center"
                :class="[
                  selectedSecondSubjects.some(s => s.id === subject.id)
-                   ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30'
+                   ? 'border-indigo-500 bg-indigo-50 dark:bg-black'
                    : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300',
                  selectedSecondSubjects.length >= 2 && !selectedSecondSubjects.some(s => s.id === subject.id)
                    ? 'opacity-50 cursor-not-allowed'
@@ -225,7 +225,7 @@ fetchSubjects()
       <div class="mb-6">
         <label class="block text-sm font-medium mb-2">选课理由</label>
         <textarea v-model="selectionReason" rows="3"
-                  class="w-full px-4 py-2 rounded-xl border dark:border-slate-600 dark:bg-slate-800"
+                  class="w-full px-4 py-2 rounded-xl border dark:border-slate-600 dark:bg-black"
                   placeholder="请填写选课理由，如：目标专业要求、个人兴趣、学科优势等"></textarea>
       </div>
 
@@ -233,7 +233,7 @@ fetchSubjects()
       <div class="mb-6">
         <label class="block text-sm font-medium mb-2">未来规划（可选）</label>
         <input v-model="futurePlan" type="text"
-               class="w-full px-4 py-2 rounded-xl border dark:border-slate-600 dark:bg-slate-800"
+               class="w-full px-4 py-2 rounded-xl border dark:border-slate-600 dark:bg-black"
                placeholder="如：目标大学、目标专业">
       </div>
 
@@ -250,7 +250,7 @@ fetchSubjects()
     </div>
 
     <!-- 选课建议 -->
-    <div v-if="advice" class="rounded-xl bg-amber-50/50 dark:bg-amber-950/30 p-4">
+    <div v-if="advice" class="rounded-xl bg-amber-50/50 dark:bg-black p-4">
       <div class="flex items-center gap-2 mb-2">
         <span>💡</span>
         <span class="font-semibold">选课建议</span>

@@ -60,7 +60,7 @@ onMounted(() => {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm mb-1">首选科目</label>
-        <select v-model="form.firstSubjectName" class="w-full px-3 py-2 rounded-lg border dark:bg-slate-800 dark:border-slate-600">
+        <select v-model="form.firstSubjectName" class="w-full px-3 py-2 rounded-lg border dark:bg-black dark:border-slate-600">
           <option value="">请选择</option>
           <option v-for="subject in firstSubjects" :key="subject.id" :value="subject.name">
             {{ subject.name }}
@@ -69,7 +69,7 @@ onMounted(() => {
       </div>
       <div>
         <label class="block text-sm mb-1">再选科目1</label>
-        <select v-model="form.secondSubject1Name" class="w-full px-3 py-2 rounded-lg border dark:bg-slate-800 dark:border-slate-600">
+        <select v-model="form.secondSubject1Name" class="w-full px-3 py-2 rounded-lg border dark:bg-black dark:border-slate-600">
           <option value="">请选择</option>
           <option v-for="subject in secondSubjects" :key="subject.id" :value="subject.name">
             {{ subject.name }}
@@ -78,7 +78,7 @@ onMounted(() => {
       </div>
       <div>
         <label class="block text-sm mb-1">再选科目2</label>
-        <select v-model="form.secondSubject2Name" class="w-full px-3 py-2 rounded-lg border dark:bg-slate-800 dark:border-slate-600">
+        <select v-model="form.secondSubject2Name" class="w-full px-3 py-2 rounded-lg border dark:bg-black dark:border-slate-600">
           <option value="">请选择</option>
           <option v-for="subject in secondSubjects" :key="subject.id" :value="subject.name">
             {{ subject.name }}
@@ -87,7 +87,7 @@ onMounted(() => {
       </div>
       <div>
         <label class="block text-sm mb-1">选课理由</label>
-        <input v-model="form.selectionReason" class="w-full px-3 py-2 rounded-lg border dark:bg-slate-800 dark:border-slate-600" />
+        <input v-model="form.selectionReason" class="w-full px-3 py-2 rounded-lg border dark:bg-black dark:border-slate-600" />
       </div>
     </div>
     <div class="flex justify-end gap-2">

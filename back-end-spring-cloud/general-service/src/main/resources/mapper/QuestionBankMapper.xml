@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.generalservice.mapper.question.QuestionBankMapper">
+
+    <!-- 根据分类随机获取题目 -->
+    <select id="getRandomQuestions" resultType="org.example.generalservice.entity.QuestionBank">
+        SELECT * FROM question_bank
+        WHERE category_level = #{categoryLevel}
+        <if test="subjectName != null and subjectName != ''">
+            AND subject_name = #{subjectName}
+        </if>
+        <if test="questionType != null and questionType != ''">
+            AND question_type = #{questionType}
+        </if>
+        ORDER BY RAND()
+        LIMIT #{limit}
+    </select>
+
+    <!-- 更新题目使用统计 -->
+    <update id="incrementUseCount">
+        UPDATE question_bank
+        SET use_count = use_count + 1
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新错题统计 -->
+    <update id="incrementMistakeCount">
+        UPDATE question_bank
+        SET mistake_count = mistake_count + 1,
+            mistake_rate = (mistake_count + 1) / (use_count + 1) * 100
+        WHERE id = #{id}
+    </update>
+
+    <!-- 获取高频错题（错误率最高的题目） -->
+    <select id="getHighMistakeRateQuestions" resultType="org.example.generalservice.entity.QuestionBank">
+        SELECT * FROM question_bank
+        WHERE use_count > 0
+        ORDER BY mistake_rate DESC
+            LIMIT #{limit}
+    </select>
+
+    <!-- 获取所有科目列表 -->
+    <select id="getDistinctSubjects" resultType="java.lang.String">
+        SELECT DISTINCT subject_name
+        FROM question_bank
+        ORDER BY subject_name
+    </select>
+
+    <!-- 获取所有题型列表 -->
+    <select id="getDistinctQuestionTypes" resultType="java.lang.String">
+        SELECT DISTINCT question_type
+        FROM question_bank
+        ORDER BY question_type
+    </select>
+
+    <!-- 获取所有知识点列表 -->
+    <select id="getDistinctKnowledgePoints" resultType="java.lang.String">
+        SELECT DISTINCT knowledge_point
+        FROM question_bank
+        WHERE knowledge_point IS NOT NULL AND knowledge_point != ''
+        ORDER BY knowledge_point
+    </select>
+
+    <!-- 批量插入答题记录 -->
+    <insert id="batchInsertAnswerRecords">
+        INSERT INTO answer_records (
+        user_id, question_id, subject_name, question_type,
+        category_level, knowledge_point, user_answer, correct_answer,
+        is_correct, score, answer_time, mistake_added, exam_session, answer_date
+        ) VALUES
+        <foreach collection="records" item="record" separator=",">
+            (
+            #{record.userId}, #{record.questionId}, #{record.subjectName}, #{record.questionType},
+            #{record.categoryLevel}, #{record.knowledgePoint}, #{record.userAnswer}, #{record.correctAnswer},
+            #{record.isCorrect}, #{record.score}, #{record.answerTime}, #{record.mistakeAdded},
+            #{record.examSession}, #{record.answerDate}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 获取答题记录 -->
+    <select id="getAnswerRecords" resultType="java.util.Map">
+        SELECT ar.*, qb.question_title, qb.options, qb.answer_analysis
+        FROM answer_records ar
+        LEFT JOIN question_bank qb ON ar.question_id = qb.id
+        WHERE 1=1
+        <if test="userId != null">
+            AND ar.user_id = #{userId}
+        </if>
+        <if test="subjectName != null and subjectName != ''">
+            AND ar.subject_name = #{subjectName}
+        </if>
+        <if test="questionType != null and questionType != ''">
+            AND ar.question_type = #{questionType}
+        </if>
+        <if test="isCorrect != null">
+            AND ar.is_correct = #{isCorrect}
+        </if>
+        <if test="knowledgePoint != null and knowledgePoint != ''">
+            AND ar.knowledge_point = #{knowledgePoint}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND ar.answer_date >= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND ar.answer_date &lt;= #{endDate}
+        </if>
+        ORDER BY ar.answer_date DESC, ar.created_at DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+</mapper>

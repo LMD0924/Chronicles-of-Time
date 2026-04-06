@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/history")
+@RequestMapping("api/history")
 public class CourseHistoryController {
 
     @Autowired

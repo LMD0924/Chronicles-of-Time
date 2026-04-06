@@ -537,7 +537,7 @@ const openMatchingReport = async () => {
       const report = res.data || []
       let html = '<div class="space-y-3"><h4 class="font-bold text-lg">📊 选科匹配报告</h4>'
       report.forEach(r => {
-        html += `<div class="p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
+        html += `<div class="p-3 bg-gray-50 rounded-lg dark:bg-black">
           <p class="font-medium">${r.priority}. ${r.universityName} - ${r.majorName}</p>
           <p>匹配度：${r.matchingScore || '未计算'}分</p>
           <p class="text-sm text-gray-500 dark:text-gray-400">建议：${r.suggestion || ''}</p>
@@ -580,7 +580,7 @@ const openStatistics = async () => {
       const stats = res.data || []
       let html = '<div class="space-y-2"><h4 class="font-bold text-lg">📊 志愿统计分析</h4>'
       stats.forEach(s => {
-        html += `<div class="p-2 bg-gray-50 rounded dark:bg-gray-700"><p>${s.year}年：${s.count}个方案，最高分${s.maxScore}，最低分${s.minScore}</p></div>`
+        html += `<div class="p-2 bg-gray-50 rounded dark:bg-black"><p>${s.year}年：${s.count}个方案，最高分${s.maxScore}，最低分${s.minScore}</p></div>`
       })
       html += '</div>'
       ElMessageBox.alert(html, '统计分析', { dangerouslyUseHTMLString: true })

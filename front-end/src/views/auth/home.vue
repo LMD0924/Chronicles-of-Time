@@ -24,9 +24,112 @@ const activeNav = ref('home')
 const activeStage = ref(0)
 const showUserMenu = ref(false)
 const isDark = ref(getStoredTheme() === ThemeType.DARK)
-const texts = ref(['拾光记 · 成长时光机'])
+const texts = ref(['拾光记 · 弥补当时那个迷茫的自己'])
 const UserInfo = ref({})
 const [MessageApi,contextHolder] = message.useMessage();
+
+// 浮动窗口控制
+const activePopup = ref(null)
+const popupPosition = ref({ left: '50%', top: 'auto' })
+
+// 各区域的内容配置
+const sectionContents = {
+  timeline: {
+    title: '时光轴 · 成长轨迹',
+    description: '记录从高中到职场的每一个重要时刻，让时间有迹可循。',
+    menuList: [
+      { icon: '🎓', name: '高中时代', description: '2019-2022 · 奋斗的青春', link: '/CourseSelection' },
+      { icon: '📚', name: '大学时光', description: '2022-2026 · 成长的蜕变', link: '/bigRecords' },
+      { icon: '💼', name: '职场生涯', description: '2026-至今 · 职业的启航', link: '/WorkRecords' },
+      { icon: '🏆', name: '里程碑事件', description: '查看所有重要时刻', link: '/milestones' }
+    ],
+    stats: [
+      { label: '记录时刻', value: '156+' },
+      { label: '成长阶段', value: '3个' },
+      { label: '里程碑', value: '23个' }
+    ]
+  },
+  milestone: {
+    title: '🏆 人生里程碑',
+    description: '每一个里程碑，都是成长的勋章。记录你的每一次突破与成就。',
+    menuList: [
+      { icon: '🎯', name: '学业成就', description: '考试、竞赛、获奖记录', link: '/academic' },
+      { icon: '💼', name: '职业发展', description: '实习、工作、晋升', link: '/career' },
+      { icon: '🌟', name: '个人成长', description: '技能、证书、突破', link: '/personal' },
+      { icon: '❤️', name: '生活时刻', description: '旅行、重要事件', link: '/life' }
+    ],
+    stats: [
+      { label: '已达成', value: '18个' },
+      { label: '进行中', value: '5个' },
+      { label: '规划中', value: '12个' }
+    ]
+  },
+  gallery: {
+    title: '📸 回忆相册',
+    description: '用影像定格时光，让回忆触手可及。每一张照片都是一个故事。',
+    menuList: [
+      { icon: '🎓', name: '毕业季', description: '那些年的青春', link: '/graduation' },
+      { icon: '✈️', name: '旅行日记', description: '走过的路', link: '/travel' },
+      { icon: '🎉', name: '聚会时光', description: '与朋友们的欢乐', link: '/gathering' },
+      { icon: '🏆', name: '荣誉时刻', description: '领奖台上的我', link: '/awards' }
+    ],
+    stats: [
+      { label: '照片总数', value: '342张' },
+      { label: '相册数', value: '8个' },
+      { label: '今日新增', value: '12张' }
+    ]
+  },
+  journal: {
+    title: '📖 云边小札',
+    description: '记录日常感悟，见证点滴成长。每一篇日记都是心灵的印记。',
+    menuList: [
+      { icon: '✍️', name: '心情随笔', description: '日常感悟', link: '/mood' },
+      { icon: '📝', name: '成长记录', description: '进步与反思', link: '/growth' },
+      { icon: '💡', name: '灵感笔记', description: '创意与想法', link: '/ideas' },
+      { icon: '🎬', name: '影音推荐', description: '喜欢的作品', link: '/recommendations' }
+    ],
+    stats: [
+      { label: '日记总数', value: '156篇' },
+      { label: '总字数', value: '3.2万字' },
+      { label: '本周更新', value: '5篇' }
+    ]
+  }
+}
+
+// 显示浮动窗口
+const showPopup = (sectionId, event) => {
+  event.stopPropagation()
+  if (activePopup.value === sectionId) {
+    activePopup.value = null
+    return
+  }
+  activePopup.value = sectionId
+}
+
+// 关闭浮动窗口
+const closePopup = () => {
+  activePopup.value = null
+}
+
+// 点击外部关闭弹窗
+const handleClickOutsidePopup = (event) => {
+  if (activePopup.value) {
+    const popupElement = document.querySelector('.floating-popup')
+    const titleElement = document.querySelector(`[data-section="${activePopup.value}"]`)
+    if (popupElement && !popupElement.contains(event.target) &&
+      titleElement && !titleElement.contains(event.target)) {
+      closePopup()
+    }
+  }
+}
+
+// 处理菜单项点击
+const handleMenuItemClick = (link) => {
+  closePopup()
+  if (link) {
+    navigateWithTransition(link)
+  }
+}
 
 // 动画统计数据
 const animatedStats = ref({
@@ -52,7 +155,7 @@ const timelineNodes = [
 
 // 人生阶段
 const lifeStages = [
-  { icon: '📚', name: '高中时代', years: '15-18岁', path: '/HighRecords' },
+  { icon: '📚', name: '高中时代', years: '15-18岁', path: '/CourseSelection' },
   { icon: '🎓', name: '大学时光', years: '18-22岁', path: '/bigRecords' },
   { icon: '💼', name: '职场新人', years: '22-25岁', path: '/WorkRecords' },
   { icon: '🚀', name: '进阶之路', years: '25岁+', path: '/AdvanceRecords' }
@@ -61,14 +164,11 @@ const lifeStages = [
 // 带过渡效果的导航
 const navigateWithTransition = (path) => {
   if (transitionRef.value) {
-    // 显示过渡层
     transitionRef.value.show()
-    // 延迟跳转，让过渡动画显示足够长时间
     setTimeout(() => {
       router.push(path)
-    }, 3000) // 3秒后跳转，配合组件的duration
+    }, 3000)
   } else {
-    // 如果没有过渡组件，直接跳转
     router.push(path)
   }
 }
@@ -76,8 +176,6 @@ const navigateWithTransition = (path) => {
 // 处理阶段点击
 const handleStageClick = (stage, idx) => {
   activeStage.value = idx
-
-  // 如果该阶段配置了路径，则跳转
   if (stage.path) {
     navigateWithTransition(stage.path)
   }
@@ -85,46 +183,11 @@ const handleStageClick = (stage, idx) => {
 
 // 时光轴数据
 const timelineData = [
-  {
-    date: '2022年6月',
-    stage: '高中',
-    stageClass: 'highschool',
-    title: '高考 · 最后一课',
-    description: '黑板上写着"高考必胜"，同学们互相在衣服上签名。三年时光，在这个夏天画上句号。',
-    tags: ['高考', '毕业', '青春']
-  },
-  {
-    date: '2022年9月',
-    stage: '大学',
-    stageClass: 'university',
-    title: '大学开学第一课',
-    description: '拖着行李箱走进校门，对一切都充满好奇。第一次离开家，既紧张又兴奋。',
-    tags: ['新生', '开学', '大学']
-  },
-  {
-    date: '2023年12月',
-    stage: '大学',
-    stageClass: 'university',
-    title: '第一次获奖',
-    description: '参加校园设计大赛获得一等奖，站在领奖台上的那一刻，觉得所有努力都值得。',
-    tags: ['成长', '获奖', '突破']
-  },
-  {
-    date: '2024年7月',
-    stage: '职场',
-    stageClass: 'work',
-    title: '第一份实习offer',
-    description: '经过三轮面试，终于拿到心仪的实习offer。职场第一步，从这里开始。',
-    tags: ['实习', '职场', '新起点']
-  },
-  {
-    date: '2025年3月',
-    stage: '职场',
-    stageClass: 'work',
-    title: '独立完成项目',
-    description: '第一次独立负责项目，从策划到执行全程主导。项目上线那天，成就感满满。',
-    tags: ['成长', '独立', '项目']
-  }
+  { date: '2022年6月', stage: '高中', stageClass: 'highschool', title: '高考 · 最后一课', description: '黑板上写着"高考必胜"，同学们互相在衣服上签名。三年时光，在这个夏天画上句号。', tags: ['高考', '毕业', '青春'] },
+  { date: '2022年9月', stage: '大学', stageClass: 'university', title: '大学开学第一课', description: '拖着行李箱走进校门，对一切都充满好奇。第一次离开家，既紧张又兴奋。', tags: ['新生', '开学', '大学'] },
+  { date: '2023年12月', stage: '大学', stageClass: 'university', title: '第一次获奖', description: '参加校园设计大赛获得一等奖，站在领奖台上的那一刻，觉得所有努力都值得。', tags: ['成长', '获奖', '突破'] },
+  { date: '2024年7月', stage: '职场', stageClass: 'work', title: '第一份实习offer', description: '经过三轮面试，终于拿到心仪的实习offer。职场第一步，从这里开始。', tags: ['实习', '职场', '新起点'] },
+  { date: '2025年3月', stage: '职场', stageClass: 'work', title: '独立完成项目', description: '第一次独立负责项目，从策划到执行全程主导。项目上线那天，成就感满满。', tags: ['成长', '独立', '项目'] }
 ]
 
 // 里程碑数据
@@ -216,6 +279,7 @@ const scrollToSection = (sectionId) => {
     window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
   }
   activeNav.value = sectionId
+  closePopup()
 }
 
 // 滚动到顶部
@@ -264,19 +328,17 @@ const initScrollAnimation = () => {
   animatedElements.forEach(el => observer.observe(el))
 }
 
-// 处理主题切换 - 修复内容消失问题
+// 处理主题切换
 const handleThemeChange = (theme) => {
   const newTheme = theme === ThemeType.DARK
   isDark.value = newTheme
 
-  // 直接操作 DOM，确保样式立即生效
   if (newTheme) {
     document.documentElement.classList.add('dark')
   } else {
     document.documentElement.classList.remove('dark')
   }
 
-  // 修复：重新触发滚动动画，确保内容显示
   nextTick(() => {
     const animatedElements = document.querySelectorAll('.scroll-animate')
     animatedElements.forEach(el => {
@@ -290,19 +352,21 @@ const handleThemeChange = (theme) => {
   })
 }
 
+const handleTransitionComplete = () => {
+}
+
 onMounted(() => {
   getUserInfo()
-  // 初始化主题
   if (isDark.value) {
     document.documentElement.classList.add('dark')
   }
 
   window.addEventListener('scroll', handleScroll)
   window.addEventListener('click', handleClickOutside)
+  window.addEventListener('click', handleClickOutsidePopup)
   animateNumbers()
   setTimeout(initScrollAnimation, 100)
 
-  // 监听主题变化
   const stopListen = onThemeChange((theme) => {
     handleThemeChange(theme)
   })
@@ -315,14 +379,88 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('click', handleClickOutsidePopup)
 })
 </script>
 
 <template>
   <contextHolder></contextHolder>
-  <!-- 页面过渡组件 -->
-  <AdvancedPageTransition ref="transitionRef"  :duration="10000" @complete="handleTransitionComplete" />
+  <AdvancedPageTransition ref="transitionRef" :duration="10000" @complete="handleTransitionComplete" />
 
+  <!-- 浮动窗口 - 已修复 -->
+  <div
+    v-if="activePopup"
+    class="floating-popup fixed z-[9999] animate-fadeIn"
+    @click.stop
+    :style="{
+      left: '50%',
+      top: '100px',
+      transform: 'translateX(-50%)'
+    }"
+  >
+    <div class="relative">
+      <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45" :class="isDark ? 'bg-gray-800' : 'bg-white'"></div>
+      <div :class="[
+        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
+        'rounded-2xl shadow-2xl border overflow-hidden min-w-[320px] max-w-[400px]'
+      ]">
+        <div :class="[
+          isDark ? 'bg-gray-900/50 border-gray-700' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-gray-100',
+          'p-4 border-b'
+        ]">
+          <h3 class="font-bold text-lg" :class="isDark ? 'text-white' : 'text-gray-800'">
+            {{ sectionContents[activePopup]?.title }}
+          </h3>
+          <p class="text-sm mt-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+            {{ sectionContents[activePopup]?.description }}
+          </p>
+        </div>
+
+        <div class="p-4 border-b" :class="isDark ? 'border-gray-700' : 'border-gray-100'">
+          <div class="flex justify-around">
+            <div v-for="(stat, idx) in sectionContents[activePopup]?.stats" :key="idx" class="text-center">
+              <div class="text-2xl font-bold text-indigo-500">{{ stat.value }}</div>
+              <div class="text-xs" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ stat.label }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-2 max-h-[400px] overflow-y-auto">
+          <div
+            v-for="(item, idx) in sectionContents[activePopup]?.menuList"
+            :key="idx"
+            @click="handleMenuItemClick(item.link)"
+            class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all hover:bg-indigo-50 dark:hover:bg-indigo-950/30 group"
+          >
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-950/50 dark:to-purple-950/50 flex items-center justify-center text-xl">
+              {{ item.icon }}
+            </div>
+            <div class="flex-1">
+              <div class="font-medium" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-800 group-hover:text-indigo-600'">
+                {{ item.name }}
+              </div>
+              <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                {{ item.description }}
+              </div>
+            </div>
+            <svg class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" :class="isDark ? 'text-indigo-400' : 'text-indigo-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="p-3 border-t" :class="isDark ? 'border-gray-700' : 'border-gray-100'">
+          <button
+            @click="closePopup"
+            class="w-full py-2 text-center text-sm rounded-lg transition-all"
+            :class="isDark ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100'"
+          >
+            关闭
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div :class="[isDark ? 'dark' : '', 'min-h-screen overflow-x-hidden']">
     <div :class="[
@@ -340,7 +478,6 @@ onUnmounted(() => {
       ]">
         <div class="max-w-[1400px] mx-auto px-6 lg:px-8">
           <div class="flex items-center justify-between h-16 lg:h-20">
-            <!-- Logo -->
             <div class="flex items-center gap-3 cursor-pointer group" @click="scrollToSection('home')">
               <div class="relative">
                 <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
@@ -352,11 +489,10 @@ onUnmounted(() => {
                 <span class="text-xl lg:text-2xl font-bold" :class="isDark ? 'text-white' : 'bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent'">
                   拾光记
                 </span>
-                <span class="hidden lg:inline text-xs font-medium text-gray-400 tracking-wider">Chronicles</span>
+                <span class="hidden lg:inline text-xs font-medium text-gray-400 tracking-wider">弥补当时那个迷茫的自己</span>
               </div>
             </div>
 
-            <!-- 导航菜单 - 桌面端（居中） -->
             <div class="flex-1 flex justify-center">
               <div :class="[isDark ? 'bg-gray-900/80 backdrop-blur-sm' : 'bg-gray-50/80 backdrop-blur-sm', 'hidden md:flex items-center gap-1 rounded-full p-1 shadow-sm']">
                 <button
@@ -365,7 +501,7 @@ onUnmounted(() => {
                     { id: 'timeline', name: '时光轴', icon: '⏳' },
                     { id: 'milestone', name: '里程碑', icon: '🏆' },
                     { id: 'gallery', name: '回忆相册', icon: '📸' },
-                    { id: 'journal', name: '成长日记', icon: '📖' }
+                    { id: 'journal', name: '云边小札', icon: '📖' }
                   ]"
                   :key="item.id"
                   @click="scrollToSection(item.id)"
@@ -385,9 +521,7 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <!-- 用户信息（右侧） -->
             <div class="flex items-center gap-4 user-menu-container relative">
-              <!-- 用户名和头像 -->
               <div class="hidden md:flex items-center gap-2 cursor-pointer group" @click="toggleUserMenu">
                 <div class="relative w-9 h-9 rounded-full overflow-hidden border-2 border-indigo-200 group-hover:border-indigo-400 transition-colors">
                   <img :src="UserInfo.avatar" alt="User Avatar">
@@ -395,7 +529,6 @@ onUnmounted(() => {
                 <span :class="[isDark ? 'text-gray-300 group-hover:text-indigo-400' : 'text-gray-700 group-hover:text-indigo-600', 'text-sm font-medium transition-colors']">{{UserInfo.name}}</span>
               </div>
 
-              <!-- 下拉菜单 -->
               <div v-if="showUserMenu" :class="[isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-100', 'absolute top-full right-0 mt-2 w-48 rounded-lg shadow-xl border overflow-hidden z-50']">
                 <div class="py-2">
                   <button @click="navigateWithTransition('PersonalProfile')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
@@ -418,10 +551,8 @@ onUnmounted(() => {
                 </div>
               </div>
 
-              <!-- 主题切换按钮（最右侧） -->
               <ThemeToggleButton />
 
-              <!-- 移动端菜单按钮（仅移动端显示） -->
               <button :class="[isDark ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600', 'md:hidden w-9 h-9 rounded-lg flex items-center justify-center']">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -434,7 +565,6 @@ onUnmounted(() => {
 
       <!-- Hero 区域 -->
       <section id="home" class="relative min-h-screen flex items-center pt-20 overflow-hidden">
-        <!-- 背景光晕 -->
         <div class="absolute inset-0 z-0">
           <div class="absolute w-[400px] h-[400px] bg-indigo-400/20 rounded-full blur-[80px] -top-20 -left-20 animate-float"></div>
           <div class="absolute w-[500px] h-[500px] bg-purple-400/15 rounded-full blur-[80px] -bottom-32 -right-32 animate-float animation-delay-2000"></div>
@@ -443,7 +573,6 @@ onUnmounted(() => {
 
         <div class="relative z-10 max-w-[1200px] mx-auto px-6 lg:px-8">
           <div class="grid lg:grid-cols-2 gap-12 items-center">
-            <!-- 左侧内容 -->
             <div class="scroll-animate">
               <div class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full text-indigo-600 text-sm mb-6">
                 <span>✨</span>
@@ -471,7 +600,7 @@ onUnmounted(() => {
                 </div>
               </div>
               <div class="flex gap-4">
-                <button @click="$router.push('/register')" class="px-8 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5">
+                <button @click="navigateWithTransition('/Records')" class="px-8 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5">
                   开始记录时光
                 </button>
                 <button @click="scrollToSection('timeline')" class="px-8 py-3 border border-gray-300 rounded-full font-medium hover:border-indigo-400 hover:text-indigo-600 transition-all">
@@ -480,7 +609,6 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <!-- 右侧预览 -->
             <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/80 shadow-xl scroll-animate">
               <div class="relative pl-8 min-h-[280px]">
                 <div class="absolute left-2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-indigo-500 to-purple-500"></div>
@@ -498,43 +626,43 @@ onUnmounted(() => {
       <section class="py-16" :class="isDark ? 'bg-black' : 'bg-white'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
           <div class="flex justify-center gap-5 flex-wrap">
-            <div class="flex justify-center gap-5 flex-wrap">
-              <div
-                v-for="(stage, idx) in lifeStages"
-                :key="idx"
-                class="px-8 py-5 rounded-2xl text-center cursor-pointer transition-all min-w-[140px]"
-                :class="[
-          isDark
-            ? activeStage === idx
-              ? 'bg-black border-indigo-400 shadow-lg -translate-y-1'
-              : 'bg-gray-900 border-gray-700 hover:border-indigo-500'
-            : activeStage === idx
-              ? 'bg-white/10 border-white/50 shadow-lg -translate-y-1'
-              : 'bg-gray-50 border-gray-200 hover:border-indigo-400',
-          'border hover:shadow-lg hover:-translate-y-1'
-        ]"
-                @click="handleStageClick(stage, idx)">
-                <div class="text-3xl mb-2">{{ stage.icon }}</div>
-                <div class="font-semibold mb-1" :class="isDark ? 'text-white' : 'text-gray-800'">{{ stage.name }}</div>
-                <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-500'">{{ stage.years }}</div>
-
-                <!-- 跳转指示器 -->
-                <div v-if="stage.path" class="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <svg class="w-4 h-4 mx-auto" :class="isDark ? 'text-indigo-400' : 'text-indigo-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                  </svg>
-                </div>
-              </div>
+            <div
+              v-for="(stage, idx) in lifeStages"
+              :key="idx"
+              class="px-8 py-5 rounded-2xl text-center cursor-pointer transition-all min-w-[140px]"
+              :class="[
+                isDark
+                  ? activeStage === idx
+                    ? 'bg-black border-indigo-400 shadow-lg -translate-y-1'
+                    : 'bg-gray-900 border-gray-700 hover:border-indigo-500'
+                  : activeStage === idx
+                    ? 'bg-white/10 border-white/50 shadow-lg -translate-y-1'
+                    : 'bg-gray-50 border-gray-200 hover:border-indigo-400',
+                'border hover:shadow-lg hover:-translate-y-1'
+              ]"
+              @click="handleStageClick(stage, idx)">
+              <div class="text-3xl mb-2">{{ stage.icon }}</div>
+              <div class="font-semibold mb-1" :class="isDark ? 'text-white' : 'text-gray-800'">{{ stage.name }}</div>
+              <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-500'">{{ stage.years }}</div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- 时光轴区域 -->
+      <!-- 时光轴区域 - 可点击标题 -->
       <section id="timeline" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
-          <div class="text-center mb-12 scroll-animate">
-            <h2 class="text-3xl lg:text-4xl font-bold mb-3" :class="isDark ? 'text-white' : 'text-gray-900'">时光轴 · 成长轨迹</h2>
+          <div
+            class="text-center mb-12 scroll-animate cursor-pointer group"
+            @click="showPopup('timeline', $event)"
+            data-section="timeline"
+          >
+            <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-indigo-500 transition-colors" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-900 group-hover:text-indigo-600'">
+              时光轴 · 成长轨迹
+              <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </h2>
             <p class="text-gray-500">记录每一个值得铭记的瞬间</p>
           </div>
           <div class="relative max-w-3xl mx-auto">
@@ -565,11 +693,20 @@ onUnmounted(() => {
         </div>
       </section>
 
-      <!-- 里程碑区域 -->
+      <!-- 里程碑区域 - 可点击标题 -->
       <section id="milestone" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
-          <div class="text-center mb-12 scroll-animate">
-            <h2 class="text-3xl lg:text-4xl font-bold mb-3" :class="isDark ? 'text-white' : 'text-gray-900'">🏆 人生里程碑</h2>
+          <div
+            class="text-center mb-12 scroll-animate cursor-pointer group"
+            @click="showPopup('milestone', $event)"
+            data-section="milestone"
+          >
+            <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-indigo-500 transition-colors" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-900 group-hover:text-indigo-600'">
+              🏆 人生里程碑
+              <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </h2>
             <p class="text-gray-500">每一个里程碑，都是成长的勋章</p>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
@@ -612,11 +749,20 @@ onUnmounted(() => {
         </div>
       </section>
 
-      <!-- 回忆相册 -->
-      <section id="gallery" class="py-20" :class="isDark ? 'bg-balck' : 'bg-white'">
+      <!-- 回忆相册 - 可点击标题 -->
+      <section id="gallery" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
-          <div class="text-center mb-12 scroll-animate">
-            <h2 class="text-3xl lg:text-4xl font-bold mb-3" :class="isDark ? 'text-white' : 'text-gray-900'">📸 回忆相册</h2>
+          <div
+            class="text-center mb-12 scroll-animate cursor-pointer group"
+            @click="showPopup('gallery', $event)"
+            data-section="gallery"
+          >
+            <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-indigo-500 transition-colors" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-900 group-hover:text-indigo-600'">
+              📸 回忆相册
+              <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </h2>
             <p class="text-gray-500">用影像定格时光，让回忆触手可及</p>
           </div>
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -637,11 +783,20 @@ onUnmounted(() => {
         </div>
       </section>
 
-      <!-- 成长日记 -->
+      <!-- 云边小札 - 可点击标题 -->
       <section id="journal" class="py-20" :class="isDark ? 'bg-black' : 'bg-gray-50'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
-          <div class="text-center mb-12 scroll-animate">
-            <h2 class="text-3xl lg:text-4xl font-bold mb-3" :class="isDark ? 'text-white' : 'text-gray-900'">📖 成长日记</h2>
+          <div
+            class="text-center mb-12 scroll-animate cursor-pointer group"
+            @click="showPopup('journal', $event)"
+            data-section="journal"
+          >
+            <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-indigo-500 transition-colors" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-900 group-hover:text-indigo-600'">
+              📖 云边小札
+              <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </h2>
             <p class="text-gray-500">记录日常感悟，见证点滴成长</p>
           </div>
           <div class="max-w-3xl mx-auto space-y-5">
@@ -745,29 +900,13 @@ onUnmounted(() => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateX(-50%) translateY(-10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInRight {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
+    transform: translateX(-50%) translateY(0);
   }
 }
 
@@ -775,16 +914,8 @@ onUnmounted(() => {
   animation: float 20s ease-in-out infinite;
 }
 
-.animation-delay-200 {
-  animation-delay: 0.2s;
-}
-
-.animation-delay-400 {
-  animation-delay: 0.4s;
-}
-
-.animation-delay-600 {
-  animation-delay: 0.6s;
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
 }
 
 .animation-delay-2000 {
@@ -795,7 +926,6 @@ onUnmounted(() => {
   animation-delay: 5s;
 }
 
-/* 滚动动画样式 */
 .scroll-animate {
   opacity: 0;
   transform: translateY(30px);
@@ -807,10 +937,26 @@ onUnmounted(() => {
   transform: translateY(0);
 }
 
-/* 过渡动画 */
-.transition-colors {
-  transition-property: background-color, border-color, color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
+/* 自定义滚动条 */
+.floating-popup ::-webkit-scrollbar {
+  width: 4px;
+}
+
+.floating-popup ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.floating-popup ::-webkit-scrollbar-thumb {
+  background: #c7d2fe;
+  border-radius: 10px;
+}
+
+.dark .floating-popup ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.dark .floating-popup ::-webkit-scrollbar-thumb {
+  background: #334155;
 }
 </style>

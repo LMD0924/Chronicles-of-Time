@@ -1,13 +1,16 @@
 <template>
-  <div class="min-h-screen relative overflow-x-hidden" :class="isDark ? 'dark' : ''">
-    <div class="fixed inset-0 bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/40 -z-10"></div>
+  <div :class="isDark ? 'dark bg-black' : ''">
+    <div :class="[
+      isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900',
+      'min-h-screen transition-colors duration-300'
+    ]">
 
-    <HighNav :isDark="isDark" />
+      <Nav :isDark="isDark" :menuItems="menuItems"/>
 
-    <div class="max-w-[min(92vw,1420px)] mx-auto px-4 sm:px-6 lg:px-10 py-20 md:py-24">
+    <div class="max-w-[min(92vw,1420px)] mx-auto px-4 sm:px-6 lg:px-10 py-20 md:py-24" :class="isDark ? 'bg-black' : ''">
       <!-- 头部 -->
       <div class="mb-8 md:mb-10">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm mb-4 ring-1 ring-slate-200/60 dark:ring-slate-600/40">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/40 dark:bg-black backdrop-blur-sm mb-4 ring-1 ring-slate-200/60 dark:ring-slate-600/40">
           <span class="relative flex h-2 w-2">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -22,25 +25,25 @@
 
       <!-- 统计卡片 -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 md:mb-8">
-        <div class="rounded-xl p-4 bg-white/50 dark:bg-white/10 backdrop-blur-sm border border-white/20">
+        <div class="rounded-xl p-4 bg-white/50 dark:bg-black backdrop-blur-sm border border-white/20 dark:border-slate-800">
           <div class="text-2xl mb-1">📊</div>
           <div class="text-2xl font-bold">{{ statistics.totalStudents || 0 }}</div>
-          <div class="text-xs text-slate-500">总选课人数</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400">总选课人数</div>
         </div>
-        <div class="rounded-xl p-4 bg-white/50 dark:bg-white/10 backdrop-blur-sm border border-white/20">
+        <div class="rounded-xl p-4 bg-white/50 dark:bg-black backdrop-blur-sm border border-white/20 dark:border-slate-800">
           <div class="text-2xl mb-1">🏆</div>
           <div class="text-2xl font-bold">{{ statistics.confirmedCount || 0 }}</div>
-          <div class="text-xs text-slate-500">已确认人数</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400">已确认人数</div>
         </div>
-        <div class="rounded-xl p-4 bg-white/50 dark:bg-white/10 backdrop-blur-sm border border-white/20">
+        <div class="rounded-xl p-4 bg-white/50 dark:bg-black backdrop-blur-sm border border-white/20 dark:border-slate-800">
           <div class="text-2xl mb-1">📚</div>
           <div class="text-2xl font-bold">{{ statistics.combinationCount || 0 }}</div>
-          <div class="text-xs text-slate-500">可选组合</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400">可选组合</div>
         </div>
-        <div class="rounded-xl p-4 bg-white/50 dark:bg-white/10 backdrop-blur-sm border border-white/20">
+        <div class="rounded-xl p-4 bg-white/50 dark:bg-black backdrop-blur-sm border border-white/20 dark:border-slate-800">
           <div class="text-2xl mb-1">🎯</div>
           <div class="text-2xl font-bold">{{ statistics.hotCombination || '物化生' }}</div>
-          <div class="text-xs text-slate-500">最热门组合</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400">最热门组合</div>
         </div>
       </div>
 
@@ -51,8 +54,8 @@
           <el-menu
             :default-active="activeTab"
             class="selection-menu"
-            :background-color="isDark ? '#1e293b' : '#ffffff'"
-            :text-color="isDark ? '#94a3b8' : '#334155'"
+            :background-color="isDark ? '#000000' : '#ffffff'"
+            :text-color="isDark ? '#94a3b8' : '#000000'"
             :active-text-color="isDark ? '#818cf8' : '#6366f1'"
             mode="vertical"
             @select="handleMenuSelect"
@@ -182,6 +185,7 @@
         @cancel="editDialogVisible = false"
       />
     </el-dialog>
+    </div>
   </div>
 </template>
 
@@ -189,7 +193,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
-import HighNav from '@/components/HighNav.vue'
+import Nav from '@/components/Nav.vue'
 import MySelectionPanel from '@/views/high/CourseSelection/MySelectionPanel.vue'
 import SelectionCenterPanel from '@/views/high/CourseSelection/SelectionCenterPanel.vue'
 import MajorRecommendPanel from '@/views/high/CourseSelection/MajorRecommendPanel.vue'
@@ -201,7 +205,10 @@ import CourseSelectionIntentionPanel from '@/views/high/CourseSelection/CourseSe
 import CourseGuidancePanel from '@/views/high/CourseSelection/CourseGuidancePanel.vue'
 import GradingScalePanel from '@/views/high/CourseSelection/GradingScalePanel.vue'
 import MajorAdminPanel from '@/views/high/CourseSelection/MajorAdminPanel.vue'
+import { getStoredTheme, ThemeType } from '@/utils/theme'
 
+// 主题
+const isDark = ref(getStoredTheme() === ThemeType.DARK)
 const props = defineProps({
   isDark: {
     type: Boolean,
@@ -222,6 +229,34 @@ const statistics = ref({
   combinationCount: 12,
   hotCombination: '物化生'
 })
+
+// 导航菜单配置
+const menuItems = [
+  {
+    key: 'CourseSelection',
+    label: '明确目标',
+    icon: '🎯',
+    path: '/CourseSelection'
+  },
+  {
+    key: 'Volunteer',
+    label: '规划未来',
+    icon: '🎓',
+    path: '/Volunteer'
+  },
+  {
+    key: 'StudyDashboard',
+    label: '温故而知新',
+    icon: '📚',
+    children: [
+      { key: 'practice', label: '实战练习', icon: '⚡', path: '/StudyDashboard?tab=practice' },
+      { key: 'mistake', label: '错题本', icon: '📖', path: '/StudyDashboard?tab=mistake' },
+      { key: 'analysis', label: '成绩分析', icon: '📊', path: '/StudyDashboard?tab=analysis' },
+      { key: 'questionBank', label: '题库管理', icon: '📚', path: '/StudyDashboard?tab=questionBank' },
+      { key: 'answerRecords', label: '答题记录', icon: '✍️', path: '/StudyDashboard?tab=answerRecords' }
+    ]
+  }
+]
 
 // 处理菜单选择
 const handleMenuSelect = (index) => {
@@ -317,7 +352,7 @@ onMounted(async () => {
 }
 
 .dark .selection-container {
-  background: rgba(30, 41, 59, 0.8);
+  background: black;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }

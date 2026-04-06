@@ -106,7 +106,7 @@ onMounted(() => {
     </div>
     <div v-else class="space-y-3">
       <div v-for="item in pendingList" :key="item.id"
-           class="rounded-xl bg-white/70 dark:bg-white/10 backdrop-blur-sm border border-white/30 p-4">
+           class="rounded-xl bg-white/70 dark:bg-black backdrop-blur-sm border border-white/30 p-4">
         <div class="flex items-start justify-between mb-2">
           <div class="flex items-center gap-2">
             <span class="font-medium">{{ item.studentName }}</span>

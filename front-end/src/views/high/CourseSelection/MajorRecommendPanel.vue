@@ -79,12 +79,12 @@ const fetchHotMajors = async () => {
 
 const getUniversityLevelClass = (level) => {
   const map = {
-    '985': 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
-    '211': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
-    '双一流': 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
-    '普通': 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+    '985': 'bg-amber-100 text-amber-700 dark:bg-black dark:text-amber-400',
+    '211': 'bg-emerald-100 text-emerald-700 dark:bg-black dark:text-emerald-400',
+    '双一流': 'bg-blue-100 text-blue-700 dark:bg-black dark:text-blue-400',
+    '普通': 'bg-gray-100 text-gray-600 dark:bg-black dark:text-gray-400'
   }
-  return map[level] || 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+  return map[level] || 'bg-gray-100 text-gray-600 dark:bg-black dark:text-gray-400'
 }
 
 const getMatchingScoreColor = (score) => {
@@ -109,7 +109,7 @@ watch(() => props.studentId, (val) => {
       <div class="flex items-center gap-3 mb-3">
         <span class="text-2xl">🎯</span>
         <span class="font-semibold text-gray-800 dark:text-gray-200">当前选科组合</span>
-        <span class="px-2 py-0.5 rounded-full text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">已选</span>
+        <span class="px-2 py-0.5 rounded-full text-xs bg-indigo-100 dark:bg-black text-indigo-600 dark:text-indigo-400">已选</span>
       </div>
       <div class="flex flex-wrap gap-3 mt-3">
         <span class="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-medium shadow-md">
@@ -133,7 +133,7 @@ watch(() => props.studentId, (val) => {
       <div class="flex items-center gap-3 mb-4">
         <span class="text-2xl">🎓</span>
         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">推荐专业</h3>
-        <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400">智能匹配</span>
+        <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 dark:bg-black text-green-600 dark:text-green-400">智能匹配</span>
       </div>
 
       <div v-if="loading" class="flex justify-center py-12">
@@ -143,14 +143,14 @@ watch(() => props.studentId, (val) => {
         </div>
       </div>
 
-      <div v-else-if="recommendedMajors.length === 0" class="text-center py-12 bg-gray-50/50 dark:bg-gray-800/30 rounded-2xl">
+      <div v-else-if="recommendedMajors.length === 0" class="text-center py-12 bg-gray-50/50 dark:bg-black rounded-2xl">
         <span class="text-5xl opacity-50">📭</span>
         <p class="mt-3 text-gray-500 dark:text-gray-400">暂无推荐专业，请先完成选课</p>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div v-for="major in recommendedMajors" :key="major.id"
-             class="group bg-white/60 dark:bg-gray-800/40 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 p-4 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+             class="group bg-white/60 dark:bg-black backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 p-4 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
           <div class="flex items-start justify-between mb-3">
             <div class="flex-1">
               <div class="font-bold text-lg text-gray-800 dark:text-gray-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
@@ -183,7 +183,7 @@ watch(() => props.studentId, (val) => {
                   {{ major.avgMatchingScore }}%
                 </span>
               </div>
-              <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div class="h-2 bg-gray-200 dark:bg-black rounded-full overflow-hidden">
                 <div class="h-full bg-gradient-to-r rounded-full transition-all duration-500"
                      :class="getMatchingScoreColor(major.avgMatchingScore)"
                      :style="{ width: major.avgMatchingScore + '%' }"></div>
@@ -195,17 +195,17 @@ watch(() => props.studentId, (val) => {
     </div>
 
     <!-- 按专业搜索 -->
-    <div class="bg-white/60 dark:bg-gray-800/40 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+    <div class="bg-white/60 dark:bg-black backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
       <div class="flex items-center gap-3 px-5 py-4 bg-gradient-to-r from-blue-50/50 to-cyan-50/50 dark:from-blue-950/20 dark:to-cyan-950/20 border-b border-gray-200/50 dark:border-gray-700/50">
         <span class="text-2xl">🔍</span>
         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">搜索专业</h3>
-        <span class="ml-auto text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400">全国高校</span>
+        <span class="ml-auto text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-black text-blue-600 dark:text-blue-400">全国高校</span>
       </div>
 
       <div class="p-5">
         <div class="flex gap-3">
           <input v-model="searchKeyword" type="text"
-                 class="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                 class="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                  placeholder="输入专业名称、专业代码或类别..." @keyup.enter="searchMajors">
           <button @click="searchMajors"
                   class="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200">
@@ -215,13 +215,13 @@ watch(() => props.studentId, (val) => {
 
         <div v-if="searchResults.length > 0" class="mt-5 space-y-3">
           <div v-for="major in searchResults" :key="major.id"
-               class="p-4 rounded-xl bg-gray-50/50 dark:bg-gray-900/30 border border-gray-200/50 dark:border-gray-700/50 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
+               class="p-4 rounded-xl bg-gray-50/50 dark:bg-black border border-gray-200/50 dark:border-gray-700/50 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
             <div class="flex items-start justify-between flex-wrap gap-2">
               <div class="flex-1">
                 <div class="font-semibold text-gray-800 dark:text-gray-200">{{ major.majorName }}</div>
                 <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{{ major.universityName }}</div>
               </div>
-              <span class="text-xs font-mono text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{{ major.majorCode }}</span>
+              <span class="text-xs font-mono text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-black px-2 py-1 rounded">{{ major.majorCode }}</span>
             </div>
             <div class="text-sm mt-2 flex items-center gap-2 text-gray-600 dark:text-gray-300">
               <span>📖</span>
@@ -242,12 +242,12 @@ watch(() => props.studentId, (val) => {
       <div class="flex items-center gap-3 mb-4">
         <span class="text-2xl">🔥</span>
         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">热门专业排行</h3>
-        <span class="px-2 py-0.5 rounded-full text-xs bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400">实时热度</span>
+        <span class="px-2 py-0.5 rounded-full text-xs bg-orange-100 dark:bg-black text-orange-600 dark:text-orange-400">实时热度</span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div v-for="(major, index) in hotMajors" :key="index"
-             class="group flex items-center gap-4 p-4 rounded-xl bg-white/60 dark:bg-gray-800/40 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+             class="group flex items-center gap-4 p-4 rounded-xl bg-white/60 dark:bg-black backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
           <div class="flex-shrink-0">
             <div v-if="index === 0" class="w-10 h-10 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-white flex items-center justify-center text-lg shadow-lg">🥇</div>
             <div v-else-if="index === 1" class="w-10 h-10 rounded-full bg-gradient-to-r from-gray-400 to-gray-500 text-white flex items-center justify-center text-lg shadow-lg">🥈</div>
@@ -267,7 +267,7 @@ watch(() => props.studentId, (val) => {
         </div>
       </div>
 
-      <div v-if="hotMajors.length === 0" class="text-center py-8 bg-gray-50/50 dark:bg-gray-800/30 rounded-2xl">
+      <div v-if="hotMajors.length === 0" class="text-center py-8 bg-gray-50/50 dark:bg-black rounded-2xl">
         <span class="text-4xl opacity-50">🔥</span>
         <p class="mt-2 text-gray-500 dark:text-gray-400">暂无热门专业数据</p>
       </div>

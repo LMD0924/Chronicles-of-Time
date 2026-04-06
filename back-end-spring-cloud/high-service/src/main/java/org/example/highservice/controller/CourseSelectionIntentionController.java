@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/intention")
+@RequestMapping("api/intention")
 @RequiredArgsConstructor
 public class CourseSelectionIntentionController {
 

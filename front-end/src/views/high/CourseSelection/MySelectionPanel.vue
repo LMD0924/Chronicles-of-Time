@@ -125,7 +125,7 @@ watch(() => props.studentId, (val) => {
     <!-- 选课列表 -->
     <div v-else class="space-y-4">
       <div v-for="item in selections" :key="item.id"
-           class="rounded-xl bg-white/70 dark:bg-white/10 backdrop-blur-sm border border-white/30 p-5 hover:shadow-lg transition-all">
+           class="rounded-xl bg-white/70 dark:bg-black backdrop-blur-sm border border-white/30 p-5 hover:shadow-lg transition-all">
         <div class="flex items-start justify-between">
           <div class="flex-1">
             <!-- 基本信息 -->
@@ -142,17 +142,17 @@ watch(() => props.studentId, (val) => {
 
             <!-- 选科信息 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div class="p-3 rounded-lg bg-indigo-50/50 dark:bg-indigo-950/30">
+              <div class="p-3 rounded-lg bg-indigo-50/50 dark:bg-black">
                 <div class="text-xs text-slate-500 mb-1">首选科目</div>
                 <div class="font-semibold text-lg">{{ item.firstSubjectName }}</div>
                 <div class="text-sm text-slate-500">成绩: {{ item.firstSubjectScore || '-' }}分</div>
               </div>
-              <div class="p-3 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/30">
+              <div class="p-3 rounded-lg bg-emerald-50/50 dark:bg-black">
                 <div class="text-xs text-slate-500 mb-1">再选科目1</div>
                 <div class="font-semibold text-lg">{{ item.secondSubject1Name }}</div>
                 <div class="text-sm text-slate-500">成绩: {{ item.secondSubject1Score || '-' }}分</div>
               </div>
-              <div class="p-3 rounded-lg bg-amber-50/50 dark:bg-amber-950/30">
+              <div class="p-3 rounded-lg bg-amber-50/50 dark:bg-black">
                 <div class="text-xs text-slate-500 mb-1">再选科目2</div>
                 <div class="font-semibold text-lg">{{ item.secondSubject2Name }}</div>
                 <div class="text-sm text-slate-500">成绩: {{ item.secondSubject2Score || '-' }}分</div>
@@ -180,7 +180,7 @@ watch(() => props.studentId, (val) => {
             </div>
 
             <!-- 选课理由 -->
-            <div v-if="item.selectionReason" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/40 text-sm">
+            <div v-if="item.selectionReason" class="p-2 rounded-lg bg-slate-50 dark:bg-black text-sm">
               <span class="text-slate-500">选课理由：</span>
               {{ item.selectionReason }}
             </div>

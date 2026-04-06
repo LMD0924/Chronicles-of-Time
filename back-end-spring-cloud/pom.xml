@@ -20,6 +20,8 @@
         <module>file-upload</module>
         <module>user-center</module>
         <module>high-service</module>
+        <module>university-service</module>
+        <module>general-service</module>
     </modules>
 
     <properties>
