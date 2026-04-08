@@ -14,6 +14,9 @@ export default defineConfig({
       launchEditor:'idea',
     }),
   ],
+  optimizeDeps: {
+    include: ['cesium']
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

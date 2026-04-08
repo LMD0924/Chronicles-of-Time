@@ -19,9 +19,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("like_record")
-public class LikeRecord implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class LikeRecord {
 
     /**
      * 记录ID

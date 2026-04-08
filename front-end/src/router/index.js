@@ -57,7 +57,21 @@ const router = createRouter({
       name:'志愿填报',
       component: () => import('@/views/high/volunteer/volunteer.vue')
     },
-
+    {
+      path:'/Publish',
+      name:'发布',
+      component: () => import('@/views/content/publish.vue')
+    },
+    {
+      path:'/List',
+      name:'列表',
+      component: () => import('@/views/content/List.vue')
+    },
+    {
+      path:'/View/:id',
+      name:'查看',
+      component: () => import('@/views/content/View.vue')
+    },
     {
       path: '/test',
       name: '测试',

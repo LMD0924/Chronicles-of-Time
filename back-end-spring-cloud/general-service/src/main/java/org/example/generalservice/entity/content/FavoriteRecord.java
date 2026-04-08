@@ -19,9 +19,8 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("favorite_record")
-public class FavoriteRecord implements Serializable {
+public class FavoriteRecord {
 
-    private static final long serialVersionUID = 1L;
 
     /**
      * 记录ID

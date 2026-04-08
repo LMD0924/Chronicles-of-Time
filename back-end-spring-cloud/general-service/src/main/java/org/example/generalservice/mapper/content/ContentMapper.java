@@ -1,5 +1,6 @@
 package org.example.generalservice.mapper.content;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -8,7 +9,6 @@ import org.apache.ibatis.annotations.Update;
 import org.example.generalservice.entity.content.Content;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 内容Mapper接口
@@ -17,6 +17,7 @@ import java.util.Map;
  * @date 2026-04-06
  */
 @Mapper
+@DS("futurestack")
 public interface ContentMapper extends BaseMapper<Content> {
 
     /**
@@ -90,17 +91,4 @@ public interface ContentMapper extends BaseMapper<Content> {
      */
     @Select("SELECT * FROM content WHERE status = 1 AND is_public = 1 ORDER BY views DESC LIMIT #{limit}")
     List<Content> selectHotContents(@Param("limit") Integer limit);
-
-    /**
-     * 统计用户内容数量
-     *
-     * @param userId 用户ID
-     * @param status 状态（可选）
-     * @return 内容数量
-     */
-    @Select("<script>" +
-            "SELECT COUNT(*) FROM content WHERE user_id = #{userId}" +
-            "<if test='status != null'> AND status = #{status}</if>" +
-            "</script>")
-    Long countByUserId(@Param("userId") Long userId, @Param("status") Integer status);
 }

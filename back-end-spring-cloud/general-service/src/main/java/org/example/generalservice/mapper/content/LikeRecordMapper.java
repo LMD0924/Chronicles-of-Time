@@ -1,10 +1,12 @@
 package org.example.generalservice.mapper.content;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.example.generalservice.entity.content.LikeRecord;
+
 
 /**
  * 点赞记录Mapper接口
@@ -13,6 +15,7 @@ import org.example.generalservice.entity.content.LikeRecord;
  * @date 2026-04-06
  */
 @Mapper
+@DS("futurestack")
 public interface LikeRecordMapper extends BaseMapper<LikeRecord> {
 
     /**

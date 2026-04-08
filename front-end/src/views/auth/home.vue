@@ -83,10 +83,9 @@ const sectionContents = {
     title: '📖 云边小札',
     description: '记录日常感悟，见证点滴成长。每一篇日记都是心灵的印记。',
     menuList: [
-      { icon: '✍️', name: '心情随笔', description: '日常感悟', link: '/mood' },
-      { icon: '📝', name: '成长记录', description: '进步与反思', link: '/growth' },
-      { icon: '💡', name: '灵感笔记', description: '创意与想法', link: '/ideas' },
-      { icon: '🎬', name: '影音推荐', description: '喜欢的作品', link: '/recommendations' }
+      { icon: '✍️', name: '心情随笔', description: '日常感悟', link: '/Publish' },
+      { icon: '📝', name: '取其精华', description: '进步与反思', link: '/List' },
+      { icon: '💡', name: '灵感笔记', description: '创意与想法', link: '/Publish' },
     ],
     stats: [
       { label: '日记总数', value: '156篇' },

@@ -1,5 +1,6 @@
 package org.example.generalservice.mapper;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -17,6 +18,7 @@ import java.util.Map;
  * 高中成长记录 Mapper 接口
  */
 @Mapper
+@DS("chroniclesoftime")
 public interface GrowthMapper extends BaseMapper<Growth> {
 
     /**

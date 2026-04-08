@@ -28,7 +28,7 @@ public class UserController {
     private final UserService userService;
 
     /**
-     * 根据id获取用户信息
+     * 根据id获取当前用户信息
      */
     @GetMapping("/getUserById")
     public RestBean<UserVO> getUserById(HttpServletRequest request){
@@ -45,6 +45,21 @@ public class UserController {
         BeanUtils.copyProperties(userInfo, userVO);
         return RestBean.success(userVO);
     }
+
+    /**
+     * 根据id获取用户信息
+     */
+    @GetMapping("/public/{id}")
+    public RestBean<UserVO> getAuthorInfo(@PathVariable("id") Long id){
+        User userInfo = userService.getUserById(id);
+        if(userInfo == null) {
+            return RestBean.fail("用户不存在");
+        }
+        UserVO userVO = new UserVO();
+        BeanUtils.copyProperties(userInfo, userVO);
+        return RestBean.success(userVO);
+    }
+
 
     /**
      * 上传头像

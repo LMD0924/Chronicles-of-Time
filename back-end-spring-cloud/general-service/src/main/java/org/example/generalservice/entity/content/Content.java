@@ -2,9 +2,12 @@ package org.example.generalservice.entity.content;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.example.generalservice.vo.UserVO;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -21,13 +24,12 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("content")
-public class Content implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class Content {
 
     /**
      * 内容ID（主键，使用bigint支持长位数）
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 加这行
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
@@ -166,7 +168,8 @@ public class Content implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime publishTime;
 
-    // 以下为非数据库字段，用于扩展查询
+    // ==================== 以下为非数据库字段 ====================
+
     /**
      * 作者名称（非数据库字段）
      */
@@ -190,4 +193,19 @@ public class Content implements Serializable {
      */
     @TableField(exist = false)
     private List<String> tagList;
+
+    /**
+     * 当前用户是否已点赞（非数据库字段）
+     */
+    @TableField(exist = false)
+    private Boolean isLiked;
+
+    /**
+     * 当前用户是否已收藏（非数据库字段）
+     */
+    @TableField(exist = false)
+    private Boolean isFavorited;
+
+    @TableField(exist = false)
+    private UserVO author;
 }

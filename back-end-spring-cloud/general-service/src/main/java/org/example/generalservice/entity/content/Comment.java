@@ -20,9 +20,8 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("comment")
-public class Comment implements Serializable {
+public class Comment {
 
-    private static final long serialVersionUID = 1L;
 
     /**
      * 评论ID
@@ -79,7 +78,8 @@ public class Comment implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createTime;
 
-    // 以下为非数据库字段
+    // ==================== 以下为非数据库字段 ====================
+
     /**
      * 评论用户名称（非数据库字段）
      */

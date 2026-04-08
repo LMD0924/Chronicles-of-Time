@@ -1,11 +1,13 @@
 package org.example.generalservice.mapper.content;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 import org.example.generalservice.entity.content.Comment;
+
 
 import java.util.List;
 
@@ -16,6 +18,7 @@ import java.util.List;
  * @date 2026-04-06
  */
 @Mapper
+@DS("futurestack")
 public interface CommentMapper extends BaseMapper<Comment> {
 
     /**

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import JSONbig from 'json-bigint';  // 🔥 新增：处理超大数字
 import { ElMessage } from "element-plus";
 import router from '@/router';
 
@@ -105,9 +106,17 @@ const refreshAccessToken = async () => {
 const service = axios.create({
   baseURL: 'http://localhost:8500/api/',
   timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json;charset=utf-8'
-  }
+  // ✅ 删除默认 Content-Type，让上传、表单、JSON 自动判断！
+  // headers: {
+  //   'Content-Type': 'application/json;charset=utf-8'
+  // },
+  transformResponse: [function (data) {
+    try {
+      return JSONbig.parse(data);
+    } catch (err) {
+      return data;
+    }
+  }]
 })
 
 // ==========================
@@ -197,7 +206,7 @@ const request = {
     let params = null
     let cb = null
     let finalConfig = config
-    
+
     // 处理参数重载
     if (typeof paramsOrCb === 'function') {
       cb = paramsOrCb
@@ -212,17 +221,17 @@ const request = {
         finalConfig = cbOrConfig
       }
     }
-    
+
     const isForm = data instanceof FormData
     const axiosConfig = {
       ...finalConfig,
       headers: isForm ? {} : { 'Content-Type': 'application/json' }
     }
-    
+
     if (params) {
       axiosConfig.params = params
     }
-    
+
     return service.post(url, data, axiosConfig).then(r => { cb && cb(r.msg, r.data); return r })
   },
   put(url, data, cb, config = {}) {

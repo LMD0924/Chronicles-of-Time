@@ -1,5 +1,6 @@
 package org.example.generalservice.mapper;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -16,6 +17,7 @@ import java.util.Map;
  * @Description: 成绩记录Mapper
  */
 @Mapper
+@DS("chroniclesoftime")
 public interface ScoreRecordMapper extends BaseMapper<ScoreRecord> {
 
     /**
