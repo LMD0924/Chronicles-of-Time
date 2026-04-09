@@ -39,7 +39,7 @@ const sectionContents = {
     description: '记录从高中到职场的每一个重要时刻，让时间有迹可循。',
     menuList: [
       { icon: '🎓', name: '高中时代', description: '2019-2022 · 奋斗的青春', link: '/CourseSelection' },
-      { icon: '📚', name: '大学时光', description: '2022-2026 · 成长的蜕变', link: '/bigRecords' },
+      { icon: '📚', name: '大学时光', description: '2022-2026 · 成长的蜕变', link: '/PrePare' },
       { icon: '💼', name: '职场生涯', description: '2026-至今 · 职业的启航', link: '/WorkRecords' },
       { icon: '🏆', name: '里程碑事件', description: '查看所有重要时刻', link: '/milestones' }
     ],
@@ -50,18 +50,18 @@ const sectionContents = {
     ]
   },
   milestone: {
-    title: '🏆 人生里程碑',
-    description: '每一个里程碑，都是成长的勋章。记录你的每一次突破与成就。',
+    title: '📜 墨海拾贝',
+    description: '笔墨留香，拾字成金。记录学习路上的点滴收获与感悟。',
     menuList: [
-      { icon: '🎯', name: '学业成就', description: '考试、竞赛、获奖记录', link: '/academic' },
-      { icon: '💼', name: '职业发展', description: '实习、工作、晋升', link: '/career' },
-      { icon: '🌟', name: '个人成长', description: '技能、证书、突破', link: '/personal' },
-      { icon: '❤️', name: '生活时刻', description: '旅行、重要事件', link: '/life' }
+      { icon: '✍️', name: '闪念笔记', description: '转瞬即逝的灵感记录', link: '/Publish' },
+      { icon: '📖', name: '永久笔记', description: '沉淀思想的精华记录', link: '/List' },
+      { icon: '🔖', name: '文献笔记', description: '阅读书籍与文章摘录', link: '/Publish' },
+      { icon: '🗂️', name: '项目笔记', description: '学习与实践过程记录', link: '/Publish' }
     ],
     stats: [
-      { label: '已达成', value: '18个' },
-      { label: '进行中', value: '5个' },
-      { label: '规划中', value: '12个' }
+      { label: '笔记总数', value: '326篇' },
+      { label: '总字数', value: '8.5万字' },
+      { label: '标签数量', value: '46个' }
     ]
   },
   gallery: {
@@ -155,7 +155,7 @@ const timelineNodes = [
 // 人生阶段
 const lifeStages = [
   { icon: '📚', name: '高中时代', years: '15-18岁', path: '/CourseSelection' },
-  { icon: '🎓', name: '大学时光', years: '18-22岁', path: '/bigRecords' },
+  { icon: '🎓', name: '大学时光', years: '18-22岁', path: '/PrePare' },
   { icon: '💼', name: '职场新人', years: '22-25岁', path: '/WorkRecords' },
   { icon: '🚀', name: '进阶之路', years: '25岁+', path: '/AdvanceRecords' }
 ]
@@ -189,13 +189,13 @@ const timelineData = [
   { date: '2025年3月', stage: '职场', stageClass: 'work', title: '独立完成项目', description: '第一次独立负责项目，从策划到执行全程主导。项目上线那天，成就感满满。', tags: ['成长', '独立', '项目'] }
 ]
 
-// 里程碑数据
+// 墨海拾贝数据
 const milestones = [
-  { icon: '📖', year: '2019', title: '考上重点高中', desc: '中考全市前100名', progress: 100, status: '已达成' },
-  { icon: '🎓', year: '2022', title: '高考上岸', desc: '考入理想大学', progress: 100, status: '已达成' },
-  { icon: '🏅', year: '2024', title: '英语六级', desc: '目标600分', progress: 85, status: '进行中' },
-  { icon: '💼', year: '2025', title: '秋招offer', desc: '拿到大厂offer', progress: 60, status: '进行中' },
-  { icon: '🚀', year: '2026', title: '职场晋升', desc: '成为项目负责人', progress: 30, status: '规划中' }
+  { icon: '✒️', year: '2019', title: '初入文海', desc: '开始记录读书笔记', progress: 100, status: '已完成' },
+  { icon: '📜', year: '2022', title: '笔墨渐丰', desc: '积累笔记百余篇', progress: 100, status: '已完成' },
+  { icon: '🔖', year: '2024', title: '文思积淀', desc: '形成个人知识体系', progress: 80, status: '进行中' },
+  { icon: '🖋️', year: '2025', title: '落笔生花', desc: '输出完整知识框架', progress: 50, status: '进行中' },
+  { icon: '📚', year: '2026', title: '墨海成章', desc: '个人知识库成型', progress: 25, status: '规划中' }
 ]
 
 // 相册数据
@@ -498,7 +498,7 @@ onUnmounted(() => {
                   v-for="item in [
                     { id: 'home', name: '首页', icon: '🏠' },
                     { id: 'timeline', name: '时光轴', icon: '⏳' },
-                    { id: 'milestone', name: '里程碑', icon: '🏆' },
+                    { id: 'milestone', name: '墨海拾贝', icon: '📜' },
                     { id: 'gallery', name: '回忆相册', icon: '📸' },
                     { id: 'journal', name: '云边小札', icon: '📖' }
                   ]"
@@ -566,7 +566,7 @@ onUnmounted(() => {
       <section id="home" class="relative min-h-screen flex items-center pt-20 overflow-hidden">
         <div class="absolute inset-0 z-0">
           <div class="absolute w-[400px] h-[400px] bg-indigo-400/20 rounded-full blur-[80px] -top-20 -left-20 animate-float"></div>
-          <div class="absolute w-[500px] h-[500px] bg-purple-400/15 rounded-full blur-[80px] -bottom-32 -right-32 animate-float animation-delay-2000"></div>
+          <div class="absolute w-[500px] h-[500px] bg-purple-400/15 rounded-full blur-[80px] -bottom-32 -right-32 animate-float"></div>
           <div class="absolute w-[300px] h-[300px] bg-pink-400/10 rounded-full blur-[80px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-float animation-delay-5000"></div>
         </div>
 
@@ -692,7 +692,7 @@ onUnmounted(() => {
         </div>
       </section>
 
-      <!-- 里程碑区域 - 可点击标题 -->
+      <!-- 墨海拾贝区域 - 可点击标题 -->
       <section id="milestone" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
           <div
@@ -701,12 +701,12 @@ onUnmounted(() => {
             data-section="milestone"
           >
             <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-indigo-500 transition-colors" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-900 group-hover:text-indigo-600'">
-              🏆 人生里程碑
+              📜 墨海拾贝
               <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
             </h2>
-            <p class="text-gray-500">每一个里程碑，都是成长的勋章</p>
+            <p class="text-gray-500">笔墨留香，拾字成金，记录学习路上的点滴收获</p>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
             <div v-for="(item, idx) in milestones" :key="idx"

@@ -24,5 +24,6 @@ public class UserInfo {
     private Long userId;
     private String university; // 学校
     private String major; // 专业
+    private String choose; // 意向
 
 }

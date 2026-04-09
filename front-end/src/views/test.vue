@@ -1,3 +1,4 @@
+<!--
 
 
 
@@ -5,7 +6,7 @@
   <div class="campus-3d-container">
     <div ref="canvasContainer" class="canvas-container"></div>
 
-    <!-- 控制面板 -->
+    &lt;!&ndash; 控制面板 &ndash;&gt;
     <div class="controls-panel" :class="isDark ? 'dark' : ''">
       <div class="control-group">
         <h4>🏫 校园导览</h4>
@@ -44,7 +45,7 @@
       </div>
     </div>
 
-    <!-- 信息提示 -->
+    &lt;!&ndash; 信息提示 &ndash;&gt;
     <div v-if="selectedBuilding" class="info-card" :class="isDark ? 'dark' : ''">
       <h3>{{ selectedBuilding.name }}</h3>
       <p>{{ selectedBuilding.description }}</p>
@@ -838,5 +839,681 @@ onUnmounted(() => {
     padding: 4px 8px;
     font-size: 10px;
   }
+}
+</style>
+-->
+<template>
+  <div class="knowledge-graph-container">
+    <!-- 控制栏 -->
+    <div class="graph-controls mb-4 flex flex-wrap gap-3 items-center justify-between">
+      <div class="flex gap-2 flex-wrap">
+        <button
+          @click="setViewType('category')"
+          :class="[
+            'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
+            viewType === 'category'
+              ? 'bg-indigo-500 text-white shadow-md'
+              : isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          ]"
+        >
+          📂 按分类聚合
+        </button>
+        <button
+          @click="setViewType('tag')"
+          :class="[
+            'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
+            viewType === 'tag'
+              ? 'bg-indigo-500 text-white shadow-md'
+              : isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          ]"
+        >
+          🏷️ 按标签聚合
+        </button>
+        <button
+          @click="setViewType('network')"
+          :class="[
+            'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
+            viewType === 'network'
+              ? 'bg-indigo-500 text-white shadow-md'
+              : isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          ]"
+        >
+          🔗 关联网络
+        </button>
+      </div>
+
+      <div class="flex gap-2">
+        <button
+          @click="zoomIn"
+          class="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+          :class="isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+          title="放大"
+        >
+          ➕
+        </button>
+        <button
+          @click="zoomOut"
+          class="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+          :class="isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+          title="缩小"
+        >
+          ➖
+        </button>
+        <button
+          @click="resetView"
+          class="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+          :class="isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+          title="重置视图"
+        >
+          🔄
+        </button>
+        <button
+          @click="toggleFullscreen"
+          class="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+          :class="isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+          title="全屏"
+        >
+          ⛶
+        </button>
+      </div>
+    </div>
+
+    <!-- 图表面板 -->
+    <div
+      ref="graphContainer"
+      class="graph-container relative rounded-xl overflow-hidden border transition-all"
+      :class="isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'"
+      :style="{ height: height + 'px' }"
+    >
+      <svg
+        ref="svgElement"
+        :width="containerWidth"
+        :height="height"
+        class="graph-svg"
+        @click="handleSvgClick"
+      >
+        <!-- 连线层 -->
+        <g class="edges-layer">
+          <g
+            v-for="edge in edges"
+            :key="edge.id"
+            class="edge-group"
+          >
+            <!-- 主连线 -->
+            <line
+              :x1="edge.source.x"
+              :y1="edge.source.y"
+              :x2="edge.target.x"
+              :y2="edge.target.y"
+              :stroke="edge.color"
+              :stroke-width="edge.width || 1.5"
+              :stroke-dasharray="edge.dasharray || ''"
+              :opacity="edge.opacity || 0.6"
+              class="edge-line"
+            />
+            <!-- 动画粒子（仅在关联网络模式下） -->
+            <circle
+              v-if="viewType === 'network' && edge.animated"
+              r="3"
+              :fill="edge.color"
+              class="edge-particle"
+              :style="{
+                animation: `flowParticle ${edge.duration || 2}s linear infinite`
+              }"
+            />
+          </g>
+        </g>
+
+        <!-- 节点层 -->
+        <g class="nodes-layer">
+          <g
+            v-for="node in nodes"
+            :key="node.id"
+            class="node-group"
+            :transform="`translate(${node.x}, ${node.y})`"
+            @mouseenter="hoverNode(node)"
+            @mouseleave="unhoverNode"
+            @click="selectNode(node)"
+          >
+            <!-- 节点光晕 -->
+            <circle
+              v-if="selectedNodeId === node.id"
+              r="32"
+              fill="none"
+              stroke="#8b5cf6"
+              stroke-width="2"
+              :opacity="0.5"
+              class="node-glow"
+            />
+            <!-- 节点背景 -->
+            <circle
+              :r="node.radius || 24"
+              :fill="node.color || getNodeColor(node.type)"
+              :stroke="selectedNodeId === node.id ? '#fff' : node.stroke || '#fff'"
+              :stroke-width="selectedNodeId === node.id ? 3 : 1.5"
+              :opacity="node.opacity || 0.9"
+              class="node-circle cursor-pointer transition-all"
+            />
+            <!-- 节点图标 -->
+            <text
+              :y="4"
+              text-anchor="middle"
+              fill="#fff"
+              font-size="16"
+              class="node-icon"
+            >
+              {{ node.icon || getNodeIcon(node.type) }}
+            </text>
+            <!-- 节点标签 -->
+            <text
+              :y="(node.radius || 24) + 16"
+              text-anchor="middle"
+              :fill="isDark ? '#e5e7eb' : '#374151'"
+              font-size="11"
+              class="node-label font-medium"
+            >
+              {{ node.label }}
+            </text>
+            <!-- 节点数值（数量） -->
+            <text
+              v-if="node.count && node.count > 1"
+              :y="-(node.radius || 24) - 4"
+              text-anchor="middle"
+              fill="#f59e0b"
+              font-size="10"
+              font-weight="bold"
+              class="node-count"
+            >
+              {{ node.count }}
+            </text>
+          </g>
+        </g>
+      </svg>
+
+      <!-- 加载状态 -->
+      <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="text-center">
+          <div class="animate-spin text-3xl mb-2">⏳</div>
+          <div class="text-white">加载图谱中...</div>
+        </div>
+      </div>
+
+      <!-- 空状态 -->
+      <div v-else-if="nodes.length === 0" class="absolute inset-0 flex items-center justify-center">
+        <div class="text-center">
+          <div class="text-6xl mb-4">📊</div>
+          <div class="text-gray-400">暂无数据，请先创建内容</div>
+        </div>
+      </div>
+
+      <!-- 节点详情浮窗 -->
+      <div
+        v-if="hoveredNode"
+        class="node-tooltip absolute z-20 p-3 rounded-xl shadow-xl max-w-[250px] transition-all"
+        :class="isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'"
+        :style="{ left: hoveredNode.tooltipX + 'px', top: hoveredNode.tooltipY + 'px' }"
+      >
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-xl">{{ hoveredNode.icon || getNodeIcon(hoveredNode.type) }}</span>
+          <h4 class="font-semibold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ hoveredNode.label }}</h4>
+        </div>
+        <p class="text-sm mb-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+          {{ getNodeDescription(hoveredNode) }}
+        </p>
+        <div class="flex flex-wrap gap-1">
+          <span class="text-xs px-2 py-0.5 rounded-full" :class="isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'">
+            📄 {{ hoveredNode.contentCount || hoveredNode.count || 0 }} 篇内容
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 图例说明 -->
+    <div class="graph-legend mt-4 flex flex-wrap gap-4 justify-center text-xs">
+      <div class="flex items-center gap-1">
+        <span class="w-3 h-3 rounded-full bg-indigo-500"></span>
+        <span class="text-gray-500">文章</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <span class="w-3 h-3 rounded-full bg-purple-500"></span>
+        <span class="text-gray-500">日记</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <span class="w-3 h-3 rounded-full bg-pink-500"></span>
+        <span class="text-gray-500">随笔</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+        <span class="text-gray-500">技术</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+        <span class="text-gray-500">标签节点</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import request from '@/utils/request.js'
+
+const props = defineProps({
+  isDark: {
+    type: Boolean,
+    default: false
+  },
+  height: {
+    type: Number,
+    default: 500
+  },
+  userId: {
+    type: Number,
+    default: null
+  }
+})
+
+const emit = defineEmits(['nodeClick', 'refresh'])
+
+// 状态
+const loading = ref(false)
+const viewType = ref('category') // category, tag, network
+const nodes = ref([])
+const edges = ref([])
+const selectedNodeId = ref(null)
+const hoveredNode = ref(null)
+const svgElement = ref(null)
+const graphContainer = ref(null)
+const containerWidth = ref(800)
+
+// 缩放相关
+let zoomLevel = 1
+let panX = 0
+let panY = 0
+let isDragging = false
+let dragStart = { x: 0, y: 0 }
+
+// 颜色映射
+const categoryColors = {
+  '随笔': { color: '#8b5cf6', lightColor: '#c4b5fd' },
+  '技术': { color: '#10b981', lightColor: '#6ee7b7' },
+  '生活': { color: '#f59e0b', lightColor: '#fcd34d' },
+  '旅行': { color: '#06b6d4', lightColor: '#67e8f9' },
+  '读书': { color: '#ef4444', lightColor: '#fca5a5' },
+  '日记': { color: '#ec4899', lightColor: '#f9a8d4' }
+}
+
+const contentTypeColors = {
+  'article': '#8b5cf6',
+  'journal': '#ec4899',
+  'essay': '#f59e0b',
+  'note': '#10b981'
+}
+
+const getNodeColor = (type) => {
+  if (viewType.value === 'category') {
+    return categoryColors[type]?.color || '#6b7280'
+  } else if (viewType.value === 'tag') {
+    return '#f59e0b'
+  }
+  return contentTypeColors[type] || '#8b5cf6'
+}
+
+const getNodeIcon = (type) => {
+  const iconMap = {
+    '随笔': '✍️',
+    '技术': '💻',
+    '生活': '🌿',
+    '旅行': '✈️',
+    '读书': '📚',
+    '日记': '📖',
+    'article': '📄',
+    'journal': '📔',
+    'essay': '✏️',
+    'note': '📝'
+  }
+  return iconMap[type] || '📄'
+}
+
+const getNodeDescription = (node) => {
+  if (viewType.value === 'category') {
+    return `${node.label}分类下共有 ${node.count || 0} 篇内容`
+  } else if (viewType.value === 'tag') {
+    return `标签"${node.label}"被用于 ${node.count || 0} 篇内容`
+  }
+  return node.contentTitle || node.label
+}
+
+// 加载分类图谱数据
+const loadCategoryGraph = async () => {
+  loading.value = true
+  try {
+    const res = await request.get('/content/statistics/by-category', { params: { userId: props.userId } })
+    const data = res.data || []
+
+    const centerX = containerWidth.value / 2
+    const centerY = props.height / 2
+    const radius = Math.min(containerWidth.value, props.height) * 0.35
+
+    const newNodes = data.map((item, idx) => {
+      const angle = (idx / data.length) * Math.PI * 2 - Math.PI / 2
+      return {
+        id: `cat_${item.category}`,
+        label: item.category,
+        type: item.category,
+        count: item.count,
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle),
+        radius: 28 + Math.min(item.count / 10, 12),
+        color: categoryColors[item.category]?.color || '#6b7280'
+      }
+    })
+
+    nodes.value = newNodes
+    edges.value = [] // 分类视图无边
+  } catch (error) {
+    console.error('加载分类图谱失败', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 加载标签图谱数据
+const loadTagGraph = async () => {
+  loading.value = true
+  try {
+    const res = await request.get('/content/statistics/by-tag', { params: { userId: props.userId, limit: 20 } })
+    const data = res.data || []
+
+    const centerX = containerWidth.value / 2
+    const centerY = props.height / 2
+    const radius = Math.min(containerWidth.value, props.height) * 0.4
+
+    // 按使用频率排序，频率高的放在中心附近
+    const sortedData = [...data].sort((a, b) => b.count - a.count)
+    const maxCount = sortedData[0]?.count || 1
+
+    const newNodes = sortedData.map((item, idx) => {
+      // 动态半径：使用频率越高半径越大
+      const nodeRadius = 20 + (item.count / maxCount) * 16
+      // 动态距离：使用频率越高离中心越近
+      const distance = radius * (1 - (item.count / maxCount) * 0.5)
+      const angle = (idx / sortedData.length) * Math.PI * 2 - Math.PI / 2
+
+      return {
+        id: `tag_${item.tag}`,
+        label: item.tag,
+        type: 'tag',
+        count: item.count,
+        x: centerX + distance * Math.cos(angle),
+        y: centerY + distance * Math.sin(angle),
+        radius: nodeRadius,
+        color: '#f59e0b'
+      }
+    })
+
+    nodes.value = newNodes
+    edges.value = []
+  } catch (error) {
+    console.error('加载标签图谱失败', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 加载关联网络数据
+const loadNetworkGraph = async () => {
+  loading.value = true
+  try {
+    const res = await request.get('/content/network/relations', { params: { userId: props.userId, depth: 2 } })
+    const data = res.data || { nodes: [], edges: [] }
+
+    // 布局计算 - 力导向布局的简化版本
+    const centerX = containerWidth.value / 2
+    const centerY = props.height / 2
+    const radius = Math.min(containerWidth.value, props.height) * 0.35
+
+    const contentNodes = data.nodes.map((node, idx) => {
+      const angle = (idx / data.nodes.length) * Math.PI * 2 - Math.PI / 2
+      return {
+        id: node.id,
+        label: node.title?.length > 15 ? node.title.slice(0, 12) + '...' : node.title,
+        type: node.contentType || 'article',
+        contentTitle: node.title,
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle),
+        radius: 28,
+        color: contentTypeColors[node.contentType] || '#8b5cf6'
+      }
+    })
+
+    const relationEdges = data.edges.map((edge, idx) => ({
+      id: `edge_${idx}`,
+      sourceId: edge.sourceId,
+      targetId: edge.targetId,
+      source: contentNodes.find(n => n.id === edge.sourceId),
+      target: contentNodes.find(n => n.id === edge.targetId),
+      color: '#9ca3af',
+      width: 1.5,
+      animated: true,
+      duration: 3 + Math.random() * 2
+    })).filter(e => e.source && e.target)
+
+    nodes.value = contentNodes
+    edges.value = relationEdges
+
+    // 重新计算连线坐标
+    updateEdgeCoordinates()
+  } catch (error) {
+    console.error('加载关联网络失败', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 更新连线的端点坐标
+const updateEdgeCoordinates = () => {
+  edges.value.forEach(edge => {
+    const sourceNode = nodes.value.find(n => n.id === edge.sourceId)
+    const targetNode = nodes.value.find(n => n.id === edge.targetId)
+    if (sourceNode && targetNode) {
+      edge.source = sourceNode
+      edge.target = targetNode
+    }
+  })
+}
+
+// 设置视图类型
+const setViewType = (type) => {
+  viewType.value = type
+  selectedNodeId.value = null
+  loadGraphData()
+}
+
+// 根据视图类型加载数据
+const loadGraphData = () => {
+  if (viewType.value === 'category') {
+    loadCategoryGraph()
+  } else if (viewType.value === 'tag') {
+    loadTagGraph()
+  } else {
+    loadNetworkGraph()
+  }
+}
+
+// 节点悬停
+const hoverNode = (node) => {
+  const rect = graphContainer.value?.getBoundingClientRect()
+  if (rect) {
+    hoveredNode.value = {
+      ...node,
+      tooltipX: node.x + 20,
+      tooltipY: node.y - 40
+    }
+  }
+}
+
+const unhoverNode = () => {
+  hoveredNode.value = null
+}
+
+// 选择节点
+const selectNode = (node) => {
+  selectedNodeId.value = node.id
+  emit('nodeClick', node)
+}
+
+// 缩放控制
+const zoomIn = () => {
+  zoomLevel = Math.min(zoomLevel + 0.1, 2)
+  applyTransform()
+}
+
+const zoomOut = () => {
+  zoomLevel = Math.max(zoomLevel - 0.1, 0.5)
+  applyTransform()
+}
+
+const resetView = () => {
+  zoomLevel = 1
+  panX = 0
+  panY = 0
+  applyTransform()
+}
+
+const applyTransform = () => {
+  if (svgElement.value) {
+    svgElement.value.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`
+    svgElement.value.style.transformOrigin = 'center'
+  }
+}
+
+// SVG 交互事件
+const handleSvgClick = (event) => {
+  if (isDragging) {
+    isDragging = false
+    return
+  }
+}
+
+// 全屏切换
+const toggleFullscreen = () => {
+  const container = graphContainer.value
+  if (!container) return
+
+  if (!document.fullscreenElement) {
+    container.requestFullscreen()
+  } else {
+    document.exitFullscreen()
+  }
+}
+
+// 窗口大小变化时重新布局
+const handleResize = () => {
+  if (graphContainer.value) {
+    containerWidth.value = graphContainer.value.clientWidth
+    loadGraphData()
+  }
+}
+
+// 监听容器宽度变化
+watch(() => containerWidth.value, () => {
+  loadGraphData()
+})
+
+onMounted(() => {
+  if (graphContainer.value) {
+    containerWidth.value = graphContainer.value.clientWidth
+  }
+  loadGraphData()
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+})
+
+defineExpose({
+  refresh: loadGraphData
+})
+</script>
+
+<style scoped>
+.graph-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.graph-svg {
+  transition: transform 0.3s ease;
+  cursor: grab;
+}
+
+.graph-svg:active {
+  cursor: grabbing;
+}
+
+.node-circle {
+  transition: r 0.2s ease, filter 0.2s ease;
+  cursor: pointer;
+}
+
+.node-circle:hover {
+  filter: brightness(1.1);
+  r: 28;
+}
+
+.node-glow {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+    r: 32;
+  }
+  50% {
+    opacity: 0.6;
+    r: 36;
+  }
+}
+
+@keyframes flowParticle {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 100;
+  }
+}
+
+.edge-particle {
+  animation: flowParticle 2s linear infinite;
+}
+
+.node-tooltip {
+  animation: fadeIn 0.15s ease-out;
+  pointer-events: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.graph-legend {
+  border-top: 1px solid;
+  border-color: #e5e7eb;
+  padding-top: 12px;
+}
+
+.dark .graph-legend {
+  border-color: #374151;
 }
 </style>

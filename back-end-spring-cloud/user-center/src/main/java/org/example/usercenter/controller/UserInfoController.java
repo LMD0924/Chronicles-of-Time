@@ -49,6 +49,8 @@ public class UserInfoController {
             return RestBean.fail("用户未登录");
         }
 
+        if(userInfoService.getUserInfoByUserId(userId)!=null) return RestBean.fail("您已填写信息，请勿重复填写！");
+
         // 设置用户ID
         userInfo.setUserId(userId);
 
@@ -130,7 +132,7 @@ public class UserInfoController {
 
         UserInfo userInfo = userInfoService.getUserInfoByUserId(userId);
         if (userInfo == null) {
-            return RestBean.fail("未找到该用户的信息");
+            return RestBean.fail("暂未填写必要信息，请先填写才可进入！！！");
         }
         return RestBean.success(userInfo);
     }

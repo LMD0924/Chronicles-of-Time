@@ -72,10 +72,7 @@ const loading = ref(true)
 
 const menuItems = [
   { key: 'home', label: '首页', icon: '🏠', path: '/home' },
-  { key: 'moments', label: '时光记忆', icon: '⏳', path: '/moments' },
-  { key: 'milestone', label: '里程碑', icon: '🏆', path: '/milestone' },
-  { key: 'gallery', label: '回忆相册', icon: '📸', path: '/gallery' },
-  { key: 'journal', label: '云边小札', icon: '📖', path: '/journal' }
+  { key: 'journal', label: '云边小札', icon: '📖', path: '/List' }
 ]
 
 const extractToc = (content) => {

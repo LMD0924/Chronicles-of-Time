@@ -1,3 +1,327 @@
+<script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import ThemeToggleButton from '@/components/ThemeToggleButton.vue'
+import { getStoredTheme, ThemeType, onThemeChange } from "@/utils/theme.js"
+import request from "@/utils/request.js"
+import { message } from "ant-design-vue"
+
+const router = useRouter()
+const isDark = ref(getStoredTheme() === ThemeType.DARK)
+const isScrolled = ref(false)
+const showBackTop = ref(false)
+const loading = ref(false)
+const UserInfo = ref({})
+
+// 表单数据
+const formData = ref({
+  university: '',
+  major: '',
+  choose: ''
+})
+
+// 已存在的信息
+const existingInfo = ref(null)
+
+// 建议列表
+const showUniversitySuggestions = ref(false)
+const showMajorSuggestions = ref(false)
+
+// 大学数据库（常见大学）
+const commonUniversities = [
+  '安徽信息工程学院',
+  '清华大学', '北京大学', '复旦大学', '上海交通大学', '浙江大学', '中国科学技术大学',
+  '南京大学', '西安交通大学', '哈尔滨工业大学', '华中科技大学', '武汉大学', '中山大学',
+  '四川大学', '南开大学', '天津大学', '山东大学', '东南大学', '吉林大学', '厦门大学',
+  '同济大学', '北京师范大学', '国防科技大学', '中国人民大学', '兰州大学', '西北工业大学',
+  '电子科技大学', '中国农业大学', '湖南大学', '中南大学', '华东师范大学', '华南理工大学'
+]
+
+// 专业数据库
+const commonMajors = [
+  '计算机科学与技术', '软件工程', '人工智能', '数据科学与大数据技术', '电子信息工程',
+  '通信工程', '自动化', '机械工程', '电气工程及其自动化', '土木工程', '建筑学',
+  '化学工程与工艺', '材料科学与工程', '环境工程', '生物工程', '药学', '临床医学',
+  '口腔医学', '护理学', '经济学', '金融学', '国际经济与贸易', '工商管理', '会计学',
+  '市场营销', '人力资源管理', '行政管理', '法学', '汉语言文学', '英语', '日语',
+  '新闻学', '广告学', '广播电视学', '视觉传达设计', '环境设计', '产品设计', '动画'
+]
+
+// 发展规划选项
+const careerOptions = [
+  {
+    value: '就业',
+    label: '就业',
+    icon: '💼',
+    desc: '直接就业，进入职场',
+    activeClass: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
+  },
+  {
+    value: '考研',
+    label: '考研',
+    icon: '📚',
+    desc: '继续深造，攻读硕士',
+    activeClass: 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg'
+  },
+  {
+    value: '考公',
+    label: '考公',
+    icon: '🏛️',
+    desc: '公务员/事业单位',
+    activeClass: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg'
+  },
+  {
+    value: '实习',
+    label: '实习',
+    icon: '🎯',
+    desc: '积累实习经验',
+    activeClass: 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg'
+  },
+  {
+    value: '留学',
+    label: '留学',
+    icon: '🌍',
+    desc: '出国留学深造',
+    activeClass: 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg'
+  },
+  {
+    value: '创业',
+    label: '创业',
+    icon: '🚀',
+    desc: '自主创业',
+    activeClass: 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg'
+  }
+]
+
+// 过滤后的大学列表
+const filteredUniversities = computed(() => {
+  if (!formData.value.university) return commonUniversities
+  return commonUniversities.filter(uni =>
+    uni.toLowerCase().includes(formData.value.university.toLowerCase())
+  )
+})
+
+// 过滤后的专业列表
+const filteredMajors = computed(() => {
+  if (!formData.value.major) return commonMajors
+  return commonMajors.filter(major =>
+    major.toLowerCase().includes(formData.value.major.toLowerCase())
+  )
+})
+
+// 选择大学
+const selectUniversity = (uni) => {
+  formData.value.university = uni
+  showUniversitySuggestions.value = false
+}
+
+// 选择专业
+const selectMajor = (major) => {
+  formData.value.major = major
+  showMajorSuggestions.value = false
+}
+
+// 处理失焦
+const handleUniversityBlur = () => {
+  setTimeout(() => {
+    showUniversitySuggestions.value = false
+  }, 200)
+}
+
+const handleMajorBlur = () => {
+  setTimeout(() => {
+    showMajorSuggestions.value = false
+  }, 200)
+}
+
+// 选择发展规划
+const selectCareer = (value) => {
+  formData.value.choose = value
+}
+
+// 获取职业图标
+const getCareerIcon = (value) => {
+  const option = careerOptions.find(opt => opt.value === value)
+  return option ? option.icon : '🎯'
+}
+
+// 获取职业提示
+const getCareerTip = (value) => {
+  const tips = {
+    就业: '💡 小贴士：建议从大二开始准备实习，积累项目经验，完善简历。',
+    考研: '💡 小贴士：提前了解目标院校，制定复习计划，大三开始全力备考。',
+    考公: '💡 小贴士：关注国考省考时间，提前准备行测和申论。',
+    实习: '💡 小贴士：寒暑假是积累实习的好时机，建议至少完成2-3份高质量实习。',
+    留学: '💡 小贴士：提前准备语言考试（雅思/托福），保持高GPA，丰富课外经历。',
+    创业: '💡 小贴士：参加创业比赛积累经验，寻找志同道合的伙伴。'
+  }
+  return tips[value] || '💡 提前规划，让你的大学生活更有方向。'
+}
+
+
+// 获取职业描述
+const getCareerDescription = (value) => {
+  const descs = {
+    就业: '毕业后直接进入企业工作，建议提前积累实习经验和专业技能。',
+    考研: '继续攻读硕士研究生，提升学术水平和专业深度。',
+    考公: '参加公务员或事业单位考试，进入体制内工作。',
+    实习: '通过实习积累工作经验，为正式求职打下基础。',
+    留学: '申请海外院校，拓展国际视野和学术背景。',
+    创业: '自主创业，实现自我价值和社会价值。'
+  }
+  return descs[value] || ''
+}
+
+// 获取职业标签
+const getCareerLabel = (value) => {
+  const option = careerOptions.find(opt => opt.value === value)
+  return option ? option.label : value
+}
+
+// 获取职业徽章样式
+const getCareerBadgeClass = (value) => {
+  const classes = {
+    就业: 'bg-blue-100 text-blue-700',
+    考研: 'bg-green-100 text-green-700',
+    考公: 'bg-amber-100 text-amber-700',
+    实习: 'bg-purple-100 text-purple-700',
+    留学: 'bg-pink-100 text-pink-700',
+    创业: 'bg-red-100 text-red-700'
+  }
+  return classes[value] || 'bg-gray-100 text-gray-700'
+}
+
+// 获取用户信息
+const getUserInfo = async () => {
+  try {
+    const res = await request.get('/user/getUserById')
+    if (res && res.data) {
+      UserInfo.value = res.data
+      console.log('用户信息', res.data)
+    }
+  } catch (error) {
+    console.error('获取用户信息失败', error)
+  }
+}
+
+// 获取已填写的用户信息
+const getUserInfoData = async () => {
+  try {
+    const res = await request.get('/userInfo/getCurrent')
+    if (res && res.code === 200 && res.data) {
+      existingInfo.value = res.data
+      console.log('已有信息', res.data)
+      // 如果已有信息，回填到表单
+      if (res.data.university) formData.value.university = res.data.university
+      if (res.data.major) formData.value.major = res.data.major
+      if (res.data.choose) formData.value.choose = res.data.choose
+    }
+  } catch (error) {
+    // 没有记录是正常的
+    console.log('暂无用户规划信息')
+  }
+}
+
+// 提交表单
+const handleSubmit = async () => {
+  if (!formData.value.university) {
+    message.warning('请输入大学名称')
+    return
+  }
+  if (!formData.value.major) {
+    message.warning('请输入专业名称')
+    return
+  }
+  if (!formData.value.choose) {
+    message.warning('请选择发展规划')
+    return
+  }
+
+  loading.value = true
+  try {
+    let res
+    if (existingInfo.value?.id) {
+      res = await request.put('/userInfo/update', {
+        id: existingInfo.value.id,
+        university: formData.value.university,
+        major: formData.value.major,
+        choose: formData.value.choose
+      })
+    } else {
+      res = await request.post('/userInfo/add', {
+        university: formData.value.university,
+        major: formData.value.major,
+        choose: formData.value.choose
+      })
+    }
+
+    // ✅ 修复这里！！！
+    if (res && res.code === 200) {
+      message.success(res.message || '保存成功')
+      await getUserInfoData()
+    } else {
+      message.error(res?.message || '保存失败')
+    }
+  } catch (error) {
+    console.error('提交失败', error)
+    message.error('提交失败，请稍后重试')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 编辑信息
+const editInfo = () => {
+  // 清空表单，让用户重新填写
+  // 但保留已有值作为默认
+}
+
+// 返回上一页
+const goBack = () => {
+  router.back()
+}
+
+// 跳转到个人资料
+const goToProfile = () => {
+  router.push('/PersonalProfile')
+}
+
+// 滚动到顶部
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// 滚动监听
+const handleScroll = () => {
+  isScrolled.value = window.scrollY > 20
+  showBackTop.value = window.scrollY > 500
+}
+
+// 主题变化监听
+onMounted(() => {
+  getUserInfoData()
+  getUserInfo()
+  window.addEventListener('scroll', handleScroll)
+  if (isDark.value) {
+    document.documentElement.classList.add('dark')
+  }
+
+  const stopListen = onThemeChange((theme) => {
+    isDark.value = theme === ThemeType.DARK
+    if (isDark.value) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  })
+
+  onUnmounted(() => {
+    stopListen()
+    window.removeEventListener('scroll', handleScroll)
+  })
+})
+</script>
+
 <template>
   <div :class="[isDark ? 'dark' : '', 'min-h-screen overflow-x-hidden']">
     <div :class="[
@@ -226,329 +550,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import ThemeToggleButton from '@/components/ThemeToggleButton.vue'
-import { getStoredTheme, ThemeType, onThemeChange } from "@/utils/theme.js"
-import request from "@/utils/request.js"
-import { message } from "ant-design-vue"
-
-const router = useRouter()
-const isDark = ref(getStoredTheme() === ThemeType.DARK)
-const isScrolled = ref(false)
-const showBackTop = ref(false)
-const loading = ref(false)
-const UserInfo = ref({})
-
-// 表单数据
-const formData = ref({
-  university: '',
-  major: '',
-  choose: ''
-})
-
-// 已存在的信息
-const existingInfo = ref(null)
-
-// 建议列表
-const showUniversitySuggestions = ref(false)
-const showMajorSuggestions = ref(false)
-
-// 大学数据库（常见大学）
-const commonUniversities = [
-  '清华大学', '北京大学', '复旦大学', '上海交通大学', '浙江大学', '中国科学技术大学',
-  '南京大学', '西安交通大学', '哈尔滨工业大学', '华中科技大学', '武汉大学', '中山大学',
-  '四川大学', '南开大学', '天津大学', '山东大学', '东南大学', '吉林大学', '厦门大学',
-  '同济大学', '北京师范大学', '国防科技大学', '中国人民大学', '兰州大学', '西北工业大学',
-  '电子科技大学', '中国农业大学', '湖南大学', '中南大学', '华东师范大学', '华南理工大学'
-]
-
-// 专业数据库
-const commonMajors = [
-  '计算机科学与技术', '软件工程', '人工智能', '数据科学与大数据技术', '电子信息工程',
-  '通信工程', '自动化', '机械工程', '电气工程及其自动化', '土木工程', '建筑学',
-  '化学工程与工艺', '材料科学与工程', '环境工程', '生物工程', '药学', '临床医学',
-  '口腔医学', '护理学', '经济学', '金融学', '国际经济与贸易', '工商管理', '会计学',
-  '市场营销', '人力资源管理', '行政管理', '法学', '汉语言文学', '英语', '日语',
-  '新闻学', '广告学', '广播电视学', '视觉传达设计', '环境设计', '产品设计', '动画'
-]
-
-// 发展规划选项
-const careerOptions = [
-  {
-    value: 'employment',
-    label: '就业',
-    icon: '💼',
-    desc: '直接就业，进入职场',
-    activeClass: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
-  },
-  {
-    value: 'postgraduate',
-    label: '考研',
-    icon: '📚',
-    desc: '继续深造，攻读硕士',
-    activeClass: 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg'
-  },
-  {
-    value: 'civil_servant',
-    label: '考公',
-    icon: '🏛️',
-    desc: '公务员/事业单位',
-    activeClass: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg'
-  },
-  {
-    value: 'internship',
-    label: '实习',
-    icon: '🎯',
-    desc: '积累实习经验',
-    activeClass: 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg'
-  },
-  {
-    value: 'abroad',
-    label: '留学',
-    icon: '🌍',
-    desc: '出国留学深造',
-    activeClass: 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg'
-  },
-  {
-    value: 'entrepreneurship',
-    label: '创业',
-    icon: '🚀',
-    desc: '自主创业',
-    activeClass: 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg'
-  }
-]
-
-// 过滤后的大学列表
-const filteredUniversities = computed(() => {
-  if (!formData.value.university) return commonUniversities
-  return commonUniversities.filter(uni =>
-    uni.toLowerCase().includes(formData.value.university.toLowerCase())
-  )
-})
-
-// 过滤后的专业列表
-const filteredMajors = computed(() => {
-  if (!formData.value.major) return commonMajors
-  return commonMajors.filter(major =>
-    major.toLowerCase().includes(formData.value.major.toLowerCase())
-  )
-})
-
-// 选择大学
-const selectUniversity = (uni) => {
-  formData.value.university = uni
-  showUniversitySuggestions.value = false
-}
-
-// 选择专业
-const selectMajor = (major) => {
-  formData.value.major = major
-  showMajorSuggestions.value = false
-}
-
-// 处理失焦
-const handleUniversityBlur = () => {
-  setTimeout(() => {
-    showUniversitySuggestions.value = false
-  }, 200)
-}
-
-const handleMajorBlur = () => {
-  setTimeout(() => {
-    showMajorSuggestions.value = false
-  }, 200)
-}
-
-// 选择发展规划
-const selectCareer = (value) => {
-  formData.value.choose = value
-}
-
-// 获取职业图标
-const getCareerIcon = (value) => {
-  const option = careerOptions.find(opt => opt.value === value)
-  return option ? option.icon : '🎯'
-}
-
-// 获取职业提示
-const getCareerTip = (value) => {
-  const tips = {
-    employment: '💡 小贴士：建议从大二开始准备实习，积累项目经验，完善简历。',
-    postgraduate: '💡 小贴士：提前了解目标院校，制定复习计划，大三开始全力备考。',
-    civil_servant: '💡 小贴士：关注国考省考时间，提前准备行测和申论。',
-    internship: '💡 小贴士：寒暑假是积累实习的好时机，建议至少完成2-3份高质量实习。',
-    abroad: '💡 小贴士：提前准备语言考试（雅思/托福），保持高GPA，丰富课外经历。',
-    entrepreneurship: '💡 小贴士：参加创业比赛积累经验，寻找志同道合的伙伴。'
-  }
-  return tips[value] || '💡 提前规划，让你的大学生活更有方向。'
-}
-
-// 获取职业描述
-const getCareerDescription = (value) => {
-  const descs = {
-    employment: '毕业后直接进入企业工作，建议提前积累实习经验和专业技能。',
-    postgraduate: '继续攻读硕士研究生，提升学术水平和专业深度。',
-    civil_servant: '参加公务员或事业单位考试，进入体制内工作。',
-    internship: '通过实习积累工作经验，为正式求职打下基础。',
-    abroad: '申请海外院校，拓展国际视野和学术背景。',
-    entrepreneurship: '自主创业，实现自我价值和社会价值。'
-  }
-  return descs[value] || ''
-}
-
-// 获取职业标签
-const getCareerLabel = (value) => {
-  const option = careerOptions.find(opt => opt.value === value)
-  return option ? option.label : value
-}
-
-// 获取职业徽章样式
-const getCareerBadgeClass = (value) => {
-  const classes = {
-    employment: 'bg-blue-100 text-blue-700',
-    postgraduate: 'bg-green-100 text-green-700',
-    civil_servant: 'bg-amber-100 text-amber-700',
-    internship: 'bg-purple-100 text-purple-700',
-    abroad: 'bg-pink-100 text-pink-700',
-    entrepreneurship: 'bg-red-100 text-red-700'
-  }
-  return classes[value] || 'bg-gray-100 text-gray-700'
-}
-
-// 获取用户信息
-const getUserInfo = async () => {
-  try {
-    const res = await request.get('/user/getUserById')
-    if (res && res.data) {
-      UserInfo.value = res.data
-    }
-  } catch (error) {
-    console.error('获取用户信息失败', error)
-  }
-}
-
-// 获取已填写的用户信息
-const getUserInfoData = async () => {
-  try {
-    const res = await request.get('/api/userInfo/getCurrent')
-    if (res && res.data && res.data.code === 200 && res.data.data) {
-      existingInfo.value = res.data.data
-      // 如果已有信息，回填到表单
-      if (res.data.data.university) formData.value.university = res.data.data.university
-      if (res.data.data.major) formData.value.major = res.data.data.major
-      if (res.data.data.choose) formData.value.choose = res.data.data.choose
-    }
-  } catch (error) {
-    // 没有记录是正常的
-    console.log('暂无用户规划信息')
-  }
-}
-
-// 提交表单
-const handleSubmit = async () => {
-  // 验证
-  if (!formData.value.university) {
-    message.warning('请输入大学名称')
-    return
-  }
-  if (!formData.value.major) {
-    message.warning('请输入专业名称')
-    return
-  }
-  if (!formData.value.choose) {
-    message.warning('请选择发展规划')
-    return
-  }
-
-  loading.value = true
-  try {
-    let res
-    if (existingInfo.value && existingInfo.value.id) {
-      // 更新
-      res = await request.put('/api/userInfo/update', {
-        id: existingInfo.value.id,
-        university: formData.value.university,
-        major: formData.value.major,
-        choose: formData.value.choose
-      })
-    } else {
-      // 新增
-      res = await request.post('/api/userInfo/add', {
-        university: formData.value.university,
-        major: formData.value.major,
-        choose: formData.value.choose
-      })
-    }
-
-    if (res && res.data && res.data.code === 200) {
-      message.success(res.data.message || '保存成功')
-      // 刷新数据
-      await getUserInfoData()
-    } else {
-      message.error(res?.data?.message || '保存失败')
-    }
-  } catch (error) {
-    console.error('提交失败', error)
-    message.error('提交失败，请稍后重试')
-  } finally {
-    loading.value = false
-  }
-}
-
-// 编辑信息
-const editInfo = () => {
-  // 清空表单，让用户重新填写
-  // 但保留已有值作为默认
-}
-
-// 返回上一页
-const goBack = () => {
-  router.back()
-}
-
-// 跳转到个人资料
-const goToProfile = () => {
-  router.push('/PersonalProfile')
-}
-
-// 滚动到顶部
-const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
-// 滚动监听
-const handleScroll = () => {
-  isScrolled.value = window.scrollY > 20
-  showBackTop.value = window.scrollY > 500
-}
-
-// 主题变化监听
-onMounted(() => {
-  getUserInfo()
-  getUserInfoData()
-  window.addEventListener('scroll', handleScroll)
-  if (isDark.value) {
-    document.documentElement.classList.add('dark')
-  }
-
-  const stopListen = onThemeChange((theme) => {
-    isDark.value = theme === ThemeType.DARK
-    if (isDark.value) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  })
-
-  onUnmounted(() => {
-    stopListen()
-    window.removeEventListener('scroll', handleScroll)
-  })
-})
-</script>
 
 <style scoped>
 @keyframes fadeInUp {
