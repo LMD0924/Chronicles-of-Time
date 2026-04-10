@@ -40,7 +40,7 @@ public class ScoreRecordController {
      * 查询学生成绩列表
      */
     @GetMapping("/list/{userId}")
-    public RestBean<List<ScoreRecord>> getScoreList(@PathVariable Integer userId) {
+    public RestBean<List<ScoreRecord>> getScoreList(@PathVariable Long userId) {
         log.info("查询成绩列表: userId={}", userId);
         List<ScoreRecord> list = scoreRecordService.lambdaQuery()
                 .eq(ScoreRecord::getUserId, userId)
@@ -53,7 +53,7 @@ public class ScoreRecordController {
      * 薄弱科目分析
      */
     @GetMapping("/weak-subject/{userId}")
-    public RestBean<List<Map<String, Object>>> getWeakSubject(@PathVariable Integer userId) {
+    public RestBean<List<Map<String, Object>>> getWeakSubject(@PathVariable Long userId) {
         log.info("========== 薄弱科目分析 ==========");
         List<Map<String, Object>> analysis = scoreRecordService.getWeakSubjectAnalysis(userId);
         return RestBean.success(analysis);
@@ -75,7 +75,7 @@ public class ScoreRecordController {
      * 总平均分
      */
     @GetMapping("/overall-avg/{userId}")
-    public RestBean<BigDecimal> getOverallAvg(@PathVariable Integer userId) {
+    public RestBean<BigDecimal> getOverallAvg(@PathVariable Long userId) {
         log.info("查询总平均分: userId={}", userId);
         BigDecimal avg = scoreRecordService.getOverallAvg(userId);
         return RestBean.success(avg);

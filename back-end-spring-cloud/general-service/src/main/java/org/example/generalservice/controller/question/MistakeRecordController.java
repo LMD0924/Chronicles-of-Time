@@ -41,7 +41,7 @@ public class MistakeRecordController {
      */
     @GetMapping("/list/{userId}")
     public RestBean<List<MistakeRecord>> getMistakeList(
-            @PathVariable Integer userId,
+            @PathVariable Long userId,
             @RequestParam(required = false) String subjectName,
             @RequestParam(required = false) Boolean mastered,
             @RequestParam(required = false) String knowledgePoint) {
@@ -54,7 +54,7 @@ public class MistakeRecordController {
      * 获取未掌握的错题
      */
     @GetMapping("/unmastered/{userId}")
-    public RestBean<List<MistakeRecord>> getUnmasteredMistakes(@PathVariable Integer userId) {
+    public RestBean<List<MistakeRecord>> getUnmasteredMistakes(@PathVariable Long userId) {
         log.info("查询未掌握错题: userId={}", userId);
         List<MistakeRecord> list = mistakeRecordService.getUnmasteredMistakes(userId);
         return RestBean.success(list);
@@ -100,7 +100,7 @@ public class MistakeRecordController {
      * 错题统计（按科目）
      */
     @GetMapping("/statistics/{userId}")
-    public RestBean<List<Map<String, Object>>> getMistakeStatistics(@PathVariable Integer userId) {
+    public RestBean<List<Map<String, Object>>> getMistakeStatistics(@PathVariable Long userId) {
         log.info("错题统计: userId={}", userId);
         List<Map<String, Object>> statistics = mistakeRecordService.getMistakeStatistics(userId);
         return RestBean.success(statistics);
@@ -122,7 +122,7 @@ public class MistakeRecordController {
      * 获取筛选条件（科目列表、知识点列表）
      */
     @GetMapping("/filters/{userId}")
-    public RestBean<Map<String, Object>> getFilters(@PathVariable Integer userId) {
+    public RestBean<Map<String, Object>> getFilters(@PathVariable Long userId) {
         log.info("获取错题筛选条件: userId={}", userId);
         Map<String, Object> result = new HashMap<>();
         

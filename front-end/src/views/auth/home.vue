@@ -50,18 +50,18 @@ const sectionContents = {
     ]
   },
   milestone: {
-    title: '📜 墨海拾贝',
-    description: '笔墨留香，拾字成金。记录学习路上的点滴收获与感悟。',
+    title: '🧠 知识图谱总览',
+    description: '构建个人知识网络，可视化掌握情况，让学习可量化、可成长。',
     menuList: [
-      { icon: '✍️', name: '闪念笔记', description: '转瞬即逝的灵感记录', link: '/Publish' },
-      { icon: '📖', name: '永久笔记', description: '沉淀思想的精华记录', link: '/List' },
-      { icon: '🔖', name: '文献笔记', description: '阅读书籍与文章摘录', link: '/Publish' },
-      { icon: '🗂️', name: '项目笔记', description: '学习与实践过程记录', link: '/Publish' }
+      { icon: '🔗', name: '知识图谱', description: '知识点关联关系可视化', link: '/GraphView' },
+      { icon: '🔥', name: '掌握热力图', description: '薄弱知识点智能分析', link: '/heatmap' },
+      { icon: '📈', name: '文章图谱', description: '了解文章的结构', link: '/ContentKnowledgeGraph' },
+      { icon: '🎯', name: '学习路径', description: '个性化提升规划', link: '/learning-path' }
     ],
     stats: [
-      { label: '笔记总数', value: '326篇' },
-      { label: '总字数', value: '8.5万字' },
-      { label: '标签数量', value: '46个' }
+      { label: '知识点总数', value: '128个' },
+      { label: '已掌握', value: '76个' },
+      { label: '整体掌握率', value: '68.7%' }
     ]
   },
   gallery: {
@@ -189,7 +189,7 @@ const timelineData = [
   { date: '2025年3月', stage: '职场', stageClass: 'work', title: '独立完成项目', description: '第一次独立负责项目，从策划到执行全程主导。项目上线那天，成就感满满。', tags: ['成长', '独立', '项目'] }
 ]
 
-// 墨海拾贝数据
+// 图谱总览数据
 const milestones = [
   { icon: '✒️', year: '2019', title: '初入文海', desc: '开始记录读书笔记', progress: 100, status: '已完成' },
   { icon: '📜', year: '2022', title: '笔墨渐丰', desc: '积累笔记百余篇', progress: 100, status: '已完成' },
@@ -498,7 +498,7 @@ onUnmounted(() => {
                   v-for="item in [
                     { id: 'home', name: '首页', icon: '🏠' },
                     { id: 'timeline', name: '时光轴', icon: '⏳' },
-                    { id: 'milestone', name: '墨海拾贝', icon: '📜' },
+                    { id: 'milestone', name: '图谱总览', icon: '📜' },
                     { id: 'gallery', name: '回忆相册', icon: '📸' },
                     { id: 'journal', name: '云边小札', icon: '📖' }
                   ]"
@@ -659,7 +659,7 @@ onUnmounted(() => {
             <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-indigo-500 transition-colors" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-900 group-hover:text-indigo-600'">
               时光轴 · 成长轨迹
               <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0121 0z"></path>
               </svg>
             </h2>
             <p class="text-gray-500">记录每一个值得铭记的瞬间</p>
@@ -692,7 +692,7 @@ onUnmounted(() => {
         </div>
       </section>
 
-      <!-- 墨海拾贝区域 - 可点击标题 -->
+      <!-- 图谱总览区域 - 可点击标题 -->
       <section id="milestone" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
           <div
@@ -701,9 +701,9 @@ onUnmounted(() => {
             data-section="milestone"
           >
             <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-indigo-500 transition-colors" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-900 group-hover:text-indigo-600'">
-              📜 墨海拾贝
+              📜 图谱总览
               <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0121 0z"></path>
               </svg>
             </h2>
             <p class="text-gray-500">笔墨留香，拾字成金，记录学习路上的点滴收获</p>
@@ -759,7 +759,7 @@ onUnmounted(() => {
             <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-indigo-500 transition-colors" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-900 group-hover:text-indigo-600'">
               📸 回忆相册
               <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0121 0z"></path>
               </svg>
             </h2>
             <p class="text-gray-500">用影像定格时光，让回忆触手可及</p>
@@ -793,7 +793,7 @@ onUnmounted(() => {
             <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-indigo-500 transition-colors" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-900 group-hover:text-indigo-600'">
               📖 云边小札
               <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0121 0z"></path>
               </svg>
             </h2>
             <p class="text-gray-500">记录日常感悟，见证点滴成长</p>
@@ -828,7 +828,7 @@ onUnmounted(() => {
             <p class="text-xl lg:text-2xl leading-relaxed max-w-2xl mx-auto mb-5 italic">{{ dailyQuote.text }}</p>
             <p class="text-gray-500 mb-5">—— {{ dailyQuote.author }}</p>
             <button @click="refreshQuote" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-sm text-gray-600 hover:bg-gray-200 transition-all">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
               </svg>
               换一句

@@ -1,4 +1,4 @@
-package org.example.generalservice.service.Impl.question;
+package org.example.generalservice.service.question.Impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

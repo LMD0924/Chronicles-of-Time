@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Update;
 import org.example.generalservice.entity.content.Content;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 内容Mapper接口
@@ -22,73 +23,83 @@ public interface ContentMapper extends BaseMapper<Content> {
 
     /**
      * 增加浏览量
-     *
-     * @param id 内容ID
-     * @return 影响行数
      */
-    @Update("UPDATE content SET views = views + 1 WHERE id = #{id}")
     int incrementViews(@Param("id") Long id);
 
     /**
      * 增加点赞数
-     *
-     * @param id 内容ID
-     * @return 影响行数
      */
-    @Update("UPDATE content SET likes_count = likes_count + 1 WHERE id = #{id}")
     int incrementLikesCount(@Param("id") Long id);
 
     /**
      * 减少点赞数
-     *
-     * @param id 内容ID
-     * @return 影响行数
      */
-    @Update("UPDATE content SET likes_count = likes_count - 1 WHERE id = #{id}")
     int decrementLikesCount(@Param("id") Long id);
 
     /**
      * 增加收藏数
-     *
-     * @param id 内容ID
-     * @return 影响行数
      */
-    @Update("UPDATE content SET favorites_count = favorites_count + 1 WHERE id = #{id}")
     int incrementFavoritesCount(@Param("id") Long id);
 
     /**
      * 减少收藏数
-     *
-     * @param id 内容ID
-     * @return 影响行数
      */
-    @Update("UPDATE content SET favorites_count = favorites_count - 1 WHERE id = #{id}")
     int decrementFavoritesCount(@Param("id") Long id);
 
     /**
      * 增加评论数
-     *
-     * @param id 内容ID
-     * @return 影响行数
      */
-    @Update("UPDATE content SET comments_count = comments_count + 1 WHERE id = #{id}")
     int incrementCommentsCount(@Param("id") Long id);
 
     /**
      * 减少评论数
-     *
-     * @param id 内容ID
-     * @return 影响行数
      */
-    @Update("UPDATE content SET comments_count = comments_count - 1 WHERE id = #{id}")
     int decrementCommentsCount(@Param("id") Long id);
 
     /**
      * 查询热门内容（按浏览量排序）
-     *
-     * @param limit 查询数量
-     * @return 热门内容列表
      */
-    @Select("SELECT * FROM content WHERE status = 1 AND is_public = 1 ORDER BY views DESC LIMIT #{limit}")
     List<Content> selectHotContents(@Param("limit") Integer limit);
+
+    // ==================== 知识图谱相关方法 ====================
+
+    /**
+     * 获取用户自己的所有标签及使用次数
+     */
+    List<Map<String, Object>> selectUserTagsWithCount(@Param("userId") Long userId, @Param("limit") Integer limit);
+
+    /**
+     * 获取用户自己的所有分类及使用次数
+     */
+    List<Map<String, Object>> selectUserCategoriesWithCount(@Param("userId") Long userId);
+
+    /**
+     * 获取用户自己的标签关联的文章ID列表
+     */
+    List<Long> selectUserContentIdsByTag(@Param("userId") Long userId, @Param("tag") String tag);
+
+    /**
+     * 获取用户自己的标签共现关系
+     */
+    List<Map<String, Object>> selectUserTagCooccurrence(@Param("userId") Long userId, @Param("limit") Integer limit);
+
+    /**
+     * 获取用户自己的文章总数
+     */
+    Long selectUserContentCount(@Param("userId") Long userId);
+
+    /**
+     * 获取全局所有标签及使用次数
+     */
+    List<Map<String, Object>> selectAllTagsWithCount(@Param("limit") Integer limit);
+
+    /**
+     * 获取全局所有分类及使用次数
+     */
+    List<Map<String, Object>> selectAllCategoriesWithCount();
+
+    /**
+     * 获取全局标签共现关系
+     */
+    List<Map<String, Object>> selectAllTagCooccurrence(@Param("limit") Integer limit);
 }

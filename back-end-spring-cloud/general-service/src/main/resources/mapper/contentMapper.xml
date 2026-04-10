@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.generalservice.mapper.content.ContentMapper">
+
+    <!-- 增加浏览量 -->
+    <update id="incrementViews">
+        UPDATE content SET views = views + 1 WHERE id = #{id}
+    </update>
+
+    <!-- 增加点赞数 -->
+    <update id="incrementLikesCount">
+        UPDATE content SET likes_count = likes_count + 1 WHERE id = #{id}
+    </update>
+
+    <!-- 减少点赞数 -->
+    <update id="decrementLikesCount">
+        UPDATE content SET likes_count = likes_count - 1 WHERE id = #{id}
+    </update>
+
+    <!-- 增加收藏数 -->
+    <update id="incrementFavoritesCount">
+        UPDATE content SET favorites_count = favorites_count + 1 WHERE id = #{id}
+    </update>
+
+    <!-- 减少收藏数 -->
+    <update id="decrementFavoritesCount">
+        UPDATE content SET favorites_count = favorites_count - 1 WHERE id = #{id}
+    </update>
+
+    <!-- 增加评论数 -->
+    <update id="incrementCommentsCount">
+        UPDATE content SET comments_count = comments_count + 1 WHERE id = #{id}
+    </update>
+
+    <!-- 减少评论数 -->
+    <update id="decrementCommentsCount">
+        UPDATE content SET comments_count = comments_count - 1 WHERE id = #{id}
+    </update>
+
+    <!-- 查询热门内容 -->
+    <select id="selectHotContents" resultType="org.example.generalservice.entity.content.Content">
+        SELECT * FROM content
+        WHERE status = 1 AND is_public = 1
+        ORDER BY views DESC
+            LIMIT #{limit}
+    </select>
+
+    <!-- ==================== 知识图谱相关SQL（用户个性化） ==================== -->
+
+    <!-- 获取用户自己的所有标签及使用次数 -->
+    <select id="selectUserTagsWithCount" resultType="java.util.HashMap">
+        SELECT
+        TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(c.tags, ',', numbers.n), ',', -1)) AS tag,
+        COUNT(*) AS count,
+        COUNT(DISTINCT c.id) AS content_count
+        FROM content c
+        CROSS JOIN (
+        SELECT 1 AS n UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+        UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10
+        ) numbers
+        WHERE c.user_id = #{userId}
+        AND c.status = 1
+        AND c.tags IS NOT NULL AND c.tags != ''
+        AND numbers.n &lt;= (LENGTH(c.tags) - LENGTH(REPLACE(c.tags, ',', '')) + 1)
+        GROUP BY tag
+        ORDER BY count DESC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 获取用户自己的所有分类及使用次数 -->
+    <select id="selectUserCategoriesWithCount" resultType="java.util.HashMap">
+        SELECT
+            category,
+            COUNT(*) AS count,
+            COUNT(*) AS content_count
+        FROM content
+        WHERE user_id = #{userId}
+          AND status = 1
+          AND category IS NOT NULL AND category != ''
+        GROUP BY category
+        ORDER BY count DESC
+    </select>
+
+    <!-- 获取用户自己的标签关联的文章ID列表 -->
+    <select id="selectUserContentIdsByTag" resultType="java.lang.Long">
+        SELECT id
+        FROM content
+        WHERE user_id = #{userId}
+          AND status = 1
+          AND tags IS NOT NULL
+          AND FIND_IN_SET(#{tag}, tags) > 0
+    </select>
+
+    <!-- 获取用户自己的标签共现关系 -->
+    <select id="selectUserTagCooccurrence" resultType="java.util.HashMap">
+        SELECT
+        TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(c.tags, ',', n1.n), ',', -1)) AS tag1,
+        TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(c.tags, ',', n2.n), ',', -1)) AS tag2,
+        COUNT(*) AS cooccurrence
+        FROM content c
+        CROSS JOIN (
+        SELECT 1 AS n UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+        UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10
+        ) n1
+        CROSS JOIN (
+        SELECT 1 AS n UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+        UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10
+        ) n2
+        WHERE c.user_id = #{userId}
+        AND c.status = 1
+        AND c.tags IS NOT NULL AND c.tags != ''
+        AND n1.n &lt;= (LENGTH(c.tags) - LENGTH(REPLACE(c.tags, ',', '')) + 1)
+        AND n2.n &lt;= (LENGTH(c.tags) - LENGTH(REPLACE(c.tags, ',', '')) + 1)
+        AND TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(c.tags, ',', n1.n), ',', -1)) &lt;
+        TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(c.tags, ',', n2.n), ',', -1))
+        GROUP BY tag1, tag2
+        ORDER BY cooccurrence DESC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 获取用户自己的文章总数 -->
+    <select id="selectUserContentCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM content
+        WHERE user_id = #{userId}
+          AND status = 1
+    </select>
+
+</mapper>

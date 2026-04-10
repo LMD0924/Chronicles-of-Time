@@ -244,6 +244,7 @@ const props = defineProps({
   studentId: [String, Number]
 })
 
+const userId = ref('')
 const mistakeList = ref([])
 const filters = reactive({ subject: '', mastered: '', knowledgePoint: '' })
 const filterSubjects = ref([])
@@ -281,9 +282,21 @@ const parseOptions = (options) => {
 const unmasteredCount = computed(() => mistakeList.value.filter(m => !m.mastered).length)
 const masteredCount = computed(() => mistakeList.value.filter(m => m.mastered).length)
 
+// 获取用户信息
+const getUserInfo = () => {
+  request.get('/user/getUserById', {}, (message, data) => {
+    if (data && data.id) {
+      userId.value = data.id
+      fetchFilters()
+      fetchMistakes()
+    }
+  })
+}
+
 const fetchFilters = async () => {
+  if (!userId.value) return
   try {
-    const res = await request.get(`/mistake/filters/${props.studentId}`)
+    const res = await request.get(`/mistake/filters/${userId.value}`)
     if (res.code === 200 && res.data) {
       filterSubjects.value = res.data.subjects || []
       filterKnowledgePoints.value = res.data.knowledgePoints || []
@@ -294,13 +307,14 @@ const fetchFilters = async () => {
 }
 
 const fetchMistakes = async () => {
+  if (!userId.value) return
   try {
     const params = {}
     if (filters.subject) params.subjectName = filters.subject
     if (filters.mastered !== '') params.mastered = filters.mastered === 'true'
     if (filters.knowledgePoint) params.knowledgePoint = filters.knowledgePoint
 
-    const res = await request.get(`/mistake/list/${props.studentId}`, params)
+    const res = await request.get(`/mistake/list/${userId.value}`, params)
     if (res.code === 200) mistakeList.value = res.data || []
   } catch (error) {
     console.error('获取错题失败', error)
@@ -381,7 +395,7 @@ const addMistake = async () => {
   try {
     const res = await request.post('/mistake/add', {
       ...newMistake.value,
-      userId: props.studentId
+      userId: userId.value
     })
     if (res.code === 200) {
       showAddModal.value = false
@@ -421,7 +435,6 @@ const getTypeClass = (type) => {
 }
 
 onMounted(() => {
-  fetchFilters()
-  fetchMistakes()
+  getUserInfo()
 })
 </script>

@@ -397,6 +397,7 @@ const addedToMistake = ref({})         // 已加入错题本
 const currentIndex = ref(0)
 const examType = ref('高中')
 const isAllSubmitted = ref(false)       // 是否已全部提交
+const userId = ref('')
 
 // 草稿纸相关
 const showScratchPaper = ref(false)
@@ -592,7 +593,7 @@ const submitAllAnswers = async () => {
     }
 
     const record = {
-      userId: props.studentId || 1,
+      userId: userId.value || 1,
       questionId: question.id,
       subjectName: question.subjectName,
       questionType: question.questionType,
@@ -662,7 +663,7 @@ const submitAllMistakes = async () => {
 
     try {
       const mistakeData = {
-        userId: props.studentId || 1,
+        userId: userId.value || 1,
         subjectName: question.subjectName,
         mistakeName: question.questionTitle?.substring(0, 100) || '',
         mistakeType: question.questionType,
@@ -723,7 +724,7 @@ const addToMistake = async (question) => {
       userAnswer = userAnswer.sort().join(',')
     }
     const mistakeData = {
-      userId: props.studentId || 1,
+      userId: userId.value || 1,
       subjectName: question.subjectName,
       mistakeName: question.questionTitle?.substring(0, 100) || '',
       mistakeType: question.questionType,
@@ -870,6 +871,15 @@ const fetchFilters = async () => {
   }
 }
 
+// 获取用户信息
+const getUserInfo = () => {
+  request.get('/user/getUserById', {}, (message, data) => {
+    if (data && data.id) {
+      userId.value = data.id
+    }
+  })
+}
+
 // 开始考试
 const startExam = async () => {
   loading.value = true
@@ -911,6 +921,7 @@ const startExam = async () => {
 
 onMounted(() => {
   fetchFilters()
+  getUserInfo()
 })
 </script>
 

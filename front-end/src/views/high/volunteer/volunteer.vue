@@ -81,6 +81,12 @@ const menuItems = [
       { key: 'questionBank', label: '题库管理', icon: '📚', path: '/StudyDashboard?tab=questionBank' },
       { key: 'answerRecords', label: '答题记录', icon: '✍️', path: '/StudyDashboard?tab=answerRecords' }
     ]
+  },
+  {
+    key: '个人图谱分析',
+    label: '图谱',
+    icon: '👤',
+    path: '/GraphView'
   }
 ]
 

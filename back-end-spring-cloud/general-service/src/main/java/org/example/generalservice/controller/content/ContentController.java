@@ -6,14 +6,13 @@ import org.example.commondb.utils.RestBean;
 import org.example.generalservice.dto.content.ContentSaveDTO;
 import org.example.generalservice.entity.content.Comment;
 import org.example.generalservice.entity.content.Content;
-import org.example.generalservice.service.content.ICommentService;
-import org.example.generalservice.service.content.IContentService;
-import org.example.generalservice.service.content.IFavoriteService;
-import org.example.generalservice.service.content.ILikeService;
+import org.example.generalservice.service.content.*;
+import org.example.generalservice.vo.content.ContentKnowledgeGraph;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 内容管理控制器
@@ -32,6 +31,8 @@ public class ContentController {
     private final ILikeService likeService;
     private final IFavoriteService favoriteService;
     private final ICommentService commentService;
+    // 注入知识图谱服务
+    private final IContentKnowledgeGraphService contentKnowledgeGraphService;
 
     /**
      * 从请求头中获取当前用户ID
@@ -53,9 +54,9 @@ public class ContentController {
      * 图片URL由上传模块返回后传入
      */
     @PostMapping("/save")
-    public RestBean<Long> saveContent(@RequestBody ContentSaveDTO dto, 
-                                       @RequestAttribute(required = false) Long userId,
-                                       HttpServletRequest request) {
+    public RestBean<Long> saveContent(@RequestBody ContentSaveDTO dto,
+                                      @RequestAttribute(required = false) Long userId,
+                                      HttpServletRequest request) {
         log.info("========== 保存内容 ==========");
         try {
             Long currentUserId = userId != null ? userId : getCurrentUserId(request);
@@ -74,9 +75,9 @@ public class ContentController {
      * 获取内容详情
      */
     @GetMapping("/detail/{id}")
-    public RestBean<Content> getContentDetail(@PathVariable Long id, 
-                                               @RequestAttribute(required = false) Long userId,
-                                               HttpServletRequest request) {
+    public RestBean<Content> getContentDetail(@PathVariable Long id,
+                                              @RequestAttribute(required = false) Long userId,
+                                              HttpServletRequest request) {
         log.info("========== 获取内容详情 ==========");
         try {
             Long currentUserId = userId != null ? userId : getCurrentUserId(request);
@@ -162,7 +163,7 @@ public class ContentController {
      * 删除内容
      */
     @DeleteMapping("/delete/{id}")
-    public RestBean<String> deleteContent(@PathVariable Long id, 
+    public RestBean<String> deleteContent(@PathVariable Long id,
                                           @RequestAttribute(required = false) Long userId,
                                           HttpServletRequest request) {
         log.info("========== 删除内容 ==========");
@@ -220,9 +221,9 @@ public class ContentController {
      * 点赞
      */
     @PostMapping("/like")
-    public RestBean<String> like(@RequestParam Long contentId, 
-                                  @RequestAttribute(required = false) Long userId,
-                                  HttpServletRequest request) {
+    public RestBean<String> like(@RequestParam Long contentId,
+                                 @RequestAttribute(required = false) Long userId,
+                                 HttpServletRequest request) {
         log.info("========== 点赞 ==========");
         try {
             Long currentUserId = userId != null ? userId : getCurrentUserId(request);
@@ -243,9 +244,9 @@ public class ContentController {
      * 取消点赞
      */
     @DeleteMapping("/unlike")
-    public RestBean<String> unlike(@RequestParam Long contentId, 
-                                    @RequestAttribute(required = false) Long userId,
-                                    HttpServletRequest request) {
+    public RestBean<String> unlike(@RequestParam Long contentId,
+                                   @RequestAttribute(required = false) Long userId,
+                                   HttpServletRequest request) {
         log.info("========== 取消点赞 ==========");
         try {
             Long currentUserId = userId != null ? userId : getCurrentUserId(request);
@@ -266,9 +267,9 @@ public class ContentController {
      * 检查是否已点赞
      */
     @GetMapping("/isLiked")
-    public RestBean<Boolean> isLiked(@RequestParam Long contentId, 
-                                       @RequestAttribute(required = false) Long userId,
-                                       HttpServletRequest request) {
+    public RestBean<Boolean> isLiked(@RequestParam Long contentId,
+                                     @RequestAttribute(required = false) Long userId,
+                                     HttpServletRequest request) {
         log.info("========== 检查点赞状态 ==========");
         try {
             Long currentUserId = userId != null ? userId : getCurrentUserId(request);
@@ -289,9 +290,9 @@ public class ContentController {
      * 收藏
      */
     @PostMapping("/favorite")
-    public RestBean<String> favorite(@RequestParam Long contentId, 
-                                    @RequestAttribute(required = false) Long userId,
-                                    HttpServletRequest request) {
+    public RestBean<String> favorite(@RequestParam Long contentId,
+                                     @RequestAttribute(required = false) Long userId,
+                                     HttpServletRequest request) {
         log.info("========== 收藏 ==========");
         try {
             Long currentUserId = userId != null ? userId : getCurrentUserId(request);
@@ -312,9 +313,9 @@ public class ContentController {
      * 取消收藏
      */
     @DeleteMapping("/unfavorite")
-    public RestBean<String> unfavorite(@RequestParam Long contentId, 
-                                      @RequestAttribute(required = false) Long userId,
-                                      HttpServletRequest request) {
+    public RestBean<String> unfavorite(@RequestParam Long contentId,
+                                       @RequestAttribute(required = false) Long userId,
+                                       HttpServletRequest request) {
         log.info("========== 取消收藏 ==========");
         try {
             Long currentUserId = userId != null ? userId : getCurrentUserId(request);
@@ -335,9 +336,9 @@ public class ContentController {
      * 检查是否已收藏
      */
     @GetMapping("/isFavorited")
-    public RestBean<Boolean> isFavorited(@RequestParam Long contentId, 
-                                          @RequestAttribute(required = false) Long userId,
-                                          HttpServletRequest request) {
+    public RestBean<Boolean> isFavorited(@RequestParam Long contentId,
+                                         @RequestAttribute(required = false) Long userId,
+                                         HttpServletRequest request) {
         log.info("========== 检查收藏状态 ==========");
         try {
             Long currentUserId = userId != null ? userId : getCurrentUserId(request);
@@ -351,67 +352,129 @@ public class ContentController {
             return RestBean.fail("检查收藏状态失败");
         }
     }
-
-    // ==================== 评论功能 ====================
+    // ==================== 知识图谱接口（需要传入 userId） ====================
 
     /**
-     * 添加评论
+     * 获取用户自己的文章知识图谱
      */
-    @PostMapping("/comment/add")
-    public RestBean<String> addComment(@RequestBody Comment comment, 
-                                       @RequestAttribute(required = false) Long userId,
-                                       HttpServletRequest request) {
-        log.info("========== 添加评论 ==========");
+    @GetMapping("/knowledge-graph")
+    public RestBean<ContentKnowledgeGraph> getContentKnowledgeGraph(
+            @RequestParam(defaultValue = "50") Integer limit,
+            @RequestAttribute(required = false) Long userId,
+            HttpServletRequest request) {
+        log.info("获取用户文章知识图谱: limit={}", limit);
         try {
             Long currentUserId = userId != null ? userId : getCurrentUserId(request);
             if (currentUserId == null) {
                 return RestBean.fail("用户未登录");
             }
-            comment.setUserId(currentUserId);
-            if (commentService.addComment(comment)) {
-                return RestBean.success("评论成功");
-            }
-            return RestBean.fail("评论失败");
+            ContentKnowledgeGraph graph = contentKnowledgeGraphService.getContentKnowledgeGraph(currentUserId, limit);
+            return RestBean.success(graph);
         } catch (Exception e) {
-            log.error("添加评论失败", e);
+            log.error("获取文章知识图谱失败", e);
             return RestBean.fail(e.getMessage());
         }
     }
 
     /**
-     * 删除评论
+     * 获取用户自己的标签云
      */
-    @DeleteMapping("/comment/delete/{id}")
-    public RestBean<String> deleteComment(@PathVariable Long id, 
-                                          @RequestAttribute(required = false) Long userId,
-                                          HttpServletRequest request) {
-        log.info("========== 删除评论 ==========");
+    @GetMapping("/tag-cloud")
+    public RestBean<List<Map<String, Object>>> getTagCloud(
+            @RequestParam(defaultValue = "30") Integer limit,
+            @RequestAttribute(required = false) Long userId,
+            HttpServletRequest request) {
+        log.info("获取用户标签云: limit={}", limit);
         try {
             Long currentUserId = userId != null ? userId : getCurrentUserId(request);
             if (currentUserId == null) {
                 return RestBean.fail("用户未登录");
             }
-            if (commentService.deleteComment(id, currentUserId)) {
-                return RestBean.success("删除成功");
-            }
-            return RestBean.fail("删除失败");
+            List<Map<String, Object>> tagCloud = contentKnowledgeGraphService.getTagCloud(currentUserId, limit);
+            return RestBean.success(tagCloud);
         } catch (Exception e) {
-            log.error("删除评论失败", e);
+            log.error("获取标签云失败", e);
             return RestBean.fail(e.getMessage());
         }
     }
 
     /**
-     * 获取内容的评论列表
+     * 获取用户自己的分类统计
      */
-    @GetMapping("/comment/list/{contentId}")
-    public RestBean<List<Comment>> getCommentList(@PathVariable Long contentId) {
-        log.info("========== 获取评论列表 ==========");
+    @GetMapping("/category-stats")
+    public RestBean<List<Map<String, Object>>> getCategoryStatistics(
+            @RequestAttribute(required = false) Long userId,
+            HttpServletRequest request) {
+        log.info("获取用户分类统计");
         try {
-            List<Comment> comments = commentService.getCommentList(contentId);
-            return RestBean.success(comments);
+            Long currentUserId = userId != null ? userId : getCurrentUserId(request);
+            if (currentUserId == null) {
+                return RestBean.fail("用户未登录");
+            }
+            List<Map<String, Object>> stats = contentKnowledgeGraphService.getCategoryStatistics(currentUserId);
+            return RestBean.success(stats);
         } catch (Exception e) {
-            log.error("获取评论列表失败", e);
+            log.error("获取分类统计失败", e);
+            return RestBean.fail(e.getMessage());
+        }
+    }
+
+    /**
+     * 获取用户自己的标签共现网络
+     */
+    @GetMapping("/tag-cooccurrence")
+    public RestBean<ContentKnowledgeGraph> getTagCooccurrenceGraph(
+            @RequestParam(defaultValue = "30") Integer limit,
+            @RequestAttribute(required = false) Long userId,
+            HttpServletRequest request) {
+        log.info("获取用户标签共现网络: limit={}", limit);
+        try {
+            Long currentUserId = userId != null ? userId : getCurrentUserId(request);
+            if (currentUserId == null) {
+                return RestBean.fail("用户未登录");
+            }
+            ContentKnowledgeGraph graph = contentKnowledgeGraphService.getTagCooccurrenceGraph(currentUserId, limit);
+            return RestBean.success(graph);
+        } catch (Exception e) {
+            log.error("获取标签共现网络失败", e);
+            return RestBean.fail(e.getMessage());
+        }
+    }
+
+    /**
+     * 根据标签推荐相关内容（用户自己的文章）
+     */
+    @GetMapping("/related-by-tag")
+    public RestBean<List<Map<String, Object>>> getRelatedContentsByTag(
+            @RequestParam String tag,
+            @RequestParam(defaultValue = "10") Integer limit,
+            @RequestAttribute(required = false) Long userId,
+            HttpServletRequest request) {
+        log.info("根据标签推荐文章: tag={}, limit={}", tag, limit);
+        try {
+            Long currentUserId = userId != null ? userId : getCurrentUserId(request);
+            if (currentUserId == null) {
+                return RestBean.fail("用户未登录");
+            }
+            List<Map<String, Object>> contents = contentKnowledgeGraphService.getRelatedContentsByTag(currentUserId, tag, limit);
+            return RestBean.success(contents);
+        } catch (Exception e) {
+            log.error("根据标签推荐文章失败", e);
+            return RestBean.fail(e.getMessage());
+        }
+    }
+
+    /**
+     * 获取用户的内容主题分布
+     */
+    @GetMapping("/user-topics/{userId}")
+    public RestBean<Map<String, Object>> getUserContentTopics(@PathVariable Long userId) {
+        log.info("获取用户内容主题分布: userId={}", userId);
+        try {
+            Map<String, Object> topics = contentKnowledgeGraphService.getUserContentTopics(userId);
+            return RestBean.success(topics);
+        } catch (Exception e) {
+            log.error("获取用户内容主题分布失败", e);
             return RestBean.fail(e.getMessage());
         }
     }

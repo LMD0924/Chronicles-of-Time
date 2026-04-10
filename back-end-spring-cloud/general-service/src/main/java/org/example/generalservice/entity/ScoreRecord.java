@@ -24,7 +24,7 @@ public class ScoreRecord {
 
     @TableId(type = IdType.AUTO)
     private Integer id;                 // 主键ID
-    private Integer userId;             // 用户ID
+    private Long userId;             // 用户ID
     private String subjectName;         // 科目名称
     private BigDecimal score;           // 分数
     private LocalDate examDate;         // 考试日期

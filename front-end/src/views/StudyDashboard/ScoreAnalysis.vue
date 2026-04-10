@@ -130,6 +130,7 @@ const props = defineProps({
   studentId: [String, Number]
 })
 
+const userId = ref('')
 const overallAvg = ref(0)
 const maxScore = ref(0)
 const examCount = ref(0)
@@ -150,14 +151,25 @@ const newScore = ref({
   examDate: new Date().toISOString().split('T')[0]
 })
 
+// 获取用户信息
+const getUserInfo = () => {
+  request.get('/user/getUserById', {}, (message, data) => {
+    if (data && data.id) {
+      userId.value = data.id
+      fetchData()
+      initChart()
+    }
+  })
+}
+
 const fetchData = async () => {
-  if (!props.studentId) return
+  if (!userId.value) return
   try {
     const [avgRes, weakRes, listRes, mistakeRes] = await Promise.all([
-      request.get(`/score/overall-avg/${props.studentId}`),
-      request.get(`/score/weak-subject/${props.studentId}`),
-      request.get(`/score/list/${props.studentId}`),
-      request.get(`/mistake/list/${props.studentId}`)
+      request.get(`/score/overall-avg/${userId.value}`),
+      request.get(`/score/weak-subject/${userId.value}`),
+      request.get(`/score/list/${userId.value}`),
+      request.get(`/mistake/list/${userId.value}`)
     ])
     if (avgRes.code === 200) overallAvg.value = avgRes.data
     if (weakRes.code === 200) weakSubjects.value = weakRes.data || []
@@ -174,9 +186,9 @@ const fetchData = async () => {
 }
 
 const fetchTrend = async () => {
-  if (!props.studentId || !trendChart) return
+  if (!userId.value || !trendChart) return
   try {
-    const res = await request.get(`/score/trend/${props.studentId}/${selectedSubject.value}`, {
+    const res = await request.get(`/score/trend/${userId.value}/${selectedSubject.value}`, {
       params: { categoryLevel: selectedCategory.value }
     })
     if (res.code === 200 && res.data) {
@@ -218,7 +230,7 @@ const initChart = () => {
   }
 }
 
-watch(() => props.studentId, async (val) => {
+watch(() => userId.value, async (val) => {
   if (val) {
     await fetchData()
     await nextTick()
@@ -228,11 +240,15 @@ watch(() => props.studentId, async (val) => {
 
 watch([selectedSubject, selectedCategory], () => fetchTrend())
 
+onMounted(() => {
+  getUserInfo()
+})
+
 const addScore = async () => {
   try {
 
     const res = await request.post('/score/add', {
-      userId: props.studentId,
+      userId: userId.value,
       subjectName: newScore.value.subjectName,
       score: newScore.value.score,
       examDate: newScore.value.examDate

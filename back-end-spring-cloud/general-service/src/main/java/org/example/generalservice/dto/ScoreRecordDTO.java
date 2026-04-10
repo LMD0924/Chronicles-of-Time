@@ -12,7 +12,7 @@ import java.time.LocalDate;
  */
 @Data
 public class ScoreRecordDTO {
-    private Integer userId;
+    private Long userId;
     private String subjectName;
     private BigDecimal score;
     private LocalDate examDate;

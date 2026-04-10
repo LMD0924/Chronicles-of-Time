@@ -23,7 +23,7 @@ public class MistakeRecord {
 
     @TableId(type = IdType.AUTO)
     private Integer id;                 // 主键ID
-    private Integer userId;             // 用户ID
+    private Long userId;             // 用户ID
     private String subjectName;         // 错题科目名
     private String mistakeName;         // 错题名称/题目简述
     private String mistakeType;         // 错题类型：单选、多选、解答、填空

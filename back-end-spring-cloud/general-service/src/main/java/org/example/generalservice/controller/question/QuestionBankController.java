@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.commondb.utils.RestBean;
 import org.example.generalservice.entity.QuestionBank;
 import org.example.generalservice.service.question.QuestionBankService;
+import org.example.generalservice.vo.question.KnowledgeGraph;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -142,7 +143,7 @@ public class QuestionBankController {
      */
     @GetMapping("/answer-records")
     public RestBean<List<Map<String, Object>>> getAnswerRecords(
-            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) Long userId,
             @RequestParam(required = false) String subjectName,
             @RequestParam(required = false) String questionType,
             @RequestParam(required = false) Integer isCorrect,
@@ -155,5 +156,69 @@ public class QuestionBankController {
                 userId, subjectName, questionType, isCorrect, knowledgePoint, startDate, endDate, pageNum, pageSize);
         List<Map<String, Object>> records = questionBankService.getAnswerRecords(userId, subjectName, questionType, isCorrect, knowledgePoint, startDate, endDate, pageNum, pageSize);
         return RestBean.success(records);
+    }
+
+    // ========== 知识图谱相关接口 ==========
+
+    /**
+     * 获取用户知识图谱
+     */
+    @GetMapping("/knowledge-graph/{userId}")
+    public RestBean<KnowledgeGraph> getUserKnowledgeGraph(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String categoryLevel,
+            @RequestParam(required = false) String subjectName) {
+        log.info("获取用户知识图谱: userId={}, categoryLevel={}, subjectName={}", userId, categoryLevel, subjectName);
+        KnowledgeGraph graph = questionBankService.getUserKnowledgeGraph(userId, categoryLevel, subjectName);
+        return RestBean.success(graph);
+    }
+
+    /**
+     * 获取知识点掌握热力图
+     */
+    @GetMapping("/knowledge-heatmap/{userId}")
+    public RestBean<Map<String, Object>> getKnowledgeHeatmap(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String categoryLevel) {
+        log.info("获取知识点热力图: userId={}, categoryLevel={}", userId, categoryLevel);
+        Map<String, Object> heatmap = questionBankService.getKnowledgeHeatmap(userId, categoryLevel);
+        return RestBean.success(heatmap);
+    }
+
+    /**
+     * 获取学习路径推荐
+     */
+    @GetMapping("/learning-path/{userId}")
+    public RestBean<List<Map<String, Object>>> getLearningPath(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String categoryLevel) {
+        log.info("获取学习路径推荐: userId={}, categoryLevel={}", userId, categoryLevel);
+        List<Map<String, Object>> learningPath = questionBankService.getLearningPath(userId, categoryLevel);
+        return RestBean.success(learningPath);
+    }
+
+    /**
+     * 获取知识掌握趋势
+     */
+    @GetMapping("/knowledge-trend/{userId}")
+    public RestBean<Map<String, Object>> getKnowledgeTrend(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String subjectName,
+            @RequestParam(defaultValue = "30") Integer days) {
+        log.info("获取知识掌握趋势: userId={}, subjectName={}, days={}", userId, subjectName, days);
+        Map<String, Object> trend = questionBankService.getKnowledgeTrend(userId, subjectName, days);
+        return RestBean.success(trend);
+    }
+
+    /**
+     * 获取知识点雷达图数据
+     */
+    @GetMapping("/knowledge-radar/{userId}")
+    public RestBean<Map<String, Object>> getKnowledgeRadar(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String categoryLevel) {
+        log.info("获取知识点雷达图: userId={}, categoryLevel={}", userId, categoryLevel);
+        Map<String, Object> radarData = questionBankService.getKnowledgeRadar(userId, categoryLevel);
+        return RestBean.success(radarData);
     }
 }

@@ -40,7 +40,7 @@ const router = createRouter({
     {
       path:'/Records',
       name:'记录拾光',
-      component: () => import('@/views/HighRecords.vue')
+      component: () => import('@/views/Records.vue')
     },
     {
       path:'/CourseSelection',
@@ -76,6 +76,16 @@ const router = createRouter({
       path:'/PrePare',
       name:'准备',
       component: () => import('@/views/university/PrePare.vue')
+    },
+    {
+      path:'/GraphView',
+      name:'学习图谱',
+      component: () => import('@/views/StudyDashboard/GraphView.vue')
+    },
+    {
+      path:'/ContentKnowledgeGraph',
+      name:'文章图谱',
+      component: () => import('@/views/content/ContentKnowledgeGraph.vue')
     },
     {
       path: '/test',

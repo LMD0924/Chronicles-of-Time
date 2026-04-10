@@ -65,7 +65,8 @@ const UserInfo = ref({})
 // 菜单配置
 const menuItems = [
   { key: 'journal', label: '云边小札', icon: '📖', path: '/List' },
-  { key: 'publish', label: '分享小札', icon: '', path: '/Publish' },
+  { key: 'publish', label: '分享小札', icon: '✍️', path: '/Publish' },
+  { key: 'knowledge', label: '知识图谱', icon: '🔗', path: '/ContentKnowledgeGraph' },
 ]
 
 // 获取文章列表

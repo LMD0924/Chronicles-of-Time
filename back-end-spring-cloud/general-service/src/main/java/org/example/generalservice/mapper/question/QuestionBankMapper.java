@@ -65,7 +65,7 @@ public interface QuestionBankMapper extends BaseMapper<QuestionBank> {
     /**
      * 获取答题记录
      */
-    List<Map<String, Object>> getAnswerRecords(@Param("userId") Integer userId,
+    List<Map<String, Object>> getAnswerRecords(@Param("userId") Long userId,
                                                @Param("subjectName") String subjectName,
                                                @Param("questionType") String questionType,
                                                @Param("isCorrect") Integer isCorrect,

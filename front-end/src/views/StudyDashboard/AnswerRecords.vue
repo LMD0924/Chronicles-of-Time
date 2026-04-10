@@ -227,7 +227,7 @@ const records = ref([])
 
 // 筛选条件
 const filters = reactive({
-  userId: props.studentId || 1,
+  userId: '',
   subjectName: '',
   questionType: '',
   isCorrect: '',
@@ -311,7 +311,7 @@ const fetchRecords = async () => {
   try {
     const params = {
       ...filters,
-      userId: filters.userId || 1
+      userId: filters.userId
     }
     // 移除空值参数
     Object.keys(params).forEach(key => {
@@ -395,10 +395,20 @@ const nextPage = () => {
   fetchRecords()
 }
 
+// 获取用户信息
+const getUserInfo = () => {
+  request.get('/user/getUserById', {}, (message, data) => {
+    if (data && data.id) {
+      filters.userId = data.id
+      fetchRecords()
+    }
+  })
+}
+
 // 页面加载时获取数据
 onMounted(() => {
   fetchFilters()
-  fetchRecords()
+  getUserInfo()
 })
 </script>
 
