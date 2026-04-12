@@ -87,6 +87,12 @@ const router = createRouter({
       name:'文章图谱',
       component: () => import('@/views/content/ContentKnowledgeGraph.vue')
     },
+    //===============大学======================
+    {
+      path:'/Paper',
+      name:'论文',
+      component: () => import('@/views/university/paper/Paper.vue')
+    },
     {
       path: '/test',
       name: '测试',

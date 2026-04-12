@@ -22,15 +22,16 @@ public interface ScoreRecordService extends IService<ScoreRecord> {
     /**
      * 获取学生各科目平均分（薄弱科目分析）
      */
-    List<Map<String, Object>> getWeakSubjectAnalysis(Integer userId);
+    List<Map<String, Object>> getWeakSubjectAnalysis(Long userId);
 
     /**
      * 获取某科目成绩趋势
      */
-    List<Map<String, Object>> getScoreTrend(Integer userId, String subjectName);
+    List<Map<String, Object>> getScoreTrend(Long userId, String subjectName);
 
     /**
      * 获取学生总平均分
      */
-    BigDecimal getOverallAvg(Integer userId);
+
+    BigDecimal getOverallAvg(Long userId);
 }

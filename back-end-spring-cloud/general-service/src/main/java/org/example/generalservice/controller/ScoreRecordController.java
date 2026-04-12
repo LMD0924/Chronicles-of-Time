@@ -64,7 +64,7 @@ public class ScoreRecordController {
      */
     @GetMapping("/trend/{userId}/{subjectName}")
     public RestBean<List<Map<String, Object>>> getScoreTrend(
-            @PathVariable Integer userId,
+            @PathVariable Long userId,
             @PathVariable String subjectName) {
         log.info("成绩趋势查询: userId={}, subjectName={}", userId, subjectName);
         List<Map<String, Object>> trend = scoreRecordService.getScoreTrend(userId, subjectName);

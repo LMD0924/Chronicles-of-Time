@@ -32,20 +32,20 @@ public class ScoreRecordServiceImpl extends ServiceImpl<ScoreRecordMapper, Score
     }
 
     @Override
-    public List<Map<String, Object>> getWeakSubjectAnalysis(Integer userId) {
+    public List<Map<String, Object>> getWeakSubjectAnalysis(Long userId) {
         log.info("薄弱科目分析: userId={}", userId);
         // 获取各科目平均分，按分数升序排列（最低分在前）
         return scoreRecordMapper.getSubjectAvgRank(userId);
     }
 
     @Override
-    public List<Map<String, Object>> getScoreTrend(Integer userId, String subjectName) {
+    public List<Map<String, Object>> getScoreTrend(Long userId, String subjectName) {
         log.info("成绩趋势查询: userId={}, subjectName={}", userId, subjectName);
         return scoreRecordMapper.getScoreTrend(userId, subjectName);
     }
 
     @Override
-    public BigDecimal getOverallAvg(Integer userId) {
+    public BigDecimal getOverallAvg(Long userId) {
         log.info("查询总平均分: userId={}", userId);
         List<Map<String, Object>> subjectAvgs = scoreRecordMapper.getSubjectAvgRank(userId);
         if (subjectAvgs == null || subjectAvgs.isEmpty()) {

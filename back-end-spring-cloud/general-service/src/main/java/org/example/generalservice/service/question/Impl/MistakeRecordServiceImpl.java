@@ -36,7 +36,7 @@ public class MistakeRecordServiceImpl extends ServiceImpl<MistakeRecordMapper, M
     }
 
     @Override
-    public List<MistakeRecord> getUnmasteredMistakes(Integer userId) {
+    public List<MistakeRecord> getUnmasteredMistakes(Long userId) {
         log.info("查询未掌握错题: userId={}", userId);
         return mistakeRecordMapper.getUnmasteredMistakes(userId);
     }
@@ -60,13 +60,13 @@ public class MistakeRecordServiceImpl extends ServiceImpl<MistakeRecordMapper, M
     }
 
     @Override
-    public List<Map<String, Object>> getMistakeStatistics(Integer userId) {
+    public List<Map<String, Object>> getMistakeStatistics(Long userId) {
         log.info("错题统计: userId={}", userId);
         return mistakeRecordMapper.getMistakeStatistics(userId);
     }
 
     @Override
-    public List<MistakeRecord> getMistakeList(Integer userId, String subjectName, Boolean mastered, String knowledgePoint) {
+    public List<MistakeRecord> getMistakeList(Long userId, String subjectName, Boolean mastered, String knowledgePoint) {
         log.info("查询错题列表: userId={}, subjectName={}, mastered={}, knowledgePoint={}", userId, subjectName, mastered, knowledgePoint);
         LambdaQueryWrapper<MistakeRecord> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(MistakeRecord::getUserId, userId);

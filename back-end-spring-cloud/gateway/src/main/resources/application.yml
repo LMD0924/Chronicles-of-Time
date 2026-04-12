@@ -46,7 +46,7 @@ spring:
             - id: university-service
               uri: http://localhost:8083
               predicates:
-                - Path=/api/university/**
+                - Path=/api/university/**,/api/paper/**
             - id: general-service
               uri: http://localhost:8084
               predicates:

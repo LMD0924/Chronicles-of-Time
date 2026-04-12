@@ -24,7 +24,7 @@ public interface MistakeRecordMapper extends BaseMapper<MistakeRecord> {
      * 查询未掌握的错题
      */
     @Select("SELECT * FROM mistake_records WHERE user_id = #{userId} AND mastered = FALSE ORDER BY mistake_date DESC")
-    List<MistakeRecord> getUnmasteredMistakes(@Param("userId") Integer userId);
+    List<MistakeRecord> getUnmasteredMistakes(@Param("userId") Long userId);
 
     /**
      * 按科目统计错题数量
@@ -32,7 +32,7 @@ public interface MistakeRecordMapper extends BaseMapper<MistakeRecord> {
     @Select("SELECT subject_name, COUNT(*) as mistake_count, " +
             "SUM(CASE WHEN mastered = TRUE THEN 1 ELSE 0 END) as mastered_count " +
             "FROM mistake_records WHERE user_id = #{userId} GROUP BY subject_name")
-    List<Map<String, Object>> getMistakeStatistics(@Param("userId") Integer userId);
+    List<Map<String, Object>> getMistakeStatistics(@Param("userId") Long userId);
 
     /**
      * 标记错题为已掌握

@@ -2,19 +2,24 @@ spring:
   application:
     name: high-service
   datasource:
-    url: jdbc:mysql://localhost:3306/chroniclesoftime?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
-    username: root
-    password: 0924
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      minimum-idle: 10
-      maximum-pool-size: 50
-      idle-timeout: 30000
-      connection-timeout: 3000
+    dynamic:
+      primary: chroniclesoftime
+      strict: false
+      datasource:
+        chroniclesoftime:
+          url: jdbc:mysql://localhost:3306/chroniclesoftime?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+          username: root
+          password: 0924
+          driver-class-name: com.mysql.cj.jdbc.Driver
+        futurestack:
+          url: jdbc:mysql://localhost:3306/futurestack?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+          username: root
+          password: 0924
+          driver-class-name: com.mysql.cj.jdbc.Driver
+
 server:
   port: 8083
 
-# MyBatis-Plus ??
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
   configuration:

@@ -22,7 +22,7 @@ public interface MistakeRecordService extends IService<MistakeRecord> {
     /**
      * 获取未掌握的错题
      */
-    List<MistakeRecord> getUnmasteredMistakes(Integer userId);
+    List<MistakeRecord> getUnmasteredMistakes(Long userId);
 
     /**
      * 标记错题为已掌握
@@ -42,10 +42,10 @@ public interface MistakeRecordService extends IService<MistakeRecord> {
     /**
      * 按科目统计错题
      */
-    List<Map<String, Object>> getMistakeStatistics(Integer userId);
+    List<Map<String, Object>> getMistakeStatistics(Long userId);
 
     /**
      * 获取错题本（支持筛选）
      */
-    List<MistakeRecord> getMistakeList(Integer userId, String subjectName, Boolean mastered, String knowledgePoint);
+    List<MistakeRecord> getMistakeList(Long userId, String subjectName, Boolean mastered, String knowledgePoint);
 }
