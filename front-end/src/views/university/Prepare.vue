@@ -17,6 +17,7 @@ const UserInfo = ref({})
 const formData = ref({
   university: '',
   major: '',
+  majorId: null,
   choose: ''
 })
 
@@ -25,7 +26,6 @@ const existingInfo = ref(null)
 
 // 建议列表
 const showUniversitySuggestions = ref(false)
-const showMajorSuggestions = ref(false)
 
 // 大学数据库（常见大学）
 const commonUniversities = [
@@ -37,15 +37,8 @@ const commonUniversities = [
   '电子科技大学', '中国农业大学', '湖南大学', '中南大学', '华东师范大学', '华南理工大学'
 ]
 
-// 专业数据库
-const commonMajors = [
-  '计算机科学与技术', '软件工程', '人工智能', '数据科学与大数据技术', '电子信息工程',
-  '通信工程', '自动化', '机械工程', '电气工程及其自动化', '土木工程', '建筑学',
-  '化学工程与工艺', '材料科学与工程', '环境工程', '生物工程', '药学', '临床医学',
-  '口腔医学', '护理学', '经济学', '金融学', '国际经济与贸易', '工商管理', '会计学',
-  '市场营销', '人力资源管理', '行政管理', '法学', '汉语言文学', '英语', '日语',
-  '新闻学', '广告学', '广播电视学', '视觉传达设计', '环境设计', '产品设计', '动画'
-]
+// 从后端获取的专业列表
+const majors = ref([])
 
 // 发展规划选项
 const careerOptions = [
@@ -101,36 +94,16 @@ const filteredUniversities = computed(() => {
   )
 })
 
-// 过滤后的专业列表
-const filteredMajors = computed(() => {
-  if (!formData.value.major) return commonMajors
-  return commonMajors.filter(major =>
-    major.toLowerCase().includes(formData.value.major.toLowerCase())
-  )
-})
-
 // 选择大学
 const selectUniversity = (uni) => {
   formData.value.university = uni
   showUniversitySuggestions.value = false
 }
 
-// 选择专业
-const selectMajor = (major) => {
-  formData.value.major = major
-  showMajorSuggestions.value = false
-}
-
 // 处理失焦
 const handleUniversityBlur = () => {
   setTimeout(() => {
     showUniversitySuggestions.value = false
-  }, 200)
-}
-
-const handleMajorBlur = () => {
-  setTimeout(() => {
-    showMajorSuggestions.value = false
   }, 200)
 }
 
@@ -204,6 +177,19 @@ const getUserInfo = async () => {
   }
 }
 
+// 获取专业列表
+const getMajors = async () => {
+  try {
+    const res = await request.get('/university/major/list')
+    if (res && res.code === 200 && res.data) {
+      majors.value = res.data
+      console.log('专业列表', res.data)
+    }
+  } catch (error) {
+    console.error('获取专业列表失败', error)
+  }
+}
+
 // 获取已填写的用户信息
 const getUserInfoData = async () => {
   try {
@@ -214,6 +200,7 @@ const getUserInfoData = async () => {
       // 如果已有信息，回填到表单
       if (res.data.university) formData.value.university = res.data.university
       if (res.data.major) formData.value.major = res.data.major
+      if (res.data.majorId) formData.value.majorId = res.data.majorId
       if (res.data.choose) formData.value.choose = res.data.choose
     }
   } catch (error) {
@@ -245,17 +232,18 @@ const handleSubmit = async () => {
         id: existingInfo.value.id,
         university: formData.value.university,
         major: formData.value.major,
+        majorId: formData.value.majorId,
         choose: formData.value.choose
       })
     } else {
       res = await request.post('/userInfo/add', {
         university: formData.value.university,
         major: formData.value.major,
+        majorId: formData.value.majorId,
         choose: formData.value.choose
       })
     }
 
-    // ✅ 修复这里！！！
     if (res && res.code === 200) {
       message.success(res.message || '保存成功')
       await getUserInfoData()
@@ -270,10 +258,9 @@ const handleSubmit = async () => {
   }
 }
 
-// 编辑信息
-const editInfo = () => {
-  // 清空表单，让用户重新填写
-  // 但保留已有值作为默认
+// 开启大学规划 - 跳转到课程树页面
+const goToCourseTree = () => {
+  router.push('/CourseTree')
 }
 
 // 返回上一页
@@ -301,6 +288,7 @@ const handleScroll = () => {
 onMounted(() => {
   getUserInfoData()
   getUserInfo()
+  getMajors()
   window.addEventListener('scroll', handleScroll)
   if (isDark.value) {
     document.documentElement.classList.add('dark')
@@ -325,15 +313,15 @@ onMounted(() => {
 <template>
   <div :class="[isDark ? 'dark' : '', 'min-h-screen overflow-x-hidden']">
     <div :class="[
-      isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900',
+      isDark ? 'bg-dark-bg text-white' : 'app-page-bg text-gray-900',
       'min-h-screen transition-colors duration-300'
     ]">
       <!-- 导航栏 -->
       <nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" :class="[
         isScrolled
           ? isDark
-            ? 'bg-black/95 backdrop-blur-xl border-b border-gray-800'
-            : 'bg-white/95 backdrop-blur-xl shadow-lg border-b border-gray-100'
+            ? 'bg-dark-bg/95 backdrop-blur-xl border-b border-dark-border'
+            : 'bg-white/85 backdrop-blur-xl border-b border-[#E5E7EB] shadow-soft'
           : 'bg-transparent'
       ]">
         <div class="max-w-[1400px] mx-auto px-6 lg:px-8">
@@ -341,16 +329,16 @@ onMounted(() => {
             <!-- Logo -->
             <div class="flex items-center gap-3 cursor-pointer group" @click="goBack">
               <div class="relative">
-                <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
-                <div class="relative w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <div class="absolute inset-0 bg-gradient-to-r from-brand-500 to-pink-500 rounded-xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
+                <div class="relative w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center shadow-soft">
                   <span class="text-xl lg:text-2xl">🎓</span>
                 </div>
               </div>
               <div class="flex items-baseline gap-1">
-                <span class="text-xl lg:text-2xl font-bold" :class="isDark ? 'text-white' : 'bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent'">
+                <span class="text-xl lg:text-2xl font-bold tracking-tight" :class="isDark ? 'text-white' : 'text-slate-900'">
                   大学规划
                 </span>
-                <span class="hidden lg:inline text-xs font-medium text-gray-400 tracking-wider">University Plan</span>
+                <span class="hidden lg:inline text-xs font-medium text-slate-400 tracking-wider">University Plan</span>
               </div>
             </div>
 
@@ -358,7 +346,7 @@ onMounted(() => {
             <div class="flex items-center gap-4">
               <ThemeToggleButton />
               <div class="flex items-center gap-2 cursor-pointer group" @click="goToProfile">
-                <div class="relative w-9 h-9 rounded-full overflow-hidden border-2 border-indigo-200 group-hover:border-indigo-400 transition-colors">
+                <div class="relative w-9 h-9 rounded-full overflow-hidden border-2 border-brand-200 group-hover:border-brand-400 transition-colors">
                   <img :src="UserInfo.avatar || 'https://via.placeholder.com/36'" alt="User Avatar" class="w-full h-full object-cover">
                 </div>
                 <span class="hidden md:inline text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ UserInfo.name || '用户' }}</span>
@@ -371,16 +359,28 @@ onMounted(() => {
       <!-- 主内容区域 -->
       <div class="pt-24 pb-16 px-6 lg:px-8">
         <div class="max-w-4xl mx-auto">
-          <!-- 页面标题 -->
+          <!-- 页面标题 + 开启大学规划按钮 -->
           <div class="text-center mb-10 scroll-animate">
-            <div class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full text-indigo-600 text-sm mb-4">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-brand-50 rounded-full text-brand-600 text-sm mb-4">
               <span>📝</span>
               <span>填写信息 · 规划未来</span>
             </div>
             <h1 class="text-3xl lg:text-4xl font-bold mb-3" :class="isDark ? 'text-white' : 'text-gray-900'">
               填写大学与专业信息
             </h1>
-            <p class="text-gray-500">告诉我们你的大学和专业，让我们一起规划精彩的大学生活</p>
+            <p class="text-gray-500 mb-6">告诉我们你的大学和专业，让我们一起规划精彩的大学生活</p>
+
+            <!-- 开启大学规划按钮 -->
+            <button
+              @click="goToCourseTree"
+              class="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 group"
+            >
+              <span class="text-xl">🚀</span>
+              <span>开启大学规划</span>
+              <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+              </svg>
+            </button>
           </div>
 
           <!-- 表单卡片 -->
@@ -398,8 +398,8 @@ onMounted(() => {
                       v-model="formData.university"
                       type="text"
                       placeholder="请输入或选择你的大学"
-                      class="w-full px-4 py-3 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                      :class="isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-indigo-400' : 'bg-gray-50 border-gray-200 focus:border-indigo-400'"
+                      class="w-full px-4 py-3 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-brand-400"
+                      :class="isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-brand-400' : 'bg-gray-50 border-gray-200 focus:border-brand-400'"
                       @focus="showUniversitySuggestions = true"
                       @blur="handleUniversityBlur"
                     />
@@ -409,8 +409,8 @@ onMounted(() => {
                          :class="isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'">
                       <div v-for="uni in filteredUniversities" :key="uni"
                            @mousedown.prevent="selectUniversity(uni)"
-                           class="px-4 py-2 cursor-pointer hover:bg-indigo-50 transition-colors"
-                           :class="isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-indigo-50 text-gray-700'">
+                           class="px-4 py-2 cursor-pointer hover:bg-brand-50 transition-colors"
+                           :class="isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-brand-50 text-gray-700'">
                         {{ uni }}
                       </div>
                     </div>
@@ -423,26 +423,20 @@ onMounted(() => {
                     专业名称 <span class="text-red-500">*</span>
                   </label>
                   <div class="relative">
-                    <input
-                      v-model="formData.major"
-                      type="text"
-                      placeholder="请输入或选择你的专业"
-                      class="w-full px-4 py-3 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                      :class="isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-indigo-400' : 'bg-gray-50 border-gray-200 focus:border-indigo-400'"
-                      @focus="showMajorSuggestions = true"
-                      @blur="handleMajorBlur"
-                    />
-                    <!-- 专业建议列表 -->
-                    <div v-if="showMajorSuggestions && filteredMajors.length > 0"
-                         class="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-lg z-10 max-h-48 overflow-y-auto"
-                         :class="isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'">
-                      <div v-for="major in filteredMajors" :key="major"
-                           @mousedown.prevent="selectMajor(major)"
-                           class="px-4 py-2 cursor-pointer hover:bg-indigo-50 transition-colors"
-                           :class="isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-indigo-50 text-gray-700'">
-                        {{ major }}
-                      </div>
-                    </div>
+                    <select
+                      v-model="formData.majorId"
+                      @change="() => {
+                        const selectedMajor = majors.find(m => m.id === formData.majorId)
+                        formData.major = selectedMajor ? selectedMajor.name : ''
+                      }"
+                      class="w-full px-4 py-3 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-brand-400"
+                      :class="isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-brand-400' : 'bg-gray-50 border-gray-200 focus:border-brand-400'"
+                    >
+                      <option value="">请选择专业</option>
+                      <option v-for="major in majors" :key="major.id" :value="major.id">
+                        {{ major.name }}
+                      </option>
+                    </select>
                   </div>
                 </div>
 
@@ -461,8 +455,8 @@ onMounted(() => {
                         formData.choose === option.value
                           ? option.activeClass
                           : isDark
-                            ? 'bg-gray-800 border border-gray-700 hover:border-indigo-400'
-                            : 'bg-gray-50 border border-gray-200 hover:border-indigo-400'
+                            ? 'bg-gray-800 border border-gray-700 hover:border-brand-400'
+                            : 'bg-gray-50 border border-gray-200 hover:border-brand-400'
                       ]"
                     >
                       <div class="text-2xl mb-2">{{ option.icon }}</div>
@@ -477,11 +471,11 @@ onMounted(() => {
                 </div>
 
                 <!-- 额外信息（根据选择动态显示） -->
-                <div v-if="formData.choose" class="rounded-xl p-4" :class="isDark ? 'bg-indigo-900/30 border border-indigo-800' : 'bg-indigo-50 border border-indigo-100'">
+                <div v-if="formData.choose" class="rounded-xl p-4" :class="isDark ? 'bg-brand-900/30 border border-brand-800' : 'bg-brand-50 border border-brand-100'">
                   <div class="flex items-start gap-3">
                     <div class="text-xl">{{ getCareerIcon(formData.choose) }}</div>
                     <div>
-                      <p class="text-sm font-medium mb-1" :class="isDark ? 'text-indigo-300' : 'text-indigo-700'">
+                      <p class="text-sm font-medium mb-1" :class="isDark ? 'text-brand-300' : 'text-brand-700'">
                         {{ getCareerTip(formData.choose) }}
                       </p>
                       <p class="text-xs" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
@@ -504,7 +498,7 @@ onMounted(() => {
                   <button
                     type="submit"
                     :disabled="loading"
-                    class="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="flex-1 px-6 py-3 bg-gradient-to-r from-brand-500 to-pink-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span v-if="loading" class="flex items-center justify-center gap-2">
                       <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
@@ -521,12 +515,12 @@ onMounted(() => {
           </div>
 
           <!-- 已填写信息展示 -->
-          <div v-if="existingInfo" class="mt-8 rounded-xl p-5 scroll-animate" :class="isDark ? 'bg-white/5 border border-gray-800' : 'bg-indigo-50 border border-indigo-100'">
+          <div v-if="existingInfo" class="mt-8 rounded-xl p-5 scroll-animate" :class="isDark ? 'bg-white/5 border border-gray-800' : 'bg-brand-50 border border-brand-100'">
             <div class="flex items-center justify-between mb-3">
               <h3 class="font-semibold flex items-center gap-2" :class="isDark ? 'text-white' : 'text-gray-800'">
                 <span>📋</span> 已填写的规划信息
               </h3>
-              <button @click="editInfo" class="text-sm text-indigo-500 hover:text-indigo-600">编辑</button>
+              <button @click="editInfo" class="text-sm text-brand-600 hover:text-brand-600">编辑</button>
             </div>
             <div class="flex flex-wrap gap-4 text-sm">
               <div><span class="text-gray-500">大学：</span><span class="font-medium">{{ existingInfo.university }}</span></div>
@@ -543,7 +537,7 @@ onMounted(() => {
 
       <!-- 返回顶部按钮 -->
       <button v-show="showBackTop" @click="scrollToTop" class="fixed bottom-10 right-10 w-11 h-11 bg-white rounded-full shadow-lg flex items-center justify-center hover:-translate-y-1 transition-all z-50">
-        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
         </svg>
       </button>

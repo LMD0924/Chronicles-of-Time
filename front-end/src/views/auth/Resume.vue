@@ -737,7 +737,7 @@ onUnmounted(() => {
 
 <template>
   <contextHolder />
-  <div :class="[isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900', 'min-h-screen']">
+  <div :class="[isDark ? 'bg-dark-bg text-white' : 'app-page-bg text-gray-900', 'min-h-screen']">
     <div class="flex justify-between items-center">
       <!-- 左侧占位，保持平衡 -->
       <div class="w-32"></div>
@@ -749,8 +749,8 @@ onUnmounted(() => {
           class="relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group hover:shadow-lg"
           :class="[
         route.path === '/Resume'
-          ? (isDark ? 'bg-indigo-900/50 text-indigo-400' : 'bg-indigo-100 text-indigo-600 shadow-lg')
-          : (isDark ? 'text-gray-300 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600')
+          ? (isDark ? 'bg-brand-900/50 text-brand-400' : 'bg-brand-100 text-brand-600 shadow-lg')
+          : (isDark ? 'text-gray-300 hover:text-brand-400' : 'text-gray-600 hover:text-brand-600')
       ]"
         >
       <span class="relative flex items-center gap-2 z-10">
@@ -763,8 +763,8 @@ onUnmounted(() => {
           class="relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group hover:shadow-lg"
           :class="[
         route.path === '/PersonalProfile'
-          ? (isDark ? 'bg-indigo-900/50 text-indigo-400' : 'bg-indigo-100 text-indigo-600')
-          : (isDark ? 'text-gray-300 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600')
+          ? (isDark ? 'bg-brand-900/50 text-brand-400' : 'bg-brand-100 text-brand-600')
+          : (isDark ? 'text-gray-300 hover:text-brand-400' : 'text-gray-600 hover:text-brand-600')
       ]"
         >
       <span class="relative flex items-center gap-2 z-10">
@@ -792,7 +792,7 @@ onUnmounted(() => {
           @click="$router.push('/home')"
           class="relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group hover:shadow-lg"
           :class="[
-        isDark ? 'text-gray-300 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600'
+        isDark ? 'text-gray-300 hover:text-brand-400' : 'text-gray-600 hover:text-brand-600'
       ]"
         >
       <span class="relative flex items-center gap-2 z-10">
@@ -823,11 +823,11 @@ onUnmounted(() => {
                 :key="tab.id"
                 @click="activeTab = tab.id"
                 class="px-4 py-3 text-center transition-all duration-300 relative group"
-                :class="activeTab === tab.id ? 'text-indigo-600 font-medium' : (isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')"
+                :class="activeTab === tab.id ? 'text-brand-600 font-medium' : (isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')"
               >
                 <span class="text-lg mr-1 inline-block group-hover:scale-110 transition-transform">{{ tab.icon }}</span>
                 <span class="text-sm">{{ tab.name }}</span>
-                <div v-if="activeTab === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+                <div v-if="activeTab === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-500 to-pink-500"></div>
               </button>
             </div>
 
@@ -852,7 +852,7 @@ onUnmounted(() => {
                       <div class="relative inline-flex items-center justify-center">
                         <svg class="w-20 h-20 transform -rotate-90">
                           <circle cx="40" cy="40" r="32" stroke="currentColor" stroke-width="4" fill="none" class="text-gray-200"/>
-                          <circle cx="40" cy="40" r="32" stroke="currentColor" stroke-width="4" fill="none" :stroke-dasharray="`${completeness * 2.01}, 201`" class="text-indigo-500 transition-all duration-1000"/>
+                          <circle cx="40" cy="40" r="32" stroke="currentColor" stroke-width="4" fill="none" :stroke-dasharray="`${completeness * 2.01}, 201`" class="text-brand-600 transition-all duration-1000"/>
                         </svg>
                         <span class="absolute text-xl font-bold">{{ completeness }}%</span>
                       </div>
@@ -864,11 +864,11 @@ onUnmounted(() => {
                 <!-- 工作经历 -->
                 <div v-if="workExperiences.length > 0" class="mb-6">
                   <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <span class="w-1 h-5 bg-indigo-500 rounded-full"></span>
+                    <span class="w-1 h-5 bg-brand-500 rounded-full"></span>
                     工作经历
                   </h3>
                   <div class="space-y-4">
-                    <div v-for="(item, idx) in workExperiences" :key="idx" class="pl-4 border-l-2" :class="isDark ? 'border-indigo-500/50' : 'border-indigo-300'">
+                    <div v-for="(item, idx) in workExperiences" :key="idx" class="pl-4 border-l-2" :class="isDark ? 'border-brand-500/50' : 'border-brand-300'">
                       <div class="flex justify-between items-start flex-wrap">
                         <div>
                           <h4 class="font-semibold" :class="isDark ? 'text-white' : 'text-gray-800'">{{ item.companyName }}</h4>
@@ -877,7 +877,7 @@ onUnmounted(() => {
                         <span :class="isDark ? 'text-gray-500' : 'text-gray-400'" class="text-sm">{{ item.startDate }} - {{ item.isCurrent ? '至今' : item.endDate }}</span>
                       </div>
                       <p v-if="item.description" class="mt-2 text-sm" :class="isDark ? 'text-gray-300' : 'text-gray-600'">{{ item.description }}</p>
-                      <p v-if="item.achievements" class="mt-1 text-sm text-indigo-500">✨ {{ item.achievements }}</p>
+                      <p v-if="item.achievements" class="mt-1 text-sm text-brand-600">✨ {{ item.achievements }}</p>
                     </div>
                   </div>
                 </div>
@@ -885,7 +885,7 @@ onUnmounted(() => {
                 <!-- 教育经历 -->
                 <div v-if="educations.length > 0" class="mb-6">
                   <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <span class="w-1 h-5 bg-indigo-500 rounded-full"></span>
+                    <span class="w-1 h-5 bg-brand-500 rounded-full"></span>
                     教育背景
                   </h3>
                   <div class="space-y-4">
@@ -905,7 +905,7 @@ onUnmounted(() => {
                 <!-- 项目经验 -->
                 <div v-if="projects.length > 0" class="mb-6">
                   <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <span class="w-1 h-5 bg-indigo-500 rounded-full"></span>
+                    <span class="w-1 h-5 bg-brand-500 rounded-full"></span>
                     项目经验
                   </h3>
                   <div class="space-y-4">
@@ -918,7 +918,7 @@ onUnmounted(() => {
                         <span :class="isDark ? 'text-gray-500' : 'text-gray-400'" class="text-sm">{{ item.startDate }} - {{ item.endDate || '至今' }}</span>
                       </div>
                       <p v-if="item.description" class="mt-2 text-sm" :class="isDark ? 'text-gray-300' : 'text-gray-600'">{{ item.description }}</p>
-                      <p v-if="item.techStack" class="mt-1 text-xs" :class="isDark ? 'text-indigo-400' : 'text-indigo-600'">技术栈：{{ item.techStack }}</p>
+                      <p v-if="item.techStack" class="mt-1 text-xs" :class="isDark ? 'text-brand-400' : 'text-brand-600'">技术栈：{{ item.techStack }}</p>
                     </div>
                   </div>
                 </div>
@@ -926,11 +926,11 @@ onUnmounted(() => {
                 <!-- 技能特长 -->
                 <div v-if="skills.length > 0" class="mb-6">
                   <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <span class="w-1 h-5 bg-indigo-500 rounded-full"></span>
+                    <span class="w-1 h-5 bg-brand-500 rounded-full"></span>
                     技能特长
                   </h3>
                   <div class="flex flex-wrap gap-2">
-                    <span v-for="(item, idx) in skills" :key="idx" :class="[isDark ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' : 'bg-indigo-50 text-indigo-700 border-indigo-200', 'px-3 py-1 rounded-full text-sm border']">
+                    <span v-for="(item, idx) in skills" :key="idx" :class="[isDark ? 'bg-brand-500/20 text-brand-300 border-brand-500/30' : 'bg-brand-50 text-brand-700 border-brand-200', 'px-3 py-1 rounded-full text-sm border']">
                       {{ item.skillName }} <span class="text-xs opacity-75">{{ item.skillLevel }}</span>
                     </span>
                   </div>
@@ -939,7 +939,7 @@ onUnmounted(() => {
                 <!-- 证书荣誉 -->
                 <div v-if="certificates.length > 0" class="mb-6">
                   <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <span class="w-1 h-5 bg-indigo-500 rounded-full"></span>
+                    <span class="w-1 h-5 bg-brand-500 rounded-full"></span>
                     证书荣誉
                   </h3>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -953,7 +953,7 @@ onUnmounted(() => {
                 <!-- 社会经历 -->
                 <div v-if="socialExperiences.length > 0" class="mb-6">
                   <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <span class="w-1 h-5 bg-indigo-500 rounded-full"></span>
+                    <span class="w-1 h-5 bg-brand-500 rounded-full"></span>
                     社会/校园经历
                   </h3>
                   <div class="space-y-3">
@@ -982,35 +982,35 @@ onUnmounted(() => {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">姓名 *</label>
-                    <input v-model="resumeInfo.name" type="text" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200', 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400']" placeholder="请输入真实姓名">
+                    <input v-model="resumeInfo.name" type="text" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200', 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400']" placeholder="请输入真实姓名">
                   </div>
                   <div>
                     <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">求职意向</label>
-                    <input v-model="resumeInfo.title" type="text" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200', 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400']" placeholder="例如：Java开发工程师">
+                    <input v-model="resumeInfo.title" type="text" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200', 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400']" placeholder="例如：Java开发工程师">
                   </div>
                   <div>
                     <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">邮箱</label>
-                    <input v-model="resumeInfo.email" type="email" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200', 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400']" placeholder="example@email.com">
+                    <input v-model="resumeInfo.email" type="email" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200', 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400']" placeholder="example@email.com">
                   </div>
                   <div>
                     <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">电话</label>
-                    <input v-model="resumeInfo.phone" type="tel" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200', 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400']" placeholder="手机号码">
+                    <input v-model="resumeInfo.phone" type="tel" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200', 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400']" placeholder="手机号码">
                   </div>
                   <div>
                     <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">出生日期</label>
-                    <input v-model="resumeInfo.birthDate" type="date" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200', 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400']">
+                    <input v-model="resumeInfo.birthDate" type="date" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200', 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400']">
                   </div>
                   <div>
                     <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">所在城市</label>
-                    <input v-model="resumeInfo.address" type="text" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200', 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400']" placeholder="北京 / 上海 / 深圳">
+                    <input v-model="resumeInfo.address" type="text" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200', 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400']" placeholder="北京 / 上海 / 深圳">
                   </div>
                   <div class="md:col-span-2">
                     <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">个人简介</label>
-                    <textarea v-model="resumeInfo.summary" rows="4" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200', 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400']" placeholder="简要介绍自己，突出优势和特点..."></textarea>
+                    <textarea v-model="resumeInfo.summary" rows="4" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-white border-gray-200', 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400']" placeholder="简要介绍自己，突出优势和特点..."></textarea>
                   </div>
                 </div>
                 <div class="mt-6 flex justify-end">
-                  <button @click="saveBasicInfo" class="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all hover:scale-105">
+                  <button @click="saveBasicInfo" class="px-6 py-2 bg-gradient-to-r from-brand-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all hover:scale-105">
                     保存基本信息
                   </button>
                 </div>
@@ -1020,7 +1020,7 @@ onUnmounted(() => {
               <div v-if="activeTab === 'work'" class="tab-content">
                 <div class="flex justify-between items-center mb-4">
                   <h3 :class="isDark ? 'text-white' : 'text-gray-800'" class="text-lg font-semibold">工作经历</h3>
-                  <button @click="addWork" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all hover:scale-105 text-sm">+ 添加经历</button>
+                  <button @click="addWork" class="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-all hover:scale-105 text-sm">+ 添加经历</button>
                 </div>
                 <div v-if="workExperiences.length === 0" class="text-center py-12" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
                   <div class="text-6xl mb-4">💼</div>
@@ -1032,13 +1032,13 @@ onUnmounted(() => {
                       <div class="flex-1">
                         <div class="flex items-center gap-3 flex-wrap mb-2">
                           <h4 :class="isDark ? 'text-white' : 'text-gray-800'" class="font-semibold text-lg">{{ item.companyName }}</h4>
-                          <span :class="[isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-100 text-indigo-600', 'px-2 py-1 rounded-full text-xs']">{{ item.position }}</span>
+                          <span :class="[isDark ? 'bg-brand-500/20 text-brand-400' : 'bg-brand-100 text-brand-600', 'px-2 py-1 rounded-full text-xs']">{{ item.position }}</span>
                         </div>
                         <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm mb-2">{{ item.startDate }} - {{ item.isCurrent ? '至今' : item.endDate }}</p>
                         <p v-if="item.description" :class="isDark ? 'text-gray-300' : 'text-gray-600'" class="text-sm mb-1">{{ item.description }}</p>
                       </div>
                       <div class="flex gap-2">
-                        <button @click="editWork(item)" :class="[isDark ? 'hover:text-indigo-400' : 'hover:text-indigo-600', 'text-gray-500 transition-colors']">
+                        <button @click="editWork(item)" :class="[isDark ? 'hover:text-brand-400' : 'hover:text-brand-600', 'text-gray-500 transition-colors']">
                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </button>
                         <button @click="deleteWork(item.id)" :class="[isDark ? 'hover:text-red-400' : 'hover:text-red-600', 'text-gray-500 transition-colors']">
@@ -1054,7 +1054,7 @@ onUnmounted(() => {
               <div v-if="activeTab === 'education'" class="tab-content">
                 <div class="flex justify-between items-center mb-4">
                   <h3 :class="isDark ? 'text-white' : 'text-gray-800'" class="text-lg font-semibold">教育背景</h3>
-                  <button @click="addEducation" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all hover:scale-105 text-sm">+ 添加经历</button>
+                  <button @click="addEducation" class="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-all hover:scale-105 text-sm">+ 添加经历</button>
                 </div>
                 <div v-if="educations.length === 0" class="text-center py-12" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
                   <div class="text-6xl mb-4">🎓</div>
@@ -1066,12 +1066,12 @@ onUnmounted(() => {
                       <div class="flex-1">
                         <div class="flex items-center gap-3 flex-wrap mb-2">
                           <h4 :class="isDark ? 'text-white' : 'text-gray-800'" class="font-semibold text-lg">{{ item.schoolName }}</h4>
-                          <span :class="[isDark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600', 'px-2 py-1 rounded-full text-xs']">{{ item.degree }}</span>
+                          <span :class="[isDark ? 'bg-fuchsia-500/20 text-purple-400' : 'bg-purple-100 text-purple-600', 'px-2 py-1 rounded-full text-xs']">{{ item.degree }}</span>
                         </div>
                         <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm mb-2">{{ item.startDate }} - {{ item.isCurrent ? '至今' : item.endDate }}</p>
                       </div>
                       <div class="flex gap-2">
-                        <button @click="editEducation(item)" class="text-gray-500 hover:text-indigo-600 transition-colors">
+                        <button @click="editEducation(item)" class="text-gray-500 hover:text-brand-600 transition-colors">
                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </button>
                         <button @click="deleteEducation(item.id)" class="text-gray-500 hover:text-red-600 transition-colors">
@@ -1087,7 +1087,7 @@ onUnmounted(() => {
               <div v-if="activeTab === 'project'" class="tab-content">
                 <div class="flex justify-between items-center mb-4">
                   <h3 :class="isDark ? 'text-white' : 'text-gray-800'" class="text-lg font-semibold">项目经验</h3>
-                  <button @click="addProject" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all hover:scale-105 text-sm">+ 添加项目</button>
+                  <button @click="addProject" class="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-all hover:scale-105 text-sm">+ 添加项目</button>
                 </div>
                 <div v-if="projects.length === 0" class="text-center py-12" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
                   <div class="text-6xl mb-4">🚀</div>
@@ -1101,10 +1101,10 @@ onUnmounted(() => {
                           <h4 :class="isDark ? 'text-white' : 'text-gray-800'" class="font-semibold text-lg">{{ item.projectName }}</h4>
                           <span :class="[isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600', 'px-2 py-1 rounded-full text-xs']">{{ item.projectRole }}</span>
                         </div>
-                        <p v-if="item.techStack" :class="isDark ? 'text-indigo-400' : 'text-indigo-600'" class="text-xs">技术栈：{{ item.techStack }}</p>
+                        <p v-if="item.techStack" :class="isDark ? 'text-brand-400' : 'text-brand-600'" class="text-xs">技术栈：{{ item.techStack }}</p>
                       </div>
                       <div class="flex gap-2">
-                        <button @click="editProject(item)" class="text-gray-500 hover:text-indigo-600 transition-colors">
+                        <button @click="editProject(item)" class="text-gray-500 hover:text-brand-600 transition-colors">
                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </button>
                         <button @click="deleteProject(item.id)" class="text-gray-500 hover:text-red-600 transition-colors">
@@ -1119,14 +1119,14 @@ onUnmounted(() => {
               <div v-if="activeTab === 'skill'" class="tab-content">
                 <div class="flex justify-between items-center mb-4">
                   <h3 :class="isDark ? 'text-white' : 'text-gray-800'" class="text-lg font-semibold">技能特长</h3>
-                  <button @click="addSkill" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all hover:scale-105 text-sm">+ 添加技能</button>
+                  <button @click="addSkill" class="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-all hover:scale-105 text-sm">+ 添加技能</button>
                 </div>
                 <div class="flex flex-wrap gap-3">
                   <div v-for="(item, idx) in skills" :key="idx" :class="[isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-100', 'rounded-lg p-3 hover:shadow-md transition-all group']">
                     <div class="flex items-center gap-2">
                       <span :class="isDark ? 'text-white' : 'text-gray-800'" class="font-medium">{{ item.skillName }}</span>
-                      <span :class="[item.skillLevel === '精通' || item.skillLevel === '专家' ? (isDark ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-100 text-yellow-600') : (isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'), 'px-2 py-0.5 rounded-full text-xs']">{{ item.skillLevel }}</span>
-                      <button @click="editSkill(item)" class="opacity-0 group-hover:opacity-100 transition-opacity ml-2 text-gray-500 hover:text-indigo-600">
+                      <span :class="[item.skillLevel === '精通' || item.skillLevel === '专家' ? (isDark ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-100 text-yellow-600') : (isDark ? 'bg-brand-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'), 'px-2 py-0.5 rounded-full text-xs']">{{ item.skillLevel }}</span>
+                      <button @click="editSkill(item)" class="opacity-0 group-hover:opacity-100 transition-opacity ml-2 text-gray-500 hover:text-brand-600">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                       </button>
                       <button @click="deleteSkill(item.id)" class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-red-600">
@@ -1140,7 +1140,7 @@ onUnmounted(() => {
               <div v-if="activeTab === 'certificate'" class="tab-content">
                 <div class="flex justify-between items-center mb-4">
                   <h3 :class="isDark ? 'text-white' : 'text-gray-800'" class="text-lg font-semibold">证书荣誉</h3>
-                  <button @click="addCertificate" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all hover:scale-105 text-sm">+ 添加证书</button>
+                  <button @click="addCertificate" class="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-all hover:scale-105 text-sm">+ 添加证书</button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div v-for="(item, idx) in certificates" :key="idx" :class="[isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-100', 'rounded-lg p-4 hover:shadow-md transition-all group']">
@@ -1150,7 +1150,7 @@ onUnmounted(() => {
                         <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-xs mt-1">{{ item.issueAuthority }}</p>
                       </div>
                       <div class="flex gap-2">
-                        <button @click="editCertificate(item)" class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-indigo-600">
+                        <button @click="editCertificate(item)" class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-brand-600">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </button>
                         <button @click="deleteCertificate(item.id)" class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-red-600">
@@ -1165,7 +1165,7 @@ onUnmounted(() => {
               <div v-if="activeTab === 'social'" class="tab-content">
                 <div class="flex justify-between items-center mb-4">
                   <h3 :class="isDark ? 'text-white' : 'text-gray-800'" class="text-lg font-semibold">社会/校园经历</h3>
-                  <button @click="addSocial" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all hover:scale-105 text-sm">+ 添加经历</button>
+                  <button @click="addSocial" class="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-all hover:scale-105 text-sm">+ 添加经历</button>
                 </div>
                 <div v-if="socialExperiences.length === 0" class="text-center py-12" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
                   <div class="text-6xl mb-4">🌱</div>
@@ -1182,7 +1182,7 @@ onUnmounted(() => {
                         <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm mb-2">{{ item.startDate }} - {{ item.endDate || '至今' }}</p>
                       </div>
                       <div class="flex gap-2">
-                        <button @click="editSocial(item)" class="text-gray-500 hover:text-indigo-600 transition-colors">
+                        <button @click="editSocial(item)" class="text-gray-500 hover:text-brand-600 transition-colors">
                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </button>
                         <button @click="deleteSocial(item.id)" class="text-gray-500 hover:text-red-600 transition-colors">
@@ -1211,7 +1211,7 @@ onUnmounted(() => {
                 <template v-if="activeTab === 'basic'">
                   <div v-for="(tip, idx) in fieldTips.basic" :key="idx" class="group cursor-pointer hover:translate-x-1 transition-all">
                     <div class="flex items-start gap-2">
-                      <span class="text-indigo-500 text-sm mt-0.5">•</span>
+                      <span class="text-brand-600 text-sm mt-0.5">•</span>
                       <div>
                         <div class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ tip.label }}</div>
                         <div class="text-xs mt-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
@@ -1225,7 +1225,7 @@ onUnmounted(() => {
                 <template v-if="activeTab === 'work'">
                   <div v-for="(tip, idx) in fieldTips.work" :key="idx" class="group cursor-pointer hover:translate-x-1 transition-all">
                     <div class="flex items-start gap-2">
-                      <span class="text-indigo-500 text-sm mt-0.5">•</span>
+                      <span class="text-brand-600 text-sm mt-0.5">•</span>
                       <div>
                         <div class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ tip.label }}</div>
                         <div class="text-xs mt-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
@@ -1234,8 +1234,8 @@ onUnmounted(() => {
                       </div>
                     </div>
                   </div>
-                  <div class="mt-3 p-3 rounded-lg" :class="isDark ? 'bg-indigo-500/10' : 'bg-indigo-50'">
-                    <div class="text-xs" :class="isDark ? 'text-indigo-300' : 'text-indigo-600'">
+                  <div class="mt-3 p-3 rounded-lg" :class="isDark ? 'bg-brand-500/10' : 'bg-brand-50'">
+                    <div class="text-xs" :class="isDark ? 'text-brand-300' : 'text-brand-600'">
                       <span class="font-medium">✨ 小技巧：</span>用STAR法则描述工作经历（情境、任务、行动、结果），突出量化成果
                     </div>
                   </div>
@@ -1244,7 +1244,7 @@ onUnmounted(() => {
                 <template v-if="activeTab === 'education'">
                   <div v-for="(tip, idx) in fieldTips.education" :key="idx" class="group cursor-pointer hover:translate-x-1 transition-all">
                     <div class="flex items-start gap-2">
-                      <span class="text-indigo-500 text-sm mt-0.5">•</span>
+                      <span class="text-brand-600 text-sm mt-0.5">•</span>
                       <div>
                         <div class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ tip.label }}</div>
                         <div class="text-xs mt-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
@@ -1258,7 +1258,7 @@ onUnmounted(() => {
                 <template v-if="activeTab === 'project'">
                   <div v-for="(tip, idx) in fieldTips.project" :key="idx" class="group cursor-pointer hover:translate-x-1 transition-all">
                     <div class="flex items-start gap-2">
-                      <span class="text-indigo-500 text-sm mt-0.5">•</span>
+                      <span class="text-brand-600 text-sm mt-0.5">•</span>
                       <div>
                         <div class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ tip.label }}</div>
                         <div class="text-xs mt-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
@@ -1267,8 +1267,8 @@ onUnmounted(() => {
                       </div>
                     </div>
                   </div>
-                  <div class="mt-3 p-3 rounded-lg" :class="isDark ? 'bg-indigo-500/10' : 'bg-indigo-50'">
-                    <div class="text-xs" :class="isDark ? 'text-indigo-300' : 'text-indigo-600'">
+                  <div class="mt-3 p-3 rounded-lg" :class="isDark ? 'bg-brand-500/10' : 'bg-brand-50'">
+                    <div class="text-xs" :class="isDark ? 'text-brand-300' : 'text-brand-600'">
                       <span class="font-medium">✨ 小技巧：</span>清晰描述项目的技术难点和你解决的问题，突出个人贡献
                     </div>
                   </div>
@@ -1277,7 +1277,7 @@ onUnmounted(() => {
                 <template v-if="activeTab === 'skill'">
                   <div v-for="(tip, idx) in fieldTips.skill" :key="idx" class="group cursor-pointer hover:translate-x-1 transition-all">
                     <div class="flex items-start gap-2">
-                      <span class="text-indigo-500 text-sm mt-0.5">•</span>
+                      <span class="text-brand-600 text-sm mt-0.5">•</span>
                       <div>
                         <div class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ tip.label }}</div>
                         <div class="text-xs mt-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
@@ -1291,7 +1291,7 @@ onUnmounted(() => {
                 <template v-if="activeTab === 'certificate'">
                   <div v-for="(tip, idx) in fieldTips.certificate" :key="idx" class="group cursor-pointer hover:translate-x-1 transition-all">
                     <div class="flex items-start gap-2">
-                      <span class="text-indigo-500 text-sm mt-0.5">•</span>
+                      <span class="text-brand-600 text-sm mt-0.5">•</span>
                       <div>
                         <div class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ tip.label }}</div>
                         <div class="text-xs mt-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
@@ -1305,7 +1305,7 @@ onUnmounted(() => {
                 <template v-if="activeTab === 'social'">
                   <div v-for="(tip, idx) in fieldTips.social" :key="idx" class="group cursor-pointer hover:translate-x-1 transition-all">
                     <div class="flex items-start gap-2">
-                      <span class="text-indigo-500 text-sm mt-0.5">•</span>
+                      <span class="text-brand-600 text-sm mt-0.5">•</span>
                       <div>
                         <div class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ tip.label }}</div>
                         <div class="text-xs mt-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
@@ -1348,20 +1348,20 @@ onUnmounted(() => {
       <div class="space-y-4">
         <div>
           <label class="block text-sm mb-2">公司名称 *</label>
-          <input v-model="workForm.companyName" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+          <input v-model="workForm.companyName" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
         </div>
         <div>
           <label class="block text-sm mb-2">职位 *</label>
-          <input v-model="workForm.position" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+          <input v-model="workForm.position" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm mb-2">开始时间</label>
-            <input v-model="workForm.startDate" type="date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+            <input v-model="workForm.startDate" type="date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
           </div>
           <div>
             <label class="block text-sm mb-2">结束时间</label>
-            <input v-model="workForm.endDate" type="date" :disabled="workForm.isCurrent" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+            <input v-model="workForm.endDate" type="date" :disabled="workForm.isCurrent" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
           </div>
         </div>
         <div class="flex items-center gap-2">
@@ -1370,16 +1370,16 @@ onUnmounted(() => {
         </div>
         <div>
           <label class="block text-sm mb-2">工作职责描述</label>
-          <textarea v-model="workForm.description" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400"></textarea>
+          <textarea v-model="workForm.description" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400"></textarea>
         </div>
         <div>
           <label class="block text-sm mb-2">工作成就</label>
-          <textarea v-model="workForm.achievements" rows="2" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400"></textarea>
+          <textarea v-model="workForm.achievements" rows="2" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400"></textarea>
         </div>
       </div>
       <template #footer>
         <button @click="workDialogVisible = false" class="px-4 py-2 border rounded-lg hover:bg-gray-50">取消</button>
-        <button @click="saveWork" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 ml-2">保存</button>
+        <button @click="saveWork" class="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 ml-2">保存</button>
       </template>
     </el-dialog>
 
@@ -1387,28 +1387,28 @@ onUnmounted(() => {
       <div class="space-y-4">
         <div>
           <label class="block text-sm mb-2">学校名称 *</label>
-          <input v-model="educationForm.schoolName" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+          <input v-model="educationForm.schoolName" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm mb-2">学历</label>
-            <select v-model="educationForm.degree" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+            <select v-model="educationForm.degree" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
               <option v-for="opt in degreeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
             </select>
           </div>
           <div>
             <label class="block text-sm mb-2">专业</label>
-            <input v-model="educationForm.major" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+            <input v-model="educationForm.major" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm mb-2">入学时间</label>
-            <input v-model="educationForm.startDate" type="date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+            <input v-model="educationForm.startDate" type="date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
           </div>
           <div>
             <label class="block text-sm mb-2">毕业时间</label>
-            <input v-model="educationForm.endDate" type="date" :disabled="educationForm.isCurrent" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+            <input v-model="educationForm.endDate" type="date" :disabled="educationForm.isCurrent" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
           </div>
         </div>
         <div class="flex items-center gap-2">
@@ -1417,12 +1417,12 @@ onUnmounted(() => {
         </div>
         <div>
           <label class="block text-sm mb-2">描述/荣誉</label>
-          <textarea v-model="educationForm.description" rows="2" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400"></textarea>
+          <textarea v-model="educationForm.description" rows="2" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400"></textarea>
         </div>
       </div>
       <template #footer>
         <button @click="educationDialogVisible = false" class="px-4 py-2 border rounded-lg hover:bg-gray-50">取消</button>
-        <button @click="saveEducation" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 ml-2">保存</button>
+        <button @click="saveEducation" class="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 ml-2">保存</button>
       </template>
     </el-dialog>
 
@@ -1430,42 +1430,42 @@ onUnmounted(() => {
       <div class="space-y-4">
         <div>
           <label class="block text-sm mb-2">项目名称 *</label>
-          <input v-model="projectForm.projectName" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+          <input v-model="projectForm.projectName" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
         </div>
         <div>
           <label class="block text-sm mb-2">项目角色</label>
-          <input v-model="projectForm.projectRole" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+          <input v-model="projectForm.projectRole" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm mb-2">开始时间</label>
-            <input v-model="projectForm.startDate" type="date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+            <input v-model="projectForm.startDate" type="date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
           </div>
           <div>
             <label class="block text-sm mb-2">结束时间</label>
-            <input v-model="projectForm.endDate" type="date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+            <input v-model="projectForm.endDate" type="date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
           </div>
         </div>
         <div>
           <label class="block text-sm mb-2">项目描述</label>
-          <textarea v-model="projectForm.description" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400"></textarea>
+          <textarea v-model="projectForm.description" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400"></textarea>
         </div>
         <div>
           <label class="block text-sm mb-2">职责内容</label>
-          <textarea v-model="projectForm.responsibilities" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400"></textarea>
+          <textarea v-model="projectForm.responsibilities" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400"></textarea>
         </div>
         <div>
           <label class="block text-sm mb-2">技术栈</label>
-          <input v-model="projectForm.techStack" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400" placeholder="如：Vue.js, Spring Boot, MySQL">
+          <input v-model="projectForm.techStack" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400" placeholder="如：Vue.js, Spring Boot, MySQL">
         </div>
         <div>
           <label class="block text-sm mb-2">项目链接</label>
-          <input v-model="projectForm.projectUrl" type="url" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400" placeholder="https://">
+          <input v-model="projectForm.projectUrl" type="url" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400" placeholder="https://">
         </div>
       </div>
       <template #footer>
         <button @click="projectDialogVisible = false" class="px-4 py-2 border rounded-lg hover:bg-gray-50">取消</button>
-        <button @click="saveProject" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 ml-2">保存</button>
+        <button @click="saveProject" class="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 ml-2">保存</button>
       </template>
     </el-dialog>
 
@@ -1473,22 +1473,22 @@ onUnmounted(() => {
       <div class="space-y-4">
         <div>
           <label class="block text-sm mb-2">技能名称 *</label>
-          <input v-model="skillForm.skillName" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400" placeholder="如：Java, Python, Vue.js">
+          <input v-model="skillForm.skillName" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400" placeholder="如：Java, Python, Vue.js">
         </div>
         <div>
           <label class="block text-sm mb-2">技能等级</label>
-          <select v-model="skillForm.skillLevel" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+          <select v-model="skillForm.skillLevel" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
             <option v-for="opt in skillLevelOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
           </select>
         </div>
         <div>
           <label class="block text-sm mb-2">经验年限</label>
-          <input v-model="skillForm.yearsExperience" type="number" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400" placeholder="年">
+          <input v-model="skillForm.yearsExperience" type="number" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400" placeholder="年">
         </div>
       </div>
       <template #footer>
         <button @click="skillDialogVisible = false" class="px-4 py-2 border rounded-lg hover:bg-gray-50">取消</button>
-        <button @click="saveSkill" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 ml-2">保存</button>
+        <button @click="saveSkill" class="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 ml-2">保存</button>
       </template>
     </el-dialog>
 
@@ -1496,30 +1496,30 @@ onUnmounted(() => {
       <div class="space-y-4">
         <div>
           <label class="block text-sm mb-2">证书名称 *</label>
-          <input v-model="certForm.certificateName" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+          <input v-model="certForm.certificateName" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
         </div>
         <div>
           <label class="block text-sm mb-2">颁发机构</label>
-          <input v-model="certForm.issueAuthority" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+          <input v-model="certForm.issueAuthority" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm mb-2">获得日期</label>
-            <input v-model="certForm.issueDate" type="date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+            <input v-model="certForm.issueDate" type="date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
           </div>
           <div>
             <label class="block text-sm mb-2">分数/等级</label>
-            <input v-model="certForm.score" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400" placeholder="如：90分 / 优秀">
+            <input v-model="certForm.score" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400" placeholder="如：90分 / 优秀">
           </div>
         </div>
         <div>
           <label class="block text-sm mb-2">描述</label>
-          <textarea v-model="certForm.description" rows="2" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400"></textarea>
+          <textarea v-model="certForm.description" rows="2" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400"></textarea>
         </div>
       </div>
       <template #footer>
         <button @click="certDialogVisible = false" class="px-4 py-2 border rounded-lg hover:bg-gray-50">取消</button>
-        <button @click="saveCertificate" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 ml-2">保存</button>
+        <button @click="saveCertificate" class="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 ml-2">保存</button>
       </template>
     </el-dialog>
 
@@ -1527,36 +1527,36 @@ onUnmounted(() => {
       <div class="space-y-4">
         <div>
           <label class="block text-sm mb-2">经历类型 *</label>
-          <select v-model="socialForm.experienceType" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+          <select v-model="socialForm.experienceType" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
             <option v-for="opt in experienceTypeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
           </select>
         </div>
         <div>
           <label class="block text-sm mb-2">标题 *</label>
-          <input v-model="socialForm.title" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400" placeholder="如：XX大学学生会主席">
+          <input v-model="socialForm.title" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400" placeholder="如：XX大学学生会主席">
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm mb-2">开始时间</label>
-            <input v-model="socialForm.startDate" type="date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+            <input v-model="socialForm.startDate" type="date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
           </div>
           <div>
             <label class="block text-sm mb-2">结束时间</label>
-            <input v-model="socialForm.endDate" type="date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400">
+            <input v-model="socialForm.endDate" type="date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400">
           </div>
         </div>
         <div>
           <label class="block text-sm mb-2">描述</label>
-          <textarea v-model="socialForm.description" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400"></textarea>
+          <textarea v-model="socialForm.description" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400"></textarea>
         </div>
         <div>
           <label class="block text-sm mb-2">成就/奖项</label>
-          <textarea v-model="socialForm.achievements" rows="2" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-indigo-400"></textarea>
+          <textarea v-model="socialForm.achievements" rows="2" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-brand-400"></textarea>
         </div>
       </div>
       <template #footer>
         <button @click="socialDialogVisible = false" class="px-4 py-2 border rounded-lg hover:bg-gray-50">取消</button>
-        <button @click="saveSocial" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 ml-2">保存</button>
+        <button @click="saveSocial" class="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 ml-2">保存</button>
       </template>
     </el-dialog>
   </div>
@@ -1615,11 +1615,11 @@ onUnmounted(() => {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #6366f1, #a855f7);
+  background: var(--theme-gradient);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #4f46e5, #9333ea);
+  background: linear-gradient(to bottom, var(--theme-primary), var(--theme-secondary));
 }
 </style>

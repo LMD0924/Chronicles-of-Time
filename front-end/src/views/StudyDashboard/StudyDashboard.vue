@@ -1,15 +1,9 @@
 <template>
-  <div :class="[isDark ? 'bg-black' : '', 'min-h-screen overflow-x-hidden']">
-    <div :class="[
-      isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900',
-      'min-h-screen transition-colors duration-300'
-    ]">
-
+  <div class="app-shell overflow-x-hidden" :class="isDark ? 'app-shell-dark' : 'app-shell-light'">
       <Nav :isDark="isDark" :menuItems="menuItems"/>
 
-      <!-- 主内容区 -->
-      <div class="pt-24 pb-16" :class="isDark ? 'bg-black' : ''">
-        <div class="max-w-[1400px] mx-auto px-6 lg:px-8">
+      <main class="app-main">
+        <div class="app-container">
           <!-- 动态组件 -->
           <div class="animate-fadeIn">
             <keep-alive>
@@ -21,14 +15,14 @@
             </keep-alive>
           </div>
         </div>
-      </div>
-    </div>
+      </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, shallowRef, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useTheme } from '@/composables/useTheme'
 import PracticeCenter from '@/views/StudyDashboard/PracticeCenter.vue'
 import MistakeBook from '@/views/StudyDashboard/MistakeBook.vue'
 import ScoreAnalysis from '@/views/StudyDashboard/ScoreAnalysis.vue'
@@ -36,24 +30,13 @@ import QuestionBank from '@/views/StudyDashboard/QuestionBank.vue'
 import AnswerRecords from '@/views/StudyDashboard/AnswerRecords.vue'
 import Nav from '@/components/Nav.vue'
 
-const props = defineProps({
+defineProps({
   studentId: { type: [String, Number], default: 1 }
 })
 
 const route = useRoute()
 const router = useRouter()
-
-// 主题
-const isDark = ref(false)
-
-const toggleDarkMode = () => {
-  isDark.value = !isDark.value
-  if (isDark.value) {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
-}
+const { isDark } = useTheme()
 
 const activeTab = ref('practice')
 

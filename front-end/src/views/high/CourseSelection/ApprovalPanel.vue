@@ -95,18 +95,18 @@ onMounted(() => {
   <div class="cs-panel space-y-4">
     <div class="flex justify-between items-center">
       <h3 class="text-lg font-semibold">待审批列表</h3>
-      <button @click="fetchPendingList" class="px-3 py-1 rounded-lg bg-indigo-100 text-indigo-600 text-sm">刷新</button>
+      <button @click="fetchPendingList" class="px-3 py-1 rounded-lg bg-brand-100 text-brand-600 text-sm">刷新</button>
     </div>
 
     <div v-if="loading" class="flex justify-center py-12">
-      <div class="w-8 h-8 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+      <div class="w-8 h-8 border-2 border-brand-200 border-t-brand-600 rounded-full animate-spin"></div>
     </div>
     <div v-else-if="pendingList.length === 0" class="text-center py-12 text-slate-500">
       暂无待审批记录
     </div>
     <div v-else class="space-y-3">
       <div v-for="item in pendingList" :key="item.id"
-           class="rounded-xl bg-white/70 dark:bg-black backdrop-blur-sm border border-white/30 p-4">
+           class="rounded-xl bg-white/70 dark:bg-dark-surface backdrop-blur-sm border border-white/30 p-4">
         <div class="flex items-start justify-between mb-2">
           <div class="flex items-center gap-2">
             <span class="font-medium">{{ item.studentName }}</span>

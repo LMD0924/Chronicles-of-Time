@@ -3,7 +3,7 @@
     @click="handleToggle"
     class="z-50 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110"
     :class="[
-      isDark ? 'bg-gray-700 text-white' : 'bg-white text-slate-800 border border-slate-200'
+      isDark ? 'bg-white/10 text-white border border-white/10' : 'bg-white text-brand-600 border border-brand-200'
     ]"
     aria-label="切换主题"
   >

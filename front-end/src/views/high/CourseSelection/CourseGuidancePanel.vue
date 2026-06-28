@@ -495,7 +495,7 @@ watch(() => props.studentId, fetchList, { immediate: true })
 
 .header-badge {
   padding: 4px 12px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #d946ef, #8b5cf6);
   border-radius: 20px;
   font-size: 12px;
   color: white;
@@ -506,7 +506,7 @@ watch(() => props.studentId, fetchList, { immediate: true })
   padding: 4px 10px;
   background: rgba(99, 102, 241, 0.15);
   border-radius: 20px;
-  color: #6366f1;
+  color: #d946ef;
 }
 
 /* 表单主体 */
@@ -566,7 +566,7 @@ watch(() => props.studentId, fetchList, { immediate: true })
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: #d946ef;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
@@ -668,7 +668,7 @@ watch(() => props.studentId, fetchList, { immediate: true })
   align-items: center;
   gap: 8px;
   padding: 10px 24px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #d946ef, #8b5cf6);
   border: none;
   border-radius: 30px;
   font-size: 14px;
@@ -765,7 +765,7 @@ watch(() => props.studentId, fetchList, { immediate: true })
 
 .type-tag {
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
+  color: #d946ef;
 }
 
 .combo-tag {
@@ -845,7 +845,7 @@ watch(() => props.studentId, fetchList, { immediate: true })
   height: 40px;
   margin: 0 auto 16px;
   border: 3px solid #e5e7eb;
-  border-top-color: #6366f1;
+  border-top-color: #d946ef;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -957,7 +957,7 @@ watch(() => props.studentId, fetchList, { immediate: true })
 }
 
 .combo-value, .major-value {
-  color: #6366f1;
+  color: #d946ef;
 }
 
 .content-box {

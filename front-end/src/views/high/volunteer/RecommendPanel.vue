@@ -3,7 +3,7 @@
     <!-- 综合推荐 -->
     <div :class="[isDark ? 'bg-gray-800/50' : 'bg-white', 'backdrop-blur-xl rounded-2xl p-6 shadow-lg', isDark ? 'border border-gray-700' : 'border border-gray-200']">
       <div class="flex items-center gap-3 mb-6">
-        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+        <div class="w-10 h-10 bg-gradient-to-r from-brand-500 to-brand-600 rounded-xl flex items-center justify-center">
           <span class="text-xl">🎯</span>
         </div>
         <div>
@@ -45,7 +45,7 @@
             :class="[
               'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',
               recommendParams.subjects.includes(subject)
-                ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg'
+                ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-lg'
                 : isDark
                   ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -61,7 +61,7 @@
         size="large"
         @click="getRecommendations"
         :loading="loading"
-        class="!w-full !bg-gradient-to-r !from-blue-500 !to-indigo-500 !border-0 !h-12"
+        class="!w-full !bg-gradient-to-r !from-blue-500 !to-brand-500 !border-0 !h-12"
       >
         <el-icon><MagicStick /></el-icon>
         {{ loading ? '分析中...' : '开始智能推荐' }}
@@ -118,7 +118,7 @@
               <span :class="[
                 'px-3 py-1 rounded-full text-xs font-medium',
                 item.strategy === '冲刺' ? 'bg-orange-500/20 text-orange-500' :
-                item.strategy === '稳妥' ? 'bg-green-500/20 text-green-500' : 'bg-blue-500/20 text-blue-500'
+                item.strategy === '稳妥' ? 'bg-green-500/20 text-green-500' : 'bg-brand-500/20 text-blue-500'
               ]">
                 {{ item.strategy }}
               </span>

@@ -458,7 +458,7 @@ watch(() => props.studentId, (val) => {
 }
 
 .filter-btn.active {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #d946ef, #8b5cf6);
   color: white;
   border-color: transparent;
 }
@@ -492,7 +492,7 @@ watch(() => props.studentId, (val) => {
 .search-btn {
   padding: 8px 16px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #d946ef, #8b5cf6);
   color: white;
   border: none;
   cursor: pointer;
@@ -581,7 +581,7 @@ watch(() => props.studentId, (val) => {
   top: 32px;
   bottom: -24px;
   width: 2px;
-  background: linear-gradient(180deg, #6366f1, #8b5cf6, transparent);
+  background: linear-gradient(180deg, #d946ef, #8b5cf6, transparent);
 }
 
 .dark .timeline-item::before {
@@ -766,7 +766,7 @@ watch(() => props.studentId, (val) => {
   font-size: 13px;
   font-weight: 500;
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
+  color: #d946ef;
 }
 
 .subject-tag.old {
@@ -823,7 +823,7 @@ watch(() => props.studentId, (val) => {
 .detail-arrow {
   text-align: center;
   font-size: 18px;
-  color: #6366f1;
+  color: #d946ef;
   margin: 4px 0;
 }
 
@@ -840,8 +840,8 @@ watch(() => props.studentId, (val) => {
   padding: 6px 12px;
   border-radius: 8px;
   background: transparent;
-  color: #6366f1;
-  border: 1px solid #6366f1;
+  color: #d946ef;
+  border: 1px solid #d946ef;
   font-size: 12px;
   cursor: pointer;
   display: flex;
@@ -851,7 +851,7 @@ watch(() => props.studentId, (val) => {
 }
 
 .detail-btn:hover {
-  background: #6366f1;
+  background: #d946ef;
   color: white;
 }
 
@@ -882,7 +882,7 @@ watch(() => props.studentId, (val) => {
   height: 40px;
   margin: 0 auto 16px;
   border: 3px solid #e5e7eb;
-  border-top-color: #6366f1;
+  border-top-color: #d946ef;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -1037,7 +1037,7 @@ watch(() => props.studentId, (val) => {
 
 .compare-arrow {
   font-size: 24px;
-  color: #6366f1;
+  color: #d946ef;
 }
 
 .dark .compare-arrow {

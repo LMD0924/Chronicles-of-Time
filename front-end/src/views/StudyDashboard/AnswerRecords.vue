@@ -1,13 +1,13 @@
 <template>
-  <div class="space-y-6 max-w-[1400px] mx-auto px-4 lg:px-6 mt-24">
+  <div class="space-y-6 space-y-6">
     <!-- 页面头部 -->
-    <div class="bg-white/80 dark:bg-black backdrop-blur-xl rounded-3xl p-6 border border-white/20 dark:border-gray-700/30 shadow-2xl shadow-blue-500/10">
+    <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-2xl shadow-brand-500/10">
       <div class="flex items-center gap-4">
-        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-lg shadow-brand-500/30">
           <span class="text-white text-2xl">📊</span>
         </div>
         <div>
-          <h2 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">答题记录</h2>
+          <h2 class="text-2xl font-bold bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent">答题记录</h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">✨ 查看历史答题记录，分析学习情况</p>
         </div>
       </div>
@@ -17,26 +17,26 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <!-- 左侧：筛选条件 -->
       <div class="lg:col-span-2">
-        <div class="bg-white/80 dark:bg-black backdrop-blur-xl rounded-3xl p-6 border border-white/20 dark:border-gray-700/30 sticky top-24 shadow-2xl shadow-blue-500/5">
+        <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 sticky top-24 shadow-2xl shadow-brand-500/5">
           <h3 class="font-bold text-gray-800 dark:text-gray-200 mb-5">🔍 筛选条件</h3>
           <div class="space-y-5">
             <div>
               <label class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">科目</label>
-              <select v-model="filters.subjectName" class="w-full px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-black backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-blue-400/50">
+              <select v-model="filters.subjectName" class="w-full px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-dark-surface backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-brand-400/50">
                 <option value="">全部科目</option>
                 <option v-for="subject in filterSubjects" :key="subject" :value="subject">{{ subject }}</option>
               </select>
             </div>
             <div>
               <label class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">题型</label>
-              <select v-model="filters.questionType" class="w-full px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-black backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-blue-400/50">
+              <select v-model="filters.questionType" class="w-full px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-dark-surface backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-brand-400/50">
                 <option value="">全部题型</option>
                 <option v-for="type in filterQuestionTypes" :key="type" :value="type">{{ type }}</option>
               </select>
             </div>
             <div>
               <label class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">答题结果</label>
-              <select v-model="filters.isCorrect" class="w-full px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-black backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-blue-400/50">
+              <select v-model="filters.isCorrect" class="w-full px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-dark-surface backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-brand-400/50">
                 <option value="">全部结果</option>
                 <option value="1">✅ 正确</option>
                 <option value="0">❌ 错误</option>
@@ -44,7 +44,7 @@
             </div>
             <div>
               <label class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">知识点</label>
-              <select v-model="filters.knowledgePoint" class="w-full px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-black backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-blue-400/50">
+              <select v-model="filters.knowledgePoint" class="w-full px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-dark-surface backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-brand-400/50">
                 <option value="">全部知识点</option>
                 <option v-for="point in knowledgePoints" :key="point" :value="point">{{ point }}</option>
               </select>
@@ -52,15 +52,15 @@
             <div>
               <label class="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">日期范围</label>
               <div class="flex flex-col gap-2">
-                <input v-model="filters.startDate" type="date" class="w-full px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-black backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-blue-400/50">
-                <input v-model="filters.endDate" type="date" class="w-full px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-black backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-blue-400/50">
+                <input v-model="filters.startDate" type="date" class="w-full px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-dark-surface backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-brand-400/50">
+                <input v-model="filters.endDate" type="date" class="w-full px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-dark-surface backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-brand-400/50">
               </div>
             </div>
             <div class="flex gap-3 pt-2">
-              <button @click="fetchRecords" class="flex-1 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white text-sm font-semibold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transform hover:-translate-y-0.5 transition-all">
+              <button @click="fetchRecords" class="flex-1 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-brand-500 via-fuchsia-500 to-pink-500 text-white text-sm font-semibold shadow-lg shadow-brand-500/30 hover:shadow-xl hover:shadow-brand-500/40 transform hover:-translate-y-0.5 transition-all">
                 🔍 查询
               </button>
-              <button @click="resetFilters" class="flex-1 px-6 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-black backdrop-blur-sm text-gray-600 dark:text-gray-400 text-sm font-semibold shadow-sm hover:shadow-md transition-all">
+              <button @click="resetFilters" class="flex-1 px-6 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-dark-surface backdrop-blur-sm text-gray-600 dark:text-gray-400 text-sm font-semibold shadow-sm hover:shadow-md transition-all">
                 🔄 重置
               </button>
             </div>
@@ -72,37 +72,37 @@
       <div class="lg:col-span-8">
         <!-- 统计信息 -->
         <div v-if="statistics.total > 0" class="grid grid-cols-2 gap-4 mb-6">
-          <div class="bg-white/80 dark:bg-black backdrop-blur-xl rounded-3xl p-5 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-blue-500/5">
+          <div class="app-card-surface p-5 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-brand-500/5">
             <div class="text-3xl mb-2">📝</div>
             <div class="text-3xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">{{ statistics.total }}</div>
             <div class="text-xs text-gray-500 dark:text-gray-400 font-medium">总答题数</div>
           </div>
-          <div class="bg-white/80 dark:bg-black backdrop-blur-xl rounded-3xl p-5 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-emerald-500/5">
+          <div class="app-card-surface p-5 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-emerald-500/5">
             <div class="text-3xl mb-2">✅</div>
             <div class="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 dark:from-emerald-400 dark:to-green-400 bg-clip-text text-transparent">{{ statistics.correct }}</div>
             <div class="text-xs text-gray-500 dark:text-gray-400 font-medium">正确数</div>
           </div>
-          <div class="bg-white/80 dark:bg-black backdrop-blur-xl rounded-3xl p-5 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-rose-500/5">
+          <div class="app-card-surface p-5 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-rose-500/5">
             <div class="text-3xl mb-2">❌</div>
             <div class="text-3xl font-bold bg-gradient-to-r from-red-600 to-rose-600 dark:from-red-400 dark:to-rose-400 bg-clip-text text-transparent">{{ statistics.wrong }}</div>
             <div class="text-xs text-gray-500 dark:text-gray-400 font-medium">错误数</div>
           </div>
-          <div class="bg-white/80 dark:bg-black backdrop-blur-xl rounded-3xl p-5 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-indigo-500/5">
+          <div class="app-card-surface p-5 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-brand-500/5">
             <div class="text-3xl mb-2">📈</div>
-            <div class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">{{ statistics.accuracy }}%</div>
+            <div class="text-3xl font-bold bg-gradient-to-r from-brand-600 to-purple-600 dark:from-brand-400 dark:to-purple-400 bg-clip-text text-transparent">{{ statistics.accuracy }}%</div>
             <div class="text-xs text-gray-500 dark:text-gray-400 font-medium">正确率</div>
           </div>
         </div>
 
         <!-- 答题记录列表（题目卡片形式） -->
-        <div class="bg-white dark:bg-black rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+        <div class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
           <div class="p-4 border-b border-gray-200/50 dark:border-gray-700/50">
             <h3 class="font-semibold text-gray-800 dark:text-gray-200">答题记录</h3>
           </div>
 
           <div v-if="loading" class="flex justify-center py-20">
             <div class="text-center">
-              <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
+              <div class="w-12 h-12 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin mx-auto"></div>
               <p class="text-gray-500 mt-4">加载中...</p>
             </div>
           </div>
@@ -113,17 +113,17 @@
           </div>
 
           <div v-else class="space-y-4 p-4 max-h-[800px] overflow-y-auto">
-            <div v-for="(record, index) in records" :key="record.id" class="bg-gray-50 dark:bg-black rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50">
+            <div v-for="(record, index) in records" :key="record.id" class="bg-gray-50 dark:bg-dark-surface rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50">
               <!-- 题号 -->
               <div class="flex items-center gap-2 mb-3">
-                <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" :class="record.is_correct === 1 ? 'bg-green-100 text-green-600 dark:bg-black dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-black dark:text-red-400'">
+                <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" :class="record.is_correct === 1 ? 'bg-green-100 text-green-600 dark:bg-dark-surface dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-dark-surface dark:text-red-400'">
                   {{ (filters.pageNum - 1) * filters.pageSize + index + 1 }}
                 </span>
                 <span class="px-2 py-1 rounded-lg text-xs font-medium" :class="getTypeClass(record.question_type)">
                   {{ record.question_type }}
                 </span>
                 <span class="text-xs text-gray-500">{{ record.subject_name }}</span>
-                <span v-if="record.knowledge_point" class="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-black text-blue-600 dark:text-blue-400 text-xs">
+                <span v-if="record.knowledge_point" class="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-dark-surface text-blue-600 dark:text-blue-400 text-xs">
                   📌 {{ record.knowledge_point }}
                 </span>
               </div>
@@ -155,7 +155,7 @@
               </div>
 
               <!-- 解析 -->
-              <div v-if="record.answer_analysis" class="bg-white dark:bg-black rounded-lg p-3 text-sm">
+              <div v-if="record.answer_analysis" class="bg-white dark:bg-dark-surface rounded-lg p-3 text-sm">
                 <p class="text-gray-500 mb-1">解析：</p>
                 <p class="text-gray-700 dark:text-gray-300">{{ record.answer_analysis }}</p>
               </div>
@@ -177,7 +177,7 @@
               <button @click="prevPage" :disabled="filters.pageNum === 1" class="px-3 py-1 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                 上一页
               </button>
-              <span class="px-3 py-1 rounded-lg bg-gray-100 dark:bg-black text-gray-600 dark:text-gray-400 text-sm">
+              <span class="px-3 py-1 rounded-lg bg-gray-100 dark:bg-dark-surface text-gray-600 dark:text-gray-400 text-sm">
                 {{ filters.pageNum }}
               </span>
               <button @click="nextPage" :disabled="records.length < filters.pageSize" class="px-3 py-1 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
@@ -190,7 +190,7 @@
 
       <!-- 右侧：知识点统计 -->
       <div class="lg:col-span-2">
-        <div class="bg-white dark:bg-black rounded-2xl p-5 border border-gray-200/50 dark:border-gray-700/50 sticky top-24">
+        <div class="bg-white dark:bg-dark-surface rounded-2xl p-5 border border-gray-200/50 dark:border-gray-700/50 sticky top-24">
           <h3 class="font-semibold text-gray-800 dark:text-gray-200 mb-4">知识点统计</h3>
           <div v-if="knowledgePointStats.length > 0" class="space-y-3">
             <div v-for="stat in knowledgePointStats" :key="stat.knowledgePoint" class="flex justify-between items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30">
@@ -257,13 +257,13 @@ const knowledgePointStats = ref([])
 // 获取题型样式
 const getTypeClass = (type) => {
   const map = {
-    '单选': 'bg-blue-100 text-blue-600 dark:bg-black dark:text-blue-400',
-    '多选': 'bg-purple-100 text-purple-600 dark:bg-black dark:text-purple-400',
-    '判断': 'bg-yellow-100 text-yellow-600 dark:bg-black dark:text-yellow-400',
-    '填空': 'bg-green-100 text-green-600 dark:bg-black dark:text-green-400',
-    '解答': 'bg-red-100 text-red-600 dark:bg-black dark:text-red-400'
+    '单选': 'bg-blue-100 text-blue-600 dark:bg-dark-surface dark:text-blue-400',
+    '多选': 'bg-purple-100 text-purple-600 dark:bg-dark-surface dark:text-purple-400',
+    '判断': 'bg-yellow-100 text-yellow-600 dark:bg-dark-surface dark:text-yellow-400',
+    '填空': 'bg-green-100 text-green-600 dark:bg-dark-surface dark:text-green-400',
+    '解答': 'bg-red-100 text-red-600 dark:bg-dark-surface dark:text-red-400'
   }
-  return map[type] || 'bg-gray-100 text-gray-600 dark:bg-black dark:text-gray-400'
+  return map[type] || 'bg-gray-100 text-gray-600 dark:bg-dark-surface dark:text-gray-400'
 }
 
 // 解析选项

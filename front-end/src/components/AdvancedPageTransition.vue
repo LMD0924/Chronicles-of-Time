@@ -126,9 +126,9 @@ onUnmounted(() => reset())
 }
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: var(--theme-gradient);
   transition: width 0.2s ease;  /* 从0.15s改为0.2s，过渡更平滑 */
-  box-shadow: 0 0 12px rgba(102, 126, 234, 0.6);
+  box-shadow: 0 0 12px rgba(var(--theme-primary-rgb), 0.6);
 }
 
 /* 内容布局 */
@@ -167,7 +167,7 @@ onUnmounted(() => reset())
   background: rgba(255, 255, 255, 0.12);
   border: 2px solid rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(4px);
-  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 0 20px rgba(var(--theme-primary-rgb), 0.3);
 }
 
 /* 6个面定位 - 放大版 */
@@ -218,7 +218,7 @@ onUnmounted(() => reset())
 .dots span {
   width: 10px;  /* 从8px改为10px */
   height: 10px;
-  background: white;
+  background: var(--theme-primary);
   border-radius: 50%;
   animation: bounce 1.6s ease-in-out infinite both;  /* 从1.4s改为1.6s，更慢 */
 }

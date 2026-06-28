@@ -420,7 +420,7 @@ onUnmounted(() => {
 
   <div :class="[isDark ? 'dark' : '', 'min-h-screen overflow-x-hidden']">
     <div :class="[
-      isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900',
+      isDark ? 'bg-dark-bg text-white' : 'app-page-bg text-gray-900',
       'min-h-screen transition-colors duration-300'
     ]">
 
@@ -438,13 +438,13 @@ onUnmounted(() => {
 
       <section class="relative pt-24 pb-12 overflow-hidden">
         <div class="absolute inset-0 z-0">
-          <div class="absolute w-[400px] h-[400px] bg-indigo-400/20 rounded-full blur-[80px] -top-20 -left-20"></div>
+          <div class="absolute w-[400px] h-[400px] bg-brand-400/20 rounded-full blur-[80px] -top-20 -left-20"></div>
           <div class="absolute w-[300px] h-[300px] bg-purple-400/15 rounded-full blur-[80px] -bottom-32 -right-32"></div>
         </div>
 
         <div class="relative z-10 max-w-[1400px] mx-auto px-6 lg:px-8">
           <div class="text-center max-w-3xl mx-auto">
-            <h1 class="text-3xl lg:text-4xl font-bold mb-4 bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
+            <h1 class="text-3xl lg:text-4xl font-bold mb-4 bg-gradient-to-r from-brand-500 to-pink-500 bg-clip-text text-transparent">
               文章列表
             </h1>
             <p class="text-base lg:text-lg mb-6" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
@@ -458,11 +458,11 @@ onUnmounted(() => {
                 type="text"
                 placeholder="搜索文章..."
                 class="flex-1 px-4 py-2.5 rounded-full outline-none transition-all"
-                :class="isDark ? 'bg-gray-900 text-gray-200 border-gray-700 focus:border-indigo-500' : 'bg-white text-gray-800 border-gray-200 focus:border-indigo-400'"
+                :class="isDark ? 'bg-gray-900 text-gray-200 border-gray-700 focus:border-brand-500' : 'bg-white text-gray-800 border-gray-200 focus:border-brand-400'"
               >
               <button
                 @click="handleSearch"
-                class="px-5 py-2.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium hover:opacity-90 transition-all"
+                class="px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-500 to-pink-500 text-white font-medium hover:opacity-90 transition-all"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -488,7 +488,7 @@ onUnmounted(() => {
                     class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all"
                     :class="[
                       filters.category === cat.value
-                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
+                        ? 'bg-gradient-to-r from-brand-500 to-pink-500 text-white shadow-md'
                         : (isDark ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100')
                     ]"
                   >
@@ -503,7 +503,7 @@ onUnmounted(() => {
                     class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all"
                     :class="[
                       filters.myArticles
-                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
+                        ? 'bg-gradient-to-r from-brand-500 to-pink-500 text-white shadow-md'
                         : (isDark ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100')
                     ]"
                   >
@@ -524,7 +524,7 @@ onUnmounted(() => {
                     class="px-2.5 py-1 rounded-full text-xs transition-all"
                     :class="[
                       selectedTags.includes(tag)
-                        ? 'bg-indigo-500 text-white'
+                        ? 'bg-brand-500 text-white'
                         : (isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')
                     ]"
                   >#{{ tag }}</button>
@@ -534,21 +534,21 @@ onUnmounted(() => {
               <div v-if="filters.category || selectedTags.length > 0" class="rounded-2xl p-5" :class="isDark ? 'bg-gray-900/50' : 'bg-white shadow-sm'">
                 <h3 class="font-semibold mb-3">🔍 当前筛选</h3>
                 <div class="flex flex-wrap gap-2 mb-3">
-                  <span v-if="filters.category" class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
+                  <span v-if="filters.category" class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400">
                     {{ getCategoryName(filters.category) }}
                     <button @click="changeCategory('')" class="hover:opacity-70">×</button>
                   </span>
-                  <span v-for="tag in selectedTags" :key="tag" class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
+                  <span v-for="tag in selectedTags" :key="tag" class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400">
                     #{{ tag }}
                     <button @click="removeTag(tag)" class="hover:opacity-70">×</button>
                   </span>
                 </div>
-                <button @click="clearFilters" class="text-sm text-indigo-500">清除全部筛选</button>
+                <button @click="clearFilters" class="text-sm text-brand-600">清除全部筛选</button>
               </div>
 
               <button
                 @click="createArticle"
-                class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                class="w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-pink-500 text-white font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -568,7 +568,7 @@ onUnmounted(() => {
                   :key="option.value"
                   @click="changeSort(option.value)"
                   class="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm"
-                  :class="[filters.sortBy === option.value ? 'bg-indigo-500 text-white' : isDark ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600']"
+                  :class="[filters.sortBy === option.value ? 'bg-brand-500 text-white' : isDark ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600']"
                 >
                   <span>{{ option.icon }}</span>
                   <span>{{ option.label }}</span>
@@ -585,7 +585,7 @@ onUnmounted(() => {
 
             <div v-else-if="articles.length === 0" class="text-center py-16">
               <p class="text-gray-400">暂无文章</p>
-              <button @click="createArticle" class="mt-4 px-4 py-2 rounded-lg bg-indigo-500 text-white text-sm">写文章</button>
+              <button @click="createArticle" class="mt-4 px-4 py-2 rounded-lg bg-brand-500 text-white text-sm">写文章</button>
             </div>
 
             <div v-else class="space-y-5 max-h-[100vh] overflow-y-auto pr-2 no-scrollbar">
@@ -597,7 +597,7 @@ onUnmounted(() => {
                 :class="isDark ? 'bg-gray-900/50 hover:bg-gray-900/70' : 'bg-white shadow-sm hover:shadow-lg'"
               >
                 <div v-if="isOwnArticle(article)" class="absolute top-4 right-4 flex gap-2 z-10">
-                  <button @click="editArticle($event, article.id)" class="px-2 py-1 rounded-lg text-xs bg-indigo-100 text-indigo-600">✏️ 编辑</button>
+                  <button @click="editArticle($event, article.id)" class="px-2 py-1 rounded-lg text-xs bg-brand-100 text-brand-600">✏️ 编辑</button>
                   <button @click="deleteArticle($event, article)" class="px-2 py-1 rounded-lg text-xs bg-red-100 text-red-600">🗑️ 删除</button>
                 </div>
 
@@ -608,7 +608,7 @@ onUnmounted(() => {
 
                 <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
                   <div class="flex items-center gap-2">
-                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-brand-100 dark:bg-brand-900/50 text-brand-600">
                       {{ getCategoryIcon(article.category) }} {{ getCategoryName(article.category) }}
                     </span>
                     <span class="text-xs text-gray-400">{{ formatDate(article.updateTime) }}</span>
@@ -621,7 +621,7 @@ onUnmounted(() => {
                   </div>
                 </div>
 
-                <h2 class="text-xl font-bold mb-2 group-hover:text-indigo-500 transition-colors">
+                <h2 class="text-xl font-bold mb-2 group-hover:text-brand-600 transition-colors">
                   {{ article.title }}
                 </h2>
 
@@ -647,7 +647,7 @@ onUnmounted(() => {
                   :key="page"
                   @click="handlePageChange(page)"
                   class="w-9 h-9 rounded-lg"
-                  :class="currentPage === page ? 'bg-indigo-500 text-white' : 'bg-gray-100'"
+                  :class="currentPage === page ? 'bg-brand-500 text-white' : 'bg-gray-100'"
                 >{{ page }}</button>
                 <button :disabled="currentPage === Math.ceil(total/pageSize)" @click="handlePageChange(currentPage + 1)" class="w-9 h-9 rounded-lg flex items-center justify-center">→</button>
               </div>
@@ -659,14 +659,14 @@ onUnmounted(() => {
               <div class="rounded-2xl p-5 text-center" :class="isDark ? 'bg-gray-900/50' : 'bg-white shadow-sm'">
                 <img :src="UserInfo.avatar || '/default-avatar.png'" alt="头像" class="w-16 h-16 rounded-full mx-auto mb-3">
                 <h3 class="font-semibold">{{ UserInfo.name || '游客' }}</h3>
-                <button @click="createArticle" class="mt-4 w-full py-2 rounded-lg text-sm bg-gradient-to-r from-indigo-500 to-purple-600 text-white">写文章</button>
+                <button @click="createArticle" class="mt-4 w-full py-2 rounded-lg text-sm bg-gradient-to-r from-brand-500 to-pink-500 text-white">写文章</button>
               </div>
 
               <div class="rounded-2xl p-5" :class="isDark ? 'bg-gray-900/50' : 'bg-white shadow-sm'">
                 <h3 class="font-semibold mb-4">🔥 热门推荐</h3>
                 <div class="space-y-3">
                   <div v-for="(item, idx) in hotArticles.slice(0,5)" :key="item.id" @click="goToDetail(item.id)" class="flex gap-3 cursor-pointer">
-                    <div class="text-lg font-bold text-indigo-500 w-6">{{ idx+1 }}</div>
+                    <div class="text-lg font-bold text-brand-600 w-6">{{ idx+1 }}</div>
                     <div>
                       <p class="text-sm font-medium line-clamp-2">{{ item.title }}</p>
                       <div class="text-xs text-gray-400 mt-1">👁️ {{ item.views || 0 }} ❤️ {{ item.likesCount || 0 }}</div>
@@ -682,7 +682,7 @@ onUnmounted(() => {
       <button
         v-show="isScrolled"
         @click="window.scrollTo({top:0,behavior:'smooth'})"
-        class="fixed bottom-8 right-8 w-10 h-10 rounded-full bg-indigo-500 text-white shadow-lg flex items-center justify-center"
+        class="fixed bottom-8 right-8 w-10 h-10 rounded-full bg-brand-500 text-white shadow-lg flex items-center justify-center"
       >↑</button>
     </div>
   </div>

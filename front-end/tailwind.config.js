@@ -1,3 +1,17 @@
+const themeScale = (name) => ({
+  50: `rgb(var(--color-${name}-50) / <alpha-value>)`,
+  100: `rgb(var(--color-${name}-100) / <alpha-value>)`,
+  200: `rgb(var(--color-${name}-200) / <alpha-value>)`,
+  300: `rgb(var(--color-${name}-300) / <alpha-value>)`,
+  400: `rgb(var(--color-${name}-400) / <alpha-value>)`,
+  500: `rgb(var(--color-${name}-500) / <alpha-value>)`,
+  600: `rgb(var(--color-${name}-600) / <alpha-value>)`,
+  700: `rgb(var(--color-${name}-700) / <alpha-value>)`,
+  800: `rgb(var(--color-${name}-800) / <alpha-value>)`,
+  900: `rgb(var(--color-${name}-900) / <alpha-value>)`,
+  950: `rgb(var(--color-${name}-950) / <alpha-value>)`,
+})
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -8,12 +22,23 @@ export default {
   theme: {
     extend: {
       colors: {
+        brand: themeScale('brand'),
+        accent: themeScale('accent'),
+        indigo: themeScale('brand'),
+        fuchsia: themeScale('brand'),
+        pink: themeScale('brand'),
+        purple: themeScale('accent'),
+        violet: themeScale('accent'),
         dark: {
           bg: '#000000',
           surface: '#111111',
           border: '#333333',
           text: '#ffffff'
         }
+      },
+      boxShadow: {
+        soft: '0 12px 34px -24px rgb(var(--color-brand-600) / 0.35)',
+        glow: '0 18px 42px -24px rgb(var(--color-brand-500) / 0.55)',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -33,4 +58,3 @@ export default {
   },
   plugins: [],
 }
-

@@ -25,6 +25,12 @@ public class Paper {
 
     private String content;         // 论文内容（正文）
 
+    /** 论文阶段：topic / proposal / draft / defense / done */
+    private String stage;
+
+    /** 状态：draft / in_progress / submitted / passed */
+    private String status;
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt; // 创建时间
 

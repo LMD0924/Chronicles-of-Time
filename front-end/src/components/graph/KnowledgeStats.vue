@@ -15,7 +15,7 @@
         </div>
 
         <div v-if="weakPointsLoading" class="flex justify-center py-8">
-          <div class="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div class="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
 
         <div v-else-if="weakKnowledgePoints.length === 0" class="text-center py-8 text-gray-400">
@@ -61,7 +61,7 @@
       <div class="bg-white rounded-xl shadow-sm p-5">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+            <span class="w-2 h-2 bg-brand-500 rounded-full"></span>
             热门知识点
           </h3>
           <button @click="refreshHot" class="text-gray-400 hover:text-gray-600">
@@ -72,7 +72,7 @@
         </div>
 
         <div v-if="hotPointsLoading" class="flex justify-center py-8">
-          <div class="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div class="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
 
         <div v-else-if="hotKnowledgePoints.length === 0" class="text-center py-8 text-gray-400">
@@ -101,7 +101,7 @@
               </div>
             </div>
             <div class="text-right">
-              <div class="text-sm font-medium text-blue-600">{{ item.totalCount }} 次</div>
+              <div class="text-sm font-medium text-brand-600">{{ item.totalCount }} 次</div>
               <div class="text-xs text-gray-400">{{ item.accuracyRate }}% 正确</div>
             </div>
           </div>

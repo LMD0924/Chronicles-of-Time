@@ -38,6 +38,11 @@ const router = createRouter({
       component: () => import('@/views/auth/Resume.vue')
     },
     {
+      path:'/Settings',
+      name:'设置',
+      component: () => import('@/views/auth/Settings.vue')
+    },
+    {
       path:'/Records',
       name:'记录拾光',
       component: () => import('@/views/Records.vue')

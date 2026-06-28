@@ -1,7 +1,7 @@
 <template>
   <div :class="[isDark ? 'dark' : '', 'min-h-screen overflow-x-hidden']">
     <div :class="[
-      isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900',
+      isDark ? 'bg-dark-bg text-white' : 'app-page-bg text-gray-900',
       'min-h-screen transition-colors duration-300'
     ]">
       <!-- 导航栏 -->
@@ -17,8 +17,8 @@
             <!-- Logo -->
             <div class="flex items-center gap-3 cursor-pointer group" @click="goBack">
               <div class="relative">
-                <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
-                <div class="relative w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <div class="absolute inset-0 bg-gradient-to-r from-brand-500 to-pink-500 rounded-xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
+                <div class="relative w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-br from-brand-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
                   <span class="text-xl lg:text-2xl">🎓</span>
                 </div>
               </div>
@@ -34,7 +34,7 @@
             <div class="flex items-center gap-4">
               <ThemeToggleButton />
               <div class="flex items-center gap-2 cursor-pointer group" @click="goToProfile">
-                <div class="relative w-9 h-9 rounded-full overflow-hidden border-2 border-indigo-200 group-hover:border-indigo-400 transition-colors">
+                <div class="relative w-9 h-9 rounded-full overflow-hidden border-2 border-brand-200 group-hover:border-brand-400 transition-colors">
                   <img :src="UserInfo.avatar || 'https://via.placeholder.com/36'" alt="User Avatar" class="w-full h-full object-cover">
                 </div>
                 <span class="hidden md:inline text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ UserInfo.name || '用户' }}</span>
@@ -49,7 +49,7 @@
         <div class="max-w-4xl mx-auto">
           <!-- 页面标题 -->
           <div class="text-center mb-10 scroll-animate">
-            <div class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full text-indigo-600 text-sm mb-4">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-brand-50 rounded-full text-brand-600 text-sm mb-4">
               <span>📝</span>
               <span>填写信息 · 规划未来</span>
             </div>
@@ -74,8 +74,8 @@
                       v-model="formData.university"
                       type="text"
                       placeholder="请输入或选择你的大学"
-                      class="w-full px-4 py-3 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                      :class="isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-indigo-400' : 'bg-gray-50 border-gray-200 focus:border-indigo-400'"
+                      class="w-full px-4 py-3 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-brand-400"
+                      :class="isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-brand-400' : 'bg-gray-50 border-gray-200 focus:border-brand-400'"
                       @focus="showUniversitySuggestions = true"
                       @blur="handleUniversityBlur"
                     />
@@ -85,8 +85,8 @@
                          :class="isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'">
                       <div v-for="uni in filteredUniversities" :key="uni"
                            @mousedown.prevent="selectUniversity(uni)"
-                           class="px-4 py-2 cursor-pointer hover:bg-indigo-50 transition-colors"
-                           :class="isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-indigo-50 text-gray-700'">
+                           class="px-4 py-2 cursor-pointer hover:bg-brand-50 transition-colors"
+                           :class="isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-brand-50 text-gray-700'">
                         {{ uni }}
                       </div>
                     </div>
@@ -103,8 +103,8 @@
                       v-model="formData.major"
                       type="text"
                       placeholder="请输入或选择你的专业"
-                      class="w-full px-4 py-3 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                      :class="isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-indigo-400' : 'bg-gray-50 border-gray-200 focus:border-indigo-400'"
+                      class="w-full px-4 py-3 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-brand-400"
+                      :class="isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-brand-400' : 'bg-gray-50 border-gray-200 focus:border-brand-400'"
                       @focus="showMajorSuggestions = true"
                       @blur="handleMajorBlur"
                     />
@@ -114,8 +114,8 @@
                          :class="isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'">
                       <div v-for="major in filteredMajors" :key="major"
                            @mousedown.prevent="selectMajor(major)"
-                           class="px-4 py-2 cursor-pointer hover:bg-indigo-50 transition-colors"
-                           :class="isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-indigo-50 text-gray-700'">
+                           class="px-4 py-2 cursor-pointer hover:bg-brand-50 transition-colors"
+                           :class="isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-brand-50 text-gray-700'">
                         {{ major }}
                       </div>
                     </div>
@@ -137,8 +137,8 @@
                         formData.choose === option.value
                           ? option.activeClass
                           : isDark
-                            ? 'bg-gray-800 border border-gray-700 hover:border-indigo-400'
-                            : 'bg-gray-50 border border-gray-200 hover:border-indigo-400'
+                            ? 'bg-gray-800 border border-gray-700 hover:border-brand-400'
+                            : 'bg-gray-50 border border-gray-200 hover:border-brand-400'
                       ]"
                     >
                       <div class="text-2xl mb-2">{{ option.icon }}</div>
@@ -153,11 +153,11 @@
                 </div>
 
                 <!-- 额外信息（根据选择动态显示） -->
-                <div v-if="formData.choose" class="rounded-xl p-4" :class="isDark ? 'bg-indigo-900/30 border border-indigo-800' : 'bg-indigo-50 border border-indigo-100'">
+                <div v-if="formData.choose" class="rounded-xl p-4" :class="isDark ? 'bg-brand-900/30 border border-brand-800' : 'bg-brand-50 border border-brand-100'">
                   <div class="flex items-start gap-3">
                     <div class="text-xl">{{ getCareerIcon(formData.choose) }}</div>
                     <div>
-                      <p class="text-sm font-medium mb-1" :class="isDark ? 'text-indigo-300' : 'text-indigo-700'">
+                      <p class="text-sm font-medium mb-1" :class="isDark ? 'text-brand-300' : 'text-brand-700'">
                         {{ getCareerTip(formData.choose) }}
                       </p>
                       <p class="text-xs" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
@@ -180,7 +180,7 @@
                   <button
                     type="submit"
                     :disabled="loading"
-                    class="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="flex-1 px-6 py-3 bg-gradient-to-r from-brand-500 to-pink-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span v-if="loading" class="flex items-center justify-center gap-2">
                       <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
@@ -197,12 +197,12 @@
           </div>
 
           <!-- 已填写信息展示 -->
-          <div v-if="existingInfo" class="mt-8 rounded-xl p-5 scroll-animate" :class="isDark ? 'bg-white/5 border border-gray-800' : 'bg-indigo-50 border border-indigo-100'">
+          <div v-if="existingInfo" class="mt-8 rounded-xl p-5 scroll-animate" :class="isDark ? 'bg-white/5 border border-gray-800' : 'bg-brand-50 border border-brand-100'">
             <div class="flex items-center justify-between mb-3">
               <h3 class="font-semibold flex items-center gap-2" :class="isDark ? 'text-white' : 'text-gray-800'">
                 <span>📋</span> 已填写的规划信息
               </h3>
-              <button @click="editInfo" class="text-sm text-indigo-500 hover:text-indigo-600">编辑</button>
+              <button @click="editInfo" class="text-sm text-brand-600 hover:text-brand-600">编辑</button>
             </div>
             <div class="flex flex-wrap gap-4 text-sm">
               <div><span class="text-gray-500">大学：</span><span class="font-medium">{{ existingInfo.university }}</span></div>
@@ -219,7 +219,7 @@
 
       <!-- 返回顶部按钮 -->
       <button v-show="showBackTop" @click="scrollToTop" class="fixed bottom-10 right-10 w-11 h-11 bg-white rounded-full shadow-lg flex items-center justify-center hover:-translate-y-1 transition-all z-50">
-        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
         </svg>
       </button>

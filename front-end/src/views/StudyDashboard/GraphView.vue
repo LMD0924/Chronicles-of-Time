@@ -543,7 +543,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="knowledge-graph-container" :class="isDark ? 'dark' : ''">
+  <div class="knowledge-graph-container" :class="isDark ? 'dark' : 'app-page-bg'">
     <Nav :isDark="isDark" :menuItems="menuItems"/>
 
     <!-- 筛选栏 -->
@@ -711,12 +711,11 @@ onBeforeUnmount(() => {
 .knowledge-graph-container {
   min-height: 100vh;
   padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
   transition: all 0.3s ease;
 }
 
 .knowledge-graph-container.dark {
-  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+  background: linear-gradient(135deg, #0a0a0b 0%, #141416 100%);
 }
 
 .back-button {
@@ -733,7 +732,7 @@ onBeforeUnmount(() => {
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  color: #4f46e5;
+  color: #c026d3;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   z-index: 100;
@@ -816,7 +815,7 @@ onBeforeUnmount(() => {
 .stat-value {
   font-size: 28px;
   font-weight: bold;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  background: linear-gradient(135deg, #c026d3, #7c3aed);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -893,7 +892,7 @@ onBeforeUnmount(() => {
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  background: linear-gradient(135deg, #c026d3, #7c3aed);
   color: white;
   box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
 }
@@ -1122,7 +1121,7 @@ onBeforeUnmount(() => {
   width: 50px;
   height: 50px;
   border: 3px solid rgba(79, 70, 229, 0.2);
-  border-top-color: #4f46e5;
+  border-top-color: #c026d3;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

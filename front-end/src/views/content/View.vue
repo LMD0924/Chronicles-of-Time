@@ -489,7 +489,7 @@ watch(() => article.value.content, () => {
   <contextHolder />
   <div :class="[isDark ? 'dark' : '', 'min-h-screen overflow-x-hidden']">
     <div :class="[
-      isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900',
+      isDark ? 'bg-dark-bg text-white' : 'app-page-bg text-gray-900',
       'min-h-screen transition-colors duration-300'
     ]">
 
@@ -507,7 +507,7 @@ watch(() => article.value.content, () => {
 
       <div v-if="loading" class="flex items-center justify-center min-h-screen pt-20">
         <div class="text-center">
-          <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div class="w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p class="text-gray-500">加载中...</p>
         </div>
       </div>
@@ -520,7 +520,7 @@ watch(() => article.value.content, () => {
               <div style="position:fixed; top:90px; width:200px;">
                 <div class="rounded-xl p-4 bg-white dark:bg-gray-900/50 shadow-sm">
                   <div class="flex items-center gap-2 mb-4 pb-2 border-b border-gray-200 dark:border-gray-800">
-                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
                     </svg>
                     <span class="text-sm font-semibold">目录</span>
@@ -534,10 +534,10 @@ watch(() => article.value.content, () => {
                       v-for="heading in toc"
                       :key="heading.id"
                       @click="scrollToHeading(heading.id)"
-                      class="cursor-pointer transition-all hover:text-indigo-500 py-1.5 rounded"
+                      class="cursor-pointer transition-all hover:text-brand-600 py-1.5 rounded"
                       :class="[
                         activeHeadingId === heading.id
-                          ? 'text-indigo-500 bg-indigo-50 dark:bg-indigo-950/30'
+                          ? 'text-brand-600 bg-brand-50 dark:bg-brand-950/30'
                           : (isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-900')
                       ]"
                       :style="{ paddingLeft: `${(heading.level - 1) * 12 + 12}px` }"
@@ -552,7 +552,7 @@ watch(() => article.value.content, () => {
             <div class="lg:col-span-7 xl:col-span-8">
               <div class="rounded-2xl overflow-hidden" :class="isDark ? 'bg-gray-900/50' : 'bg-white shadow-sm'">
                 <div class="p-6 lg:p-8 border-b" :class="isDark ? 'border-gray-800' : 'border-gray-100'">
-                  <button @click="goBack" class="lg:hidden flex items-center gap-1 text-sm mb-4 hover:text-indigo-500">
+                  <button @click="goBack" class="lg:hidden flex items-center gap-1 text-sm mb-4 hover:text-brand-600">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
@@ -560,7 +560,7 @@ watch(() => article.value.content, () => {
                   </button>
 
                   <div class="flex items-center gap-2 mb-4">
-                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400">
                       {{ article.category || '随笔' }}
                     </span>
                     <span class="text-xs text-gray-400">📅 {{ formatDate(article.createdAt) }}</span>
@@ -585,7 +585,7 @@ watch(() => article.value.content, () => {
                     </div>
 
                     <div v-if="isOwnArticle" class="flex items-center gap-2">
-                      <button @click="editArticle" class="px-3 py-1.5 rounded-full text-sm bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400 hover:opacity-80">
+                      <button @click="editArticle" class="px-3 py-1.5 rounded-full text-sm bg-brand-100 text-brand-600 dark:bg-brand-900/50 dark:text-brand-400 hover:opacity-80">
                         ✏️ 编辑
                       </button>
                       <button @click="deleteArticle" class="px-3 py-1.5 rounded-full text-sm bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-400 hover:opacity-80">
@@ -640,7 +640,7 @@ watch(() => article.value.content, () => {
                 <div id="comments" class="rounded-xl p-4" :class="isDark ? 'bg-gray-900/50' : 'bg-white shadow-sm'">
                   <div class="flex items-center justify-between mb-4 pb-2 border-b" :class="isDark ? 'border-gray-800' : 'border-gray-200'">
                     <div class="flex items-center gap-2">
-                      <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                       </svg>
                       <span class="text-sm font-semibold">评论</span>
@@ -649,7 +649,7 @@ watch(() => article.value.content, () => {
                   </div>
 
                   <div class="mb-6">
-                    <div v-if="replyTo" class="flex items-center justify-between text-xs mb-2 p-2 rounded" :class="isDark ? 'bg-indigo-950/30 text-indigo-400' : 'bg-indigo-50 text-indigo-600'">
+                    <div v-if="replyTo" class="flex items-center justify-between text-xs mb-2 p-2 rounded" :class="isDark ? 'bg-brand-950/30 text-brand-400' : 'bg-brand-50 text-brand-600'">
                       <span>回复 @{{ replyTo.userName }}</span>
                       <button @click="cancelReply" class="hover:opacity-70">✕</button>
                     </div>
@@ -664,7 +664,7 @@ watch(() => article.value.content, () => {
                       <button
                         @click="submitComment"
                         :disabled="submittingComment"
-                        class="px-4 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:opacity-90 disabled:opacity-50"
+                        class="px-4 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-brand-500 to-pink-500 text-white hover:opacity-90 disabled:opacity-50"
                       >
                         {{ submittingComment ? '发送中...' : '发表评论' }}
                       </button>
@@ -672,7 +672,7 @@ watch(() => article.value.content, () => {
                   </div>
 
                   <div v-if="loadingComments" class="flex justify-center py-8">
-                    <div class="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                    <div class="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
                   </div>
 
                   <div v-else-if="comments.length === 0" class="text-center py-8 text-gray-400 text-sm">
@@ -694,7 +694,7 @@ watch(() => article.value.content, () => {
                           <p class="text-sm leading-relaxed mb-1" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
                             {{ comment.content }}
                           </p>
-                          <button @click="replyToComment(comment)" class="text-xs text-gray-400 hover:text-indigo-500">
+                          <button @click="replyToComment(comment)" class="text-xs text-gray-400 hover:text-brand-600">
                             回复
                           </button>
 
@@ -708,7 +708,7 @@ watch(() => article.value.content, () => {
                                     <span class="text-xs text-gray-400">{{ formatDate(reply.createdAt) }}</span>
                                   </div>
                                   <p class="text-xs leading-relaxed" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
-                                    <span v-if="reply.replyToUserName" class="text-indigo-500">@{{ reply.replyToUserName }} </span>
+                                    <span v-if="reply.replyToUserName" class="text-brand-600">@{{ reply.replyToUserName }} </span>
                                     {{ reply.content }}
                                   </p>
                                 </div>
@@ -742,16 +742,16 @@ watch(() => article.value.content, () => {
 
           <div class="flex gap-2">
             <input v-model="tagInput" @keyup.enter="addEditTag" class="flex-1 p-2 border rounded dark:bg-gray-800" placeholder="标签" />
-            <button @click="addEditTag" class="px-3 bg-indigo-500 text-white rounded">添加</button>
+            <button @click="addEditTag" class="px-3 bg-brand-500 text-white rounded">添加</button>
           </div>
 
           <div class="flex gap-1 flex-wrap">
-            <span v-for="t in editForm.tags" :key="t" class="px-2 py-1 bg-indigo-100 text-indigo-600 rounded-full text-xs">
+            <span v-for="t in editForm.tags" :key="t" class="px-2 py-1 bg-brand-100 text-brand-600 rounded-full text-xs">
               {{ t }} <button @click="removeEditTag(t)">×</button>
             </span>
           </div>
 
-          <button @click="submitEdit" class="w-full py-2 bg-indigo-600 text-white rounded">保存修改</button>
+          <button @click="submitEdit" class="w-full py-2 bg-brand-600 text-white rounded">保存修改</button>
         </div>
       </Modal>
 
@@ -812,14 +812,14 @@ watch(() => article.value.content, () => {
 }
 
 .article-content :deep(a) {
-  color: #6366f1;
+  color: var(--theme-primary);
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
 }
 
 .article-content :deep(a:hover) {
-  color: #4f46e5;
+  color: var(--theme-secondary);
 }
 
 .article-content :deep(img) {
@@ -830,7 +830,7 @@ watch(() => article.value.content, () => {
 }
 
 .article-content :deep(blockquote) {
-  border-left: 4px solid #6366f1;
+  border-left: 4px solid var(--theme-primary);
   padding-left: 1rem;
   margin: 1rem 0;
   font-style: italic;

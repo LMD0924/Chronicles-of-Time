@@ -236,7 +236,7 @@ onMounted(() => {
 
   <div :class="[isDark ? 'dark' : '', 'min-h-screen overflow-x-hidden']">
     <div :class="[
-      isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900',
+      isDark ? 'bg-dark-bg text-white' : 'app-page-bg text-gray-900',
       'min-h-screen transition-colors duration-300'
     ]">
 
@@ -296,13 +296,13 @@ onMounted(() => {
                 <button
                   @click="saveContent(0)"
                   class="px-6 py-2 rounded-full text-sm font-medium transition-all border"
-                  :class="isDark ? 'border-gray-700 text-gray-300 hover:border-gray-600' : 'border-gray-300 text-gray-600 hover:border-indigo-400 hover:text-indigo-600'"
+                  :class="isDark ? 'border-gray-700 text-gray-300 hover:border-gray-600' : 'border-gray-300 text-gray-600 hover:border-brand-400 hover:text-brand-600'"
                 >
                   保存草稿
                 </button>
                 <button
                   @click="saveContent(1)"
-                  class="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full text-sm font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
+                  class="px-6 py-2 bg-gradient-to-r from-brand-500 to-pink-500 text-white rounded-full text-sm font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
                 >
                   {{ isEdit ? '更新发布' : '发布文章' }}
                 </button>
@@ -319,7 +319,7 @@ onMounted(() => {
                 <div
                   v-if="!formData.coverImage"
                   @click="handleCoverClick"
-                  class="h-32 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all hover:border-indigo-400"
+                  class="h-32 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all hover:border-brand-400"
                   :class="isDark ? 'border-gray-700 text-gray-500' : 'border-gray-300 text-gray-400'"
                 >
                   <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -351,7 +351,7 @@ onMounted(() => {
                     @click="formData.category = cat.value"
                     class="px-3 py-1.5 rounded-full text-sm transition-all flex items-center gap-1"
                     :class="formData.category === cat.value
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
+                      ? 'bg-gradient-to-r from-brand-500 to-pink-500 text-white shadow-md'
                       : (isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')"
                   >
                     <span>{{ cat.icon }}</span>
@@ -369,10 +369,10 @@ onMounted(() => {
                   <span
                     v-for="tag in formData.tags"
                     :key="tag"
-                    class="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full text-xs"
+                    class="inline-flex items-center gap-1 px-2 py-1 bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400 rounded-full text-xs"
                   >
                     {{ tag }}
-                    <button @click="removeTag(tag)" class="hover:text-indigo-800">×</button>
+                    <button @click="removeTag(tag)" class="hover:text-brand-800">×</button>
                   </span>
                 </div>
                 <div class="flex gap-2">
@@ -384,7 +384,7 @@ onMounted(() => {
                     class="flex-1 px-3 py-2 text-sm rounded-lg outline-none"
                     :class="isDark ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'"
                   >
-                  <button @click="addTag" class="px-3 py-2 rounded-lg text-sm bg-indigo-500 text-white hover:bg-indigo-600 transition-colors">
+                  <button @click="addTag" class="px-3 py-2 rounded-lg text-sm bg-brand-500 text-white hover:bg-brand-600 transition-colors">
                     添加
                   </button>
                 </div>
@@ -395,7 +395,7 @@ onMounted(() => {
                     :key="sug"
                     @click="() => { if(formData.tags.length < 5 && !formData.tags.includes(sug)) formData.tags.push(sug) }"
                     class="text-xs px-2 py-0.5 rounded-full transition-all"
-                    :class="isDark ? 'text-gray-500 hover:text-indigo-400' : 'text-gray-400 hover:text-indigo-600'"
+                    :class="isDark ? 'text-gray-500 hover:text-brand-400' : 'text-gray-400 hover:text-brand-600'"
                   >
                     {{ sug }}
                   </button>

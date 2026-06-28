@@ -18,11 +18,15 @@
         <option value="$PROJECT_DIR$/back-end-spring-cloud/university-service/pom.xml" />
         <option value="$PROJECT_DIR$/back-end-spring-cloud/Question-Bank/pom.xml" />
         <option value="$PROJECT_DIR$/back-end-spring-cloud/general-service/pom.xml" />
+        <option value="$PROJECT_DIR$/back-end-spring-cloud/Workplace/pom.xml" />
+        <option value="$PROJECT_DIR$/back-end-spring-cloud/workplace-service/pom.xml" />
+        <option value="$PROJECT_DIR$/back-end-spring-cloud/advanced-service/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
       <set>
         <option value="$PROJECT_DIR$/back-end-spring-cloud/Question-Bank/pom.xml" />
+        <option value="$PROJECT_DIR$/back-end-spring-cloud/Workplace/pom.xml" />
       </set>
     </option>
   </component>

@@ -10,13 +10,9 @@ import App from './App.vue'
 import router from './router'
 import axios from "axios";
 import Typewriter from "@/components/Typewriter.vue";
-import { getStoredTheme, setTheme } from './utils/theme'
+import { initTheme, setTheme } from './utils/theme'
 
 // 1. 初始化主题（应用启动时立即生效）
-const initTheme = () => {
-  const theme = getStoredTheme();
-  setTheme(theme);
-};
 initTheme();
 
 

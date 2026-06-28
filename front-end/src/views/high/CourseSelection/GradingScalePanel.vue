@@ -2,32 +2,32 @@
 ```vue
 <template>
   <div class="cs-panel space-y-4">
-    <div class="rounded-xl bg-white/70 dark:bg-black border border-white/30 p-4">
+    <div class="rounded-xl bg-white/70 dark:bg-dark-surface border border-white/30 p-4">
       <div class="flex gap-2 mb-3">
-        <input v-model="year" class="px-3 py-2 rounded-lg border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="学年" />
-        <button class="px-3 py-2 rounded-lg bg-indigo-600 text-white" @click="fetchList">查询</button>
+        <input v-model="year" class="px-3 py-2 rounded-lg border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="学年" />
+        <button class="px-3 py-2 rounded-lg bg-brand-600 text-white" @click="fetchList">查询</button>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-        <input v-model="form.subjectId" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="科目ID" />
-        <input v-model="form.subjectName" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="科目名" />
-        <input v-model="form.gradeLevel" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="等级" />
-        <input v-model="form.academicYear" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="学年" />
-        <input v-model="form.percentageTop" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="前百分比" />
-        <input v-model="form.percentageBottom" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="后百分比" />
-        <input v-model="form.assignedScoreMin" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="赋分最小" />
-        <input v-model="form.assignedScoreMax" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="赋分最大" />
-        <input v-model="form.rawScoreMin" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="原始分最小" />
-        <input v-model="form.rawScoreMax" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="原始分最大" />
+        <input v-model="form.subjectId" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="科目ID" />
+        <input v-model="form.subjectName" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="科目名" />
+        <input v-model="form.gradeLevel" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="等级" />
+        <input v-model="form.academicYear" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="学年" />
+        <input v-model="form.percentageTop" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="前百分比" />
+        <input v-model="form.percentageBottom" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="后百分比" />
+        <input v-model="form.assignedScoreMin" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="赋分最小" />
+        <input v-model="form.assignedScoreMax" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="赋分最大" />
+        <input v-model="form.rawScoreMin" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="原始分最小" />
+        <input v-model="form.rawScoreMax" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="原始分最大" />
       </div>
       <div class="mt-3"><button class="px-4 py-2 rounded-lg bg-emerald-600 text-white" @click="save">保存</button></div>
     </div>
-    <div class="rounded-xl bg-white/70 dark:bg-black border border-white/30 p-4">
+    <div class="rounded-xl bg-white/70 dark:bg-dark-surface border border-white/30 p-4">
       <h4 class="font-semibold mb-2 dark:text-white">赋分规则列表</h4>
       <div v-for="item in list" :key="item.id" class="p-2 flex justify-between border-b dark:border-gray-800">
         <span class="dark:text-gray-300">{{ item.subjectName }} {{ item.gradeLevel }} {{ item.rawScoreMin }}-{{ item.rawScoreMax }}</span>
         <div class="flex gap-2">
           <button class="text-blue-600 text-sm" @click="openDetail(item.id)">详情</button>
-          <button class="text-indigo-600 text-sm" @click="edit(item)">编辑</button>
+          <button class="text-brand-600 text-sm" @click="edit(item)">编辑</button>
           <button class="text-red-600 text-sm" @click="remove(item.id)">删除</button>
         </div>
       </div>
@@ -284,7 +284,7 @@ onMounted(fetchList)
 .grade-badge {
   display: inline-block;
   padding: 2px 12px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #d946ef, #8b5cf6);
   color: white;
   border-radius: 20px;
   font-size: 13px;
@@ -309,7 +309,7 @@ onMounted(fetchList)
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  background: linear-gradient(90deg, #d946ef, #8b5cf6);
   border-radius: 10px;
 }
 
@@ -358,12 +358,12 @@ onMounted(fetchList)
 .range-value {
   font-size: 16px;
   font-weight: 600;
-  color: #6366f1;
+  color: #d946ef;
 }
 
 .range-arrow {
   font-size: 24px;
-  color: #6366f1;
+  color: #d946ef;
 }
 
 /* 状态标签 */

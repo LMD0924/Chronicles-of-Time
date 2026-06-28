@@ -1,52 +1,52 @@
 <template>
   <div class="cs-panel space-y-4">
-    <div class="rounded-xl bg-white/70 dark:bg-black border border-white/30 p-4">
+    <div class="rounded-xl bg-white/70 dark:bg-dark-surface border border-white/30 p-4">
       <div class="flex gap-2 mb-2">
-        <input v-model="keyword" class="px-3 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="专业关键字" />
-        <button class="px-3 py-2 rounded bg-indigo-600 text-white" @click="fetchMajors">查询</button>
+        <input v-model="keyword" class="px-3 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="专业关键字" />
+        <button class="px-3 py-2 rounded bg-brand-600 text-white" @click="fetchMajors">查询</button>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <input v-model="form.majorCode" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="专业代码" />
-        <input v-model="form.majorName" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="专业名称" />
-        <input v-model="form.category" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="类别" />
-        <input v-model="form.firstSubjectRequired" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="首选要求" />
-        <input v-model="form.secondSubjectRequired" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="再选要求" />
-        <input v-model="form.universityName" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="大学名称" />
-        <input v-model="form.universityLevel" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="大学层次" />
-        <input v-model="form.province" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="省份" />
+        <input v-model="form.majorCode" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="专业代码" />
+        <input v-model="form.majorName" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="专业名称" />
+        <input v-model="form.category" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="类别" />
+        <input v-model="form.firstSubjectRequired" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="首选要求" />
+        <input v-model="form.secondSubjectRequired" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="再选要求" />
+        <input v-model="form.universityName" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="大学名称" />
+        <input v-model="form.universityLevel" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="大学层次" />
+        <input v-model="form.province" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="省份" />
       </div>
-      <textarea v-model="form.requirementDetail" rows="2" class="w-full mt-2 px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="详细要求" />
+      <textarea v-model="form.requirementDetail" rows="2" class="w-full mt-2 px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="详细要求" />
       <div class="mt-2"><button class="px-4 py-2 rounded bg-emerald-600 text-white" @click="saveMajor">保存专业</button></div>
     </div>
-    <div class="rounded-xl bg-white/70 dark:bg-black border border-white/30 p-4">
+    <div class="rounded-xl bg-white/70 dark:bg-dark-surface border border-white/30 p-4">
       <h4 class="font-semibold mb-2 dark:text-white">专业列表</h4>
       <div v-for="item in majors" :key="item.id" class="p-2 flex justify-between border-b dark:border-gray-800">
         <span class="dark:text-gray-300">{{ item.majorCode }} {{ item.majorName }} {{ item.universityName }}</span>
         <div class="flex gap-2">
           <button class="text-blue-600 text-sm" @click="openDetail(item.id)">详情</button>
-          <button class="text-indigo-600 text-sm" @click="editMajor(item)">编辑</button>
+          <button class="text-brand-600 text-sm" @click="editMajor(item)">编辑</button>
           <button class="text-red-600 text-sm" @click="deleteMajor(item.id)">删除</button>
         </div>
       </div>
     </div>
 
-    <div class="rounded-xl bg-white/70 dark:bg-black border border-white/30 p-4">
+    <div class="rounded-xl bg-white/70 dark:bg-dark-surface border border-white/30 p-4">
       <h4 class="font-semibold mb-2 dark:text-white">专业-科目匹配</h4>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <input v-model="matchForm.majorCode" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="专业代码" />
-        <input v-model="matchForm.majorName" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="专业名称" />
-        <input v-model="matchForm.subjectId" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="科目ID" />
-        <input v-model="matchForm.subjectName" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="科目名" />
-        <input v-model="matchForm.importanceLevel" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="重要程度" />
-        <input v-model="matchForm.matchingScore" class="px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="匹配度" />
+        <input v-model="matchForm.majorCode" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="专业代码" />
+        <input v-model="matchForm.majorName" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="专业名称" />
+        <input v-model="matchForm.subjectId" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="科目ID" />
+        <input v-model="matchForm.subjectName" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="科目名" />
+        <input v-model="matchForm.importanceLevel" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="重要程度" />
+        <input v-model="matchForm.matchingScore" class="px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="匹配度" />
       </div>
-      <textarea v-model="matchForm.description" rows="2" class="w-full mt-2 px-2 py-2 rounded border dark:bg-black dark:border-gray-700 dark:text-white" placeholder="匹配说明" />
+      <textarea v-model="matchForm.description" rows="2" class="w-full mt-2 px-2 py-2 rounded border dark:bg-dark-surface dark:border-gray-700 dark:text-white" placeholder="匹配说明" />
       <div class="mt-2"><button class="px-4 py-2 rounded bg-emerald-600 text-white" @click="saveMatching">保存匹配</button></div>
       <div class="mt-3">
         <div v-for="m in matchings" :key="m.id" class="p-2 flex justify-between border-b dark:border-gray-800">
           <span class="dark:text-gray-300">{{ m.majorCode }} - {{ m.subjectName }} ({{ m.matchingScore }})</span>
           <div class="flex gap-2">
-            <button class="text-indigo-600 text-sm" @click="editMatching(m)">编辑</button>
+            <button class="text-brand-600 text-sm" @click="editMatching(m)">编辑</button>
             <button class="text-red-600 text-sm" @click="deleteMatching(m.id)">删除</button>
           </div>
         </div>
@@ -335,7 +335,7 @@ onMounted(() => { fetchMajors(); fetchMatchings() })
 .requirement-badge {
   display: inline-block;
   padding: 2px 10px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #d946ef, #8b5cf6);
   color: white;
   border-radius: 20px;
   font-size: 12px;
@@ -380,7 +380,7 @@ onMounted(() => { fetchMajors(); fetchMatchings() })
 
 .score-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  background: linear-gradient(90deg, #d946ef, #8b5cf6);
   border-radius: 10px;
   transition: width 0.3s ease;
 }
@@ -389,7 +389,7 @@ onMounted(() => { fetchMajors(); fetchMatchings() })
   width: 45px;
   font-size: 13px;
   font-weight: 600;
-  color: #6366f1;
+  color: #d946ef;
 }
 
 .dialog-footer {

@@ -213,16 +213,16 @@ defineExpose({
         :key="tool.action"
         @click="insertFormat(tool)"
         :title="tool.title"
-        class="w-8 h-8 rounded-md flex items-center justify-center text-sm font-mono transition-all hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
-        :class="isDark ? 'text-gray-300 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600'"
+        class="w-8 h-8 rounded-md flex items-center justify-center text-sm font-mono transition-all hover:bg-brand-100 dark:hover:bg-brand-900/50"
+        :class="isDark ? 'text-gray-300 hover:text-brand-400' : 'text-gray-600 hover:text-brand-600'"
       >
         {{ tool.icon }}
       </button>
       <div class="w-px h-6 mx-1 bg-gray-300 dark:bg-gray-700"></div>
       <button
         @click="previewMarkdown"
-        class="px-3 h-8 rounded-md text-sm transition-all hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
-        :class="isDark ? 'text-gray-300 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600'"
+        class="px-3 h-8 rounded-md text-sm transition-all hover:bg-brand-100 dark:hover:bg-brand-900/50"
+        :class="isDark ? 'text-gray-300 hover:text-brand-400' : 'text-gray-600 hover:text-brand-600'"
       >
         👁️ 预览
       </button>
@@ -334,7 +334,7 @@ defineExpose({
 .markdown-preview blockquote {
   margin: 1rem 0;
   padding: 0.5rem 1rem;
-  border-left: 4px solid #6366f1;
+  border-left: 4px solid var(--theme-primary);
   background-color: #f8f9fa;
   color: #6c757d;
   font-style: italic;
@@ -375,14 +375,14 @@ defineExpose({
 }
 
 .markdown-preview a {
-  color: #6366f1;
+  color: var(--theme-primary);
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: border-color 0.2s;
 }
 
 .markdown-preview a:hover {
-  border-bottom-color: #6366f1;
+  border-bottom-color: var(--theme-primary);
 }
 
 .markdown-preview img {

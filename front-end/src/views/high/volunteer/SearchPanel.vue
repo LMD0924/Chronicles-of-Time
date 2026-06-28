@@ -3,7 +3,7 @@
     <!-- 大学搜索 -->
     <div class="search-card" :class="[isDark ? 'search-card-dark' : 'search-card-light']">
       <div class="search-card-header">
-        <div class="header-icon bg-gradient-to-r from-blue-500 to-indigo-500">
+        <div class="header-icon bg-gradient-to-r from-brand-500 to-brand-600">
           <span class="text-xl">🏫</span>
         </div>
         <div>
@@ -445,7 +445,7 @@ onMounted(() => {
 }
 
 .filter-input:focus, .filter-select:focus {
-  border-color: #6366f1;
+  border-color: #d946ef;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
@@ -465,7 +465,7 @@ onMounted(() => {
 }
 
 .search-btn-primary {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #d946ef, #8b5cf6);
 }
 
 .search-btn-primary:hover {
@@ -610,7 +610,7 @@ onMounted(() => {
   font-weight: 500;
   background: rgba(99, 102, 241, 0.1);
   border: 1px solid rgba(99, 102, 241, 0.2);
-  color: #6366f1;
+  color: #d946ef;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -695,7 +695,7 @@ onMounted(() => {
   background: rgba(99, 102, 241, 0.1);
   border-radius: 40px;
   font-size: 13px;
-  color: #6366f1;
+  color: #d946ef;
 }
 
 .stat-icon {
@@ -749,7 +749,7 @@ onMounted(() => {
 
 .year-cell {
   font-weight: 600;
-  color: #6366f1;
+  color: #d946ef;
 }
 
 .university-cell {

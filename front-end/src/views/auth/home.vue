@@ -163,7 +163,7 @@ const lifeStages = [
 // 带过渡效果的导航
 const navigateWithTransition = (path) => {
   if (transitionRef.value) {
-    transitionRef.value.show()
+    transitionRef.value.show?.()
     setTimeout(() => {
       router.push(path)
     }, 3000)
@@ -404,7 +404,7 @@ onUnmounted(() => {
         'rounded-2xl shadow-2xl border overflow-hidden min-w-[320px] max-w-[400px]'
       ]">
         <div :class="[
-          isDark ? 'bg-gray-900/50 border-gray-700' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-gray-100',
+          isDark ? 'bg-gray-900/50 border-gray-700' : 'bg-gradient-to-r from-brand-50 to-accent-50 border-gray-100',
           'p-4 border-b'
         ]">
           <h3 class="font-bold text-lg" :class="isDark ? 'text-white' : 'text-gray-800'">
@@ -418,7 +418,7 @@ onUnmounted(() => {
         <div class="p-4 border-b" :class="isDark ? 'border-gray-700' : 'border-gray-100'">
           <div class="flex justify-around">
             <div v-for="(stat, idx) in sectionContents[activePopup]?.stats" :key="idx" class="text-center">
-              <div class="text-2xl font-bold text-indigo-500">{{ stat.value }}</div>
+              <div class="text-2xl font-bold text-brand-500">{{ stat.value }}</div>
               <div class="text-xs" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ stat.label }}</div>
             </div>
           </div>
@@ -429,20 +429,20 @@ onUnmounted(() => {
             v-for="(item, idx) in sectionContents[activePopup]?.menuList"
             :key="idx"
             @click="handleMenuItemClick(item.link)"
-            class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all hover:bg-indigo-50 dark:hover:bg-indigo-950/30 group"
+            class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all hover:bg-brand-50 dark:hover:bg-brand-950/30 group"
           >
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-950/50 dark:to-purple-950/50 flex items-center justify-center text-xl">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-100 to-accent-100 dark:from-brand-950/50 dark:to-accent-950/50 flex items-center justify-center text-xl">
               {{ item.icon }}
             </div>
             <div class="flex-1">
-              <div class="font-medium" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-800 group-hover:text-indigo-600'">
+              <div class="font-medium" :class="isDark ? 'text-white group-hover:text-brand-400' : 'text-gray-800 group-hover:text-brand-600'">
                 {{ item.name }}
               </div>
               <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
                 {{ item.description }}
               </div>
             </div>
-            <svg class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" :class="isDark ? 'text-indigo-400' : 'text-indigo-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" :class="isDark ? 'text-brand-400' : 'text-brand-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
             </svg>
           </div>
@@ -463,7 +463,7 @@ onUnmounted(() => {
 
   <div :class="[isDark ? 'dark' : '', 'min-h-screen overflow-x-hidden']">
     <div :class="[
-      isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900',
+      isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-brand-50/30 text-gray-900',
       'min-h-screen transition-colors duration-300'
     ]">
 
@@ -479,8 +479,8 @@ onUnmounted(() => {
           <div class="flex items-center justify-between h-16 lg:h-20">
             <div class="flex items-center gap-3 cursor-pointer group" @click="scrollToSection('home')">
               <div class="relative">
-                <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
-                <div class="relative w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <div class="absolute inset-0 bg-gradient-to-r from-brand-500 to-accent-500 rounded-xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
+                <div class="relative w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-br from-brand-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg">
                   <span class="text-xl lg:text-2xl">⏰</span>
                 </div>
               </div>
@@ -508,7 +508,7 @@ onUnmounted(() => {
                   :class="[
                     activeNav === item.id
                       ? isDark ? 'text-white shadow-lg' : 'text-black shadow-lg'
-                      : isDark ? 'text-gray-400 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600'
+                      : isDark ? 'text-gray-400 hover:text-brand-400' : 'text-gray-600 hover:text-brand-600'
                   ]"
                 >
                   <span v-if="activeNav === item.id" class="absolute inset-0 bg-gradient-to-r rounded-full shadow-md" :class="isDark ? 'bg-gray-600' : ''"></span>
@@ -522,10 +522,10 @@ onUnmounted(() => {
 
             <div class="flex items-center gap-4 user-menu-container relative">
               <div class="hidden md:flex items-center gap-2 cursor-pointer group" @click="toggleUserMenu">
-                <div class="relative w-9 h-9 rounded-full overflow-hidden border-2 border-indigo-200 group-hover:border-indigo-400 transition-colors">
+                <div class="relative w-9 h-9 rounded-full overflow-hidden border-2 border-brand-200 group-hover:border-brand-400 transition-colors">
                   <img :src="UserInfo.avatar" alt="User Avatar">
                 </div>
-                <span :class="[isDark ? 'text-gray-300 group-hover:text-indigo-400' : 'text-gray-700 group-hover:text-indigo-600', 'text-sm font-medium transition-colors']">{{UserInfo.name}}</span>
+                <span :class="[isDark ? 'text-gray-300 group-hover:text-brand-400' : 'text-gray-700 group-hover:text-brand-600', 'text-sm font-medium transition-colors']">{{UserInfo.name}}</span>
               </div>
 
               <div v-if="showUserMenu" :class="[isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-100', 'absolute top-full right-0 mt-2 w-48 rounded-lg shadow-xl border overflow-hidden z-50']">
@@ -538,7 +538,7 @@ onUnmounted(() => {
                     <span>👤</span>
                     <span>个人简历</span>
                   </button>
-                  <button @click="navigateWithTransition('settings')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
+                  <button @click="navigateWithTransition('/Settings')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
                     <span>⚙️</span>
                     <span>设置</span>
                   </button>
@@ -565,15 +565,15 @@ onUnmounted(() => {
       <!-- Hero 区域 -->
       <section id="home" class="relative min-h-screen flex items-center pt-20 overflow-hidden">
         <div class="absolute inset-0 z-0">
-          <div class="absolute w-[400px] h-[400px] bg-indigo-400/20 rounded-full blur-[80px] -top-20 -left-20 animate-float"></div>
-          <div class="absolute w-[500px] h-[500px] bg-purple-400/15 rounded-full blur-[80px] -bottom-32 -right-32 animate-float"></div>
-          <div class="absolute w-[300px] h-[300px] bg-pink-400/10 rounded-full blur-[80px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-float animation-delay-5000"></div>
+          <div class="absolute w-[400px] h-[400px] bg-brand-400/20 rounded-full blur-[80px] -top-20 -left-20 animate-float"></div>
+          <div class="absolute w-[500px] h-[500px] bg-accent-400/15 rounded-full blur-[80px] -bottom-32 -right-32 animate-float"></div>
+          <div class="absolute w-[300px] h-[300px] bg-brand-300/10 rounded-full blur-[80px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-float animation-delay-5000"></div>
         </div>
 
         <div class="relative z-10 max-w-[1200px] mx-auto px-6 lg:px-8">
           <div class="grid lg:grid-cols-2 gap-12 items-center">
             <div class="scroll-animate">
-              <div class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full text-indigo-600 text-sm mb-6">
+              <div class="inline-flex items-center gap-2 px-4 py-2 bg-brand-50 rounded-full text-brand-600 text-sm mb-6">
                 <span>✨</span>
                 <span>从高中到职场，记录每一步成长</span>
               </div>
@@ -599,10 +599,10 @@ onUnmounted(() => {
                 </div>
               </div>
               <div class="flex gap-4">
-                <button @click="navigateWithTransition('/Records')" class="px-8 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5">
+                <button @click="navigateWithTransition('/Records')" class="px-8 py-3 bg-gradient-to-r from-brand-500 to-accent-500 text-white rounded-full font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5">
                   开始记录时光
                 </button>
-                <button @click="scrollToSection('timeline')" class="px-8 py-3 border border-gray-300 rounded-full font-medium hover:border-indigo-400 hover:text-indigo-600 transition-all">
+                <button @click="scrollToSection('timeline')" class="px-8 py-3 border border-gray-300 rounded-full font-medium hover:border-brand-400 hover:text-brand-600 transition-all">
                   浏览时光故事
                 </button>
               </div>
@@ -610,9 +610,9 @@ onUnmounted(() => {
 
             <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/80 shadow-xl scroll-animate">
               <div class="relative pl-8 min-h-[280px]">
-                <div class="absolute left-2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-indigo-500 to-purple-500"></div>
+                <div class="absolute left-2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-brand-500 to-accent-500"></div>
                 <div v-for="(node, idx) in timelineNodes" :key="idx" class="absolute flex items-center gap-3" :style="{ top: `${idx * 25}%` }">
-                  <div class="w-3 h-3 bg-indigo-500 rounded-full border-2 border-white shadow-[0_0_0_3px_rgba(59,130,246,0.2)]"></div>
+                  <div class="w-3 h-3 bg-brand-500 rounded-full border-2 border-white shadow-[0_0_0_3px_rgba(var(--theme-primary-rgb),0.2)]"></div>
                   <div class="text-sm font-medium">{{ node.year }} · {{ node.event }}</div>
                 </div>
               </div>
@@ -632,11 +632,11 @@ onUnmounted(() => {
               :class="[
                 isDark
                   ? activeStage === idx
-                    ? 'bg-black border-indigo-400 shadow-lg -translate-y-1'
-                    : 'bg-gray-900 border-gray-700 hover:border-indigo-500'
+                    ? 'bg-black border-brand-400 shadow-lg -translate-y-1'
+                    : 'bg-gray-900 border-gray-700 hover:border-brand-500'
                   : activeStage === idx
                     ? 'bg-white/10 border-white/50 shadow-lg -translate-y-1'
-                    : 'bg-gray-50 border-gray-200 hover:border-indigo-400',
+                    : 'bg-gray-50 border-gray-200 hover:border-brand-400',
                 'border hover:shadow-lg hover:-translate-y-1'
               ]"
               @click="handleStageClick(stage, idx)">
@@ -656,7 +656,7 @@ onUnmounted(() => {
             @click="showPopup('timeline', $event)"
             data-section="timeline"
           >
-            <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-indigo-500 transition-colors" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-900 group-hover:text-indigo-600'">
+            <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-brand-500 transition-colors" :class="isDark ? 'text-white group-hover:text-brand-400' : 'text-gray-900 group-hover:text-brand-600'">
               时光轴 · 成长轨迹
               <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0121 0z"></path>
@@ -670,7 +670,7 @@ onUnmounted(() => {
                  :class="{ 'justify-end': idx % 2 === 1 }"
                  :style="{ transitionDelay: `${idx * 0.1}s` }">
               <div class="absolute left-1/2 -translate-x-1/2 w-10 flex flex-col items-center">
-                <div class="w-4 h-4 bg-indigo-500 rounded-full border-2 border-white shadow-[0_0_0_4px_rgba(59,130,246,0.2)] z-10"></div>
+                <div class="w-4 h-4 bg-brand-500 rounded-full border-2 border-white shadow-[0_0_0_4px_rgba(var(--theme-primary-rgb),0.2)] z-10"></div>
                 <div class="w-0.5 h-16 bg-gray-300 mt-2" v-if="idx !== timelineData.length - 1"></div>
               </div>
               <div class="w-[calc(50%-50px)] rounded-2xl p-5 shadow-md hover:shadow-xl transition-all hover:-translate-y-1"
@@ -700,7 +700,7 @@ onUnmounted(() => {
             @click="showPopup('milestone', $event)"
             data-section="milestone"
           >
-            <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-indigo-500 transition-colors" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-900 group-hover:text-indigo-600'">
+            <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-brand-500 transition-colors" :class="isDark ? 'text-white group-hover:text-brand-400' : 'text-gray-900 group-hover:text-brand-600'">
               📜 图谱总览
               <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0121 0z"></path>
@@ -714,11 +714,11 @@ onUnmounted(() => {
                  :class="isDark ? 'bg-white/10' : 'bg-gray-50'"
                  :style="{ transitionDelay: `${idx * 0.05}s` }">
               <div class="text-4xl mb-3">{{ item.icon }}</div>
-              <div class="text-xs text-indigo-500 font-medium mb-2">{{ item.year }}</div>
+              <div class="text-xs text-brand-500 font-medium mb-2">{{ item.year }}</div>
               <h3 class="font-semibold mb-2" :class="isDark ? 'text-white' : 'text-gray-800'">{{ item.title }}</h3>
               <p class="text-xs text-gray-500 mb-4">{{ item.desc }}</p>
               <div class="h-1 bg-gray-200 rounded-full overflow-hidden mb-2">
-                <div class="h-full bg-indigo-500 rounded-full transition-all" :style="{ width: item.progress + '%' }"></div>
+                <div class="h-full bg-gradient-to-r from-brand-500 to-accent-500 rounded-full transition-all" :style="{ width: item.progress + '%' }"></div>
               </div>
               <span class="text-xs text-gray-400">{{ item.status }}</span>
             </div>
@@ -756,7 +756,7 @@ onUnmounted(() => {
             @click="showPopup('gallery', $event)"
             data-section="gallery"
           >
-            <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-indigo-500 transition-colors" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-900 group-hover:text-indigo-600'">
+            <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-brand-500 transition-colors" :class="isDark ? 'text-white group-hover:text-brand-400' : 'text-gray-900 group-hover:text-brand-600'">
               📸 回忆相册
               <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0121 0z"></path>
@@ -777,7 +777,7 @@ onUnmounted(() => {
             </div>
           </div>
           <div class="text-center mt-10 scroll-animate">
-            <button @click="viewMore" class="px-6 py-2 border border-gray-300 text-gray-600 rounded-full hover:border-indigo-400 hover:text-indigo-500 transition-all">查看全部相册 →</button>
+            <button @click="viewMore" class="px-6 py-2 border border-gray-300 text-gray-600 rounded-full hover:border-brand-400 hover:text-brand-500 transition-all">查看全部相册 →</button>
           </div>
         </div>
       </section>
@@ -790,7 +790,7 @@ onUnmounted(() => {
             @click="showPopup('journal', $event)"
             data-section="journal"
           >
-            <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-indigo-500 transition-colors" :class="isDark ? 'text-white group-hover:text-indigo-400' : 'text-gray-900 group-hover:text-indigo-600'">
+            <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-brand-500 transition-colors" :class="isDark ? 'text-white group-hover:text-brand-400' : 'text-gray-900 group-hover:text-brand-600'">
               📖 云边小札
               <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0121 0z"></path>
@@ -804,7 +804,7 @@ onUnmounted(() => {
                  :class="isDark ? 'bg-white/10' : 'bg-white'"
                  :style="{ transitionDelay: `${idx * 0.1}s` }">
               <div class="text-center min-w-[60px]">
-                <div class="text-3xl font-bold text-indigo-500 leading-none">{{ entry.day }}</div>
+                <div class="text-3xl font-bold text-brand-500 leading-none">{{ entry.day }}</div>
                 <div class="text-xs text-gray-400 mt-1">{{ entry.month }}</div>
               </div>
               <div class="flex-1">
@@ -824,7 +824,7 @@ onUnmounted(() => {
       <section class="py-20 bg-gradient-to-r">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
           <div class=" rounded-3xl p-12 text-center backdrop-blur-sm scroll-animate" :class="isDark?'bg-white/10 text-gray-300':'bg-white'">
-            <div class="text-5xl text-purple-400 opacity-50 mb-4">“</div>
+            <div class="text-5xl text-accent-400 opacity-50 mb-4">“</div>
             <p class="text-xl lg:text-2xl leading-relaxed max-w-2xl mx-auto mb-5 italic">{{ dailyQuote.text }}</p>
             <p class="text-gray-500 mb-5">—— {{ dailyQuote.author }}</p>
             <button @click="refreshQuote" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-sm text-gray-600 hover:bg-gray-200 transition-all">
@@ -884,7 +884,7 @@ onUnmounted(() => {
 
       <!-- 返回顶部 -->
       <button v-show="showBackTop" @click="scrollToTop" class="fixed bottom-10 right-10 w-11 h-11 bg-white rounded-full shadow-lg flex items-center justify-center hover:-translate-y-1 transition-all z-50">
-        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5M5 12l7-7 7 7"></path>
         </svg>
       </button>
