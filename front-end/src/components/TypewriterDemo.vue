@@ -59,7 +59,7 @@
           :gradient="true"
           font-size="24px"
           font-weight="bold"
-          color="#667eea"
+          color="var(--theme-primary)"
         />
       </div>
     </section>
@@ -220,7 +220,7 @@ const handleSubmit = () => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--theme-gradient);
   min-height: 100vh;
 }
 
@@ -260,13 +260,13 @@ h2 {
 }
 
 .custom-container {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--theme-gradient);
   padding: 20px 30px;
   border-radius: 50px;
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--theme-gradient);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -306,7 +306,7 @@ h2 {
 
 /* 欢迎卡片 */
 .welcome-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--theme-gradient);
   text-align: center;
 }
 
@@ -328,7 +328,7 @@ h2 {
   border-radius: 50px;
   font-size: 16px;
   font-weight: bold;
-  color: #667eea;
+  color: var(--theme-primary);
   cursor: pointer;
   transition: all 0.3s;
 }
@@ -351,7 +351,7 @@ h2 {
 .form-title {
   font-size: 24px;
   font-weight: bold;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--theme-gradient);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -373,12 +373,12 @@ h2 {
 
 .form-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--theme-primary);
+  box-shadow: 0 0 0 3px rgba(var(--theme-primary-rgb), 0.1);
 }
 
 .submit-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--theme-gradient);
   color: white;
   border: none;
   padding: 12px;

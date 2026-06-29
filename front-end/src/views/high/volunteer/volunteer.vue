@@ -112,14 +112,14 @@ onMounted(() => {
 <template>
   <div :class="[isDark ? 'dark' : '', 'min-h-screen overflow-x-hidden']">
     <div :class="[
-      isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900',
+      isDark ? 'bg-dark-bg text-white' : 'app-page-bg text-gray-900',
       'min-h-screen transition-colors duration-300'
     ]">
 
       <Nav :isDark="isDark" :menuItems="menuItems"/>
 
       <!-- 主内容区 -->
-      <div class="pt-24 pb-16" :class="isDark ? 'bg-black' : ''">
+      <div class="pt-24 pb-16" :class="isDark ? 'bg-dark-bg' : ''">
         <div class="max-w-[1400px] mx-auto px-6 lg:px-8">
           <!-- 标签页导航 -->
           <div class="mb-6">
@@ -132,7 +132,7 @@ onMounted(() => {
                 :class="[
                   activeTab === tab.key
                     ? isDark ? 'text-white shadow-lg' : 'text-black shadow-lg'
-                    : isDark ? 'text-gray-400 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600'
+                    : isDark ? 'text-gray-400 hover:text-brand-400' : 'text-gray-600 hover:text-brand-600'
                 ]"
               >
                 <span v-if="activeTab === tab.key" class="absolute inset-0 bg-gradient-to-r rounded-full shadow-md" :class="isDark ? 'bg-gray-800' : ''"></span>

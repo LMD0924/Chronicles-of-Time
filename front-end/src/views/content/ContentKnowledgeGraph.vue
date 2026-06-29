@@ -301,7 +301,7 @@ const renderTagBarChart = () => {
       data: values,
       itemStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: '#4f46e5' },
+          { offset: 0, color: '#c026d3' },
           { offset: 1, color: '#7c3aed' }
         ]),
         borderRadius: [4, 4, 0, 0]
@@ -534,7 +534,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="knowledge-graph-container" :class="isDark ? 'dark' : ''">
+  <div class="knowledge-graph-container" :class="isDark ? 'dark' : 'app-page-bg'">
     <Nav
       :isDark="isDark"
       logoIcon="📚"
@@ -656,12 +656,11 @@ onUnmounted(() => {
   min-height: 100vh;
   padding: 20px;
   padding-top: 80px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
   transition: all 0.3s ease;
 }
 
 .knowledge-graph-container.dark {
-  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+  background: linear-gradient(135deg, #0a0a0b 0%, #141416 100%);
 }
 
 
@@ -694,7 +693,7 @@ onUnmounted(() => {
 .stat-value {
   font-size: 28px;
   font-weight: bold;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  background: linear-gradient(135deg, #c026d3, #7c3aed);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -753,7 +752,7 @@ onUnmounted(() => {
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  background: linear-gradient(135deg, #c026d3, #7c3aed);
   color: white;
   box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
 }
@@ -841,7 +840,7 @@ onUnmounted(() => {
 .topic-rank {
   width: 28px;
   height: 28px;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  background: linear-gradient(135deg, #c026d3, #7c3aed);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -885,7 +884,7 @@ onUnmounted(() => {
 
 .topic-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4f46e5, #7c3aed);
+  background: linear-gradient(90deg, #c026d3, #7c3aed);
   border-radius: 10px;
   transition: width 0.5s ease;
 }
@@ -936,7 +935,7 @@ onUnmounted(() => {
   width: 50px;
   height: 50px;
   border: 3px solid rgba(79, 70, 229, 0.2);
-  border-top-color: #4f46e5;
+  border-top-color: #c026d3;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

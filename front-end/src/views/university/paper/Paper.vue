@@ -44,13 +44,14 @@ const directionOptions = [
   { id: 2, name: '机器学习', icon: '📊', color: 'from-green-500 to-teal-500' },
   { id: 3, name: '深度学习', icon: '🧠', color: 'from-purple-500 to-pink-500' },
   { id: 4, name: '计算机视觉', icon: '👁️', color: 'from-orange-500 to-red-500' },
-  { id: 5, name: '自然语言处理', icon: '💬', color: 'from-indigo-500 to-blue-500' },
+  { id: 5, name: '自然语言处理', icon: '💬', color: 'from-brand-500 to-blue-500' },
   { id: 6, name: '大数据', icon: '📈', color: 'from-yellow-500 to-orange-500' },
   { id: 7, name: '云计算', icon: '☁️', color: 'from-sky-500 to-blue-500' },
   { id: 8, name: '区块链', icon: '🔗', color: 'from-emerald-500 to-green-500' },
 ]
 
 const menuItems = [
+  { key: '课程树', label: '课程树', icon: '🌳', path:'/CourseTree' },
   { key: '论文', label: '写论文', icon: '📄', path:'/Paper' },
 ]
 
@@ -571,7 +572,7 @@ onUnmounted(() => {
 
   <div :class="[isDark ? 'dark' : '', 'min-h-screen overflow-hidden']">
     <div :class="[
-      isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900',
+      isDark ? 'bg-dark-bg text-white' : 'app-page-bg text-gray-900',
       'min-h-screen transition-colors duration-300 flex flex-col'
     ]">
 
@@ -613,8 +614,8 @@ onUnmounted(() => {
               @click="showSuggestions = !showSuggestions"
               class="relative px-3 py-1.5 rounded-lg text-sm transition-all flex items-center gap-1"
               :class="showSuggestions
-          ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
-          : (isDark ? 'hover:bg-indigo-950/30' : 'hover:bg-indigo-50')"
+          ? 'bg-gradient-to-r from-brand-500 to-pink-500 text-white'
+          : (isDark ? 'hover:bg-brand-950/30' : 'hover:bg-brand-50')"
             >
               <span>🤖</span>
               <span>论文建议</span>
@@ -625,7 +626,7 @@ onUnmounted(() => {
 
             <!-- 论文切换 -->
             <div class="relative">
-              <button @click="showPaperList = !showPaperList" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all hover:bg-indigo-50 dark:hover:bg-indigo-950/30">
+              <button @click="showPaperList = !showPaperList" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all hover:bg-brand-50 dark:hover:bg-brand-950/30">
                 <span>📄</span>
                 <span class="max-w-[150px] truncate">{{ currentPaper?.title || '选择论文' }}</span>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -640,13 +641,13 @@ onUnmounted(() => {
                     v-model="paperSearchKeyword"
                     type="text"
                     placeholder="🔍 搜索论文..."
-                    class="w-full px-3 py-1.5 text-sm rounded-lg border outline-none focus:ring-2 focus:ring-indigo-500"
+                    class="w-full px-3 py-1.5 text-sm rounded-lg border outline-none focus:ring-2 focus:ring-brand-500"
                     :class="isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200'"
                     @click.stop
                   />
                 </div>
                 <div class="max-h-80 overflow-y-auto">
-                  <div v-for="paper in filteredPaperList" :key="paper.id" @click="loadPaper(paper.id)" class="flex items-center justify-between px-4 py-3 cursor-pointer transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-950/30 group">
+                  <div v-for="paper in filteredPaperList" :key="paper.id" @click="loadPaper(paper.id)" class="flex items-center justify-between px-4 py-3 cursor-pointer transition-colors hover:bg-brand-50 dark:hover:bg-brand-950/30 group">
                     <div class="flex-1 min-w-0">
                       <div class="text-sm font-medium truncate">{{ paper.title }}</div>
                       <div class="text-xs text-gray-400 mt-0.5">{{ paper.updatedAt?.slice(0, 10) }}</div>
@@ -659,17 +660,17 @@ onUnmounted(() => {
                   </div>
                 </div>
                 <div class="border-t p-2" :class="isDark ? 'border-gray-700' : 'border-gray-100'">
-                  <button @click="createNewPaper" class="w-full py-2 text-center text-sm text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 rounded-lg transition-all">
+                  <button @click="createNewPaper" class="w-full py-2 text-center text-sm text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/30 rounded-lg transition-all">
                     + 新建论文
                   </button>
                 </div>
               </div>
             </div>
 
-            <button @click="exportPaper" class="px-3 py-1.5 rounded-lg text-sm transition-all hover:bg-indigo-50 dark:hover:bg-indigo-950/30" title="导出 (Ctrl+E)">
+            <button @click="exportPaper" class="px-3 py-1.5 rounded-lg text-sm transition-all hover:bg-brand-50 dark:hover:bg-brand-950/30" title="导出 (Ctrl+E)">
               📎 导出
             </button>
-            <button @click="router.push('/home')" class="hidden lg:flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-all hover:bg-indigo-50 dark:hover:bg-indigo-950/30">
+            <button @click="router.push('/home')" class="hidden lg:flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-all hover:bg-brand-50 dark:hover:bg-brand-950/30">
               🏠 返回
             </button>
           </div>
@@ -682,7 +683,7 @@ onUnmounted(() => {
         <div :class="[sidebarCollapsed ? 'w-16' : 'w-80', 'transition-all duration-300 border-r overflow-y-auto', isDark ? 'border-gray-800 bg-black/50' : 'border-gray-100 bg-white/50']">
           <div class="p-4">
             <div class="flex justify-end mb-4">
-              <button @click="toggleSidebar" class="p-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all">
+              <button @click="toggleSidebar" class="p-2 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-950/30 transition-all">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path v-if="!sidebarCollapsed" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
                   <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
@@ -701,7 +702,7 @@ onUnmounted(() => {
                     @click="selectedCategory = cat.value"
                     class="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
                     :class="selectedCategory === cat.value
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
+                      ? 'bg-gradient-to-r from-brand-500 to-pink-500 text-white shadow-md'
                       : (isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')"
                   >
                     {{ cat.label }}
@@ -712,13 +713,13 @@ onUnmounted(() => {
               <!-- 论文题目 -->
               <div class="mb-6">
                 <label class="block text-sm font-medium mb-2" :class="isDark ? 'text-gray-300' : 'text-gray-700'">📌 论文题目</label>
-                <input v-model="paperTitle" type="text" placeholder="请输入论文题目" class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500 transition-all text-sm" :class="isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200'">
+                <input v-model="paperTitle" type="text" placeholder="请输入论文题目" class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-brand-500 transition-all text-sm" :class="isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200'">
               </div>
 
               <!-- 导师姓名 -->
               <div class="mb-6">
                 <label class="block text-sm font-medium mb-2" :class="isDark ? 'text-gray-300' : 'text-gray-700'">👨‍🏫 导师姓名</label>
-                <input v-model="supervisor" type="text" placeholder="请输入导师姓名" class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500 transition-all text-sm" :class="isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200'">
+                <input v-model="supervisor" type="text" placeholder="请输入导师姓名" class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-brand-500 transition-all text-sm" :class="isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200'">
               </div>
 
               <!-- 研究方向 -->
@@ -752,7 +753,7 @@ onUnmounted(() => {
 
               <!-- 保存按钮 -->
               <div class="pt-4 border-t" :class="isDark ? 'border-gray-800' : 'border-gray-100'">
-                <button @click="manualSave" class="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                <button @click="manualSave" class="w-full py-2.5 bg-gradient-to-r from-brand-500 to-pink-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
                   💾 立即保存 (Ctrl+S)
                 </button>
               </div>
@@ -769,7 +770,7 @@ onUnmounted(() => {
             <!-- 折叠状态 -->
             <div v-else class="flex flex-col items-center gap-4">
               <div class="relative group">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-950/50 flex items-center justify-center text-lg">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-950/50 flex items-center justify-center text-lg">
                   📌
                 </div>
                 <div class="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
@@ -777,7 +778,7 @@ onUnmounted(() => {
                 </div>
               </div>
               <div class="relative group">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-950/50 flex items-center justify-center text-lg">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-950/50 flex items-center justify-center text-lg">
                   👨‍🏫
                 </div>
                 <div class="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
@@ -785,7 +786,7 @@ onUnmounted(() => {
                 </div>
               </div>
               <div class="relative group">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-lg cursor-pointer hover:scale-105 transition-transform" @click="manualSave">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-pink-500 flex items-center justify-center text-white text-lg cursor-pointer hover:scale-105 transition-transform" @click="manualSave">
                   💾
                 </div>
                 <div class="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
@@ -837,13 +838,13 @@ onUnmounted(() => {
           <div class="p-4">
             <!-- 加载状态 -->
             <div v-if="suggestionsLoading" class="text-center py-12">
-              <div class="inline-block w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+              <div class="inline-block w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
               <p class="mt-2 text-sm text-gray-400">正在分析论文...</p>
             </div>
 
             <!-- 建议列表 -->
             <div v-else-if="suggestions.length > 0" class="space-y-4">
-              <div class="mb-3 p-2 bg-indigo-50 dark:bg-indigo-950/30 rounded-lg text-xs text-center" :class="isDark ? 'text-indigo-300' : 'text-indigo-600'">
+              <div class="mb-3 p-2 bg-brand-50 dark:bg-brand-950/30 rounded-lg text-xs text-center" :class="isDark ? 'text-brand-300' : 'text-brand-600'">
                 发现 {{ suggestions.length }} 条优化建议
               </div>
 
@@ -870,7 +871,7 @@ onUnmounted(() => {
                     </p>
                     <button
                       @click="applySuggestion(suggestion)"
-                      class="mt-3 text-sm text-indigo-500 hover:text-indigo-600 transition-colors flex items-center gap-1"
+                      class="mt-3 text-sm text-brand-600 hover:text-brand-600 transition-colors flex items-center gap-1"
                     >
                       <span>+</span>
                       <span>应用建议</span>

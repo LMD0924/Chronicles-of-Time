@@ -1,37 +1,37 @@
 <template>
-  <div class="space-y-6 max-w-[1400px] mx-auto px-4 lg:px-6 mt-24">
+  <div class="space-y-6 space-y-6">
     <!-- 练习头部 - 考试信息栏 -->
-    <div class="bg-white/80 dark:bg-black backdrop-blur-xl rounded-3xl p-6 border border-white/20 dark:border-gray-700/30 shadow-2xl shadow-indigo-500/10">
+    <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-2xl shadow-brand-500/10">
       <div class="flex flex-wrap justify-between items-center gap-4">
         <div class="flex items-center gap-4">
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-brand-500/30">
             <span class="text-white text-2xl">📝</span>
           </div>
           <div>
-            <h2 class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">实战练习</h2>
+            <h2 class="text-2xl font-bold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">实战练习</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">✨ 精选题目，智能组卷</p>
           </div>
         </div>
 
         <div class="flex gap-3 flex-wrap">
-          <select v-model="examType" class="px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-black backdrop-blur-sm text-sm font-medium shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-indigo-400/50">
+          <select v-model="examType" class="px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-dark-surface backdrop-blur-sm text-sm font-medium shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-brand-400/50">
             <option value="高中">🏫 高中题库</option>
             <option value="大学">🎓 大学题库</option>
             <option value="考公">📋 公务员考试</option>
             <option value="考研">📖 研究生考试</option>
           </select>
-          <select v-model="subjectFilter" class="px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-black backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-indigo-400/50">
+          <select v-model="subjectFilter" class="px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-dark-surface backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-brand-400/50">
             <option value="">全部科目</option>
             <option v-for="subject in filterSubjects" :key="subject" :value="subject">{{ subject }}</option>
           </select>
-          <select v-model="questionTypeFilter" class="px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-black backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-indigo-400/50">
+          <select v-model="questionTypeFilter" class="px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-dark-surface backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-brand-400/50">
             <option value="">全部题型</option>
             <option v-for="type in filterQuestionTypes" :key="type" :value="type">{{ type }}</option>
           </select>
           <button
             @click="startExam"
             :disabled="loading"
-            class="px-7 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white text-sm font-medium shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+            class="px-7 py-2.5 rounded-2xl bg-gradient-to-r from-brand-500 via-purple-500 to-pink-500 text-white text-sm font-medium shadow-lg shadow-brand-500/30 hover:shadow-xl hover:shadow-brand-500/40 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
           >
             {{ loading ? '✨ 加载中...' : '🚀 开始练习' }}
           </button>
@@ -40,13 +40,13 @@
     </div>
 
     <!-- 考试进度条 -->
-    <div v-if="questions.length > 0" class="bg-white/80 dark:bg-black backdrop-blur-xl rounded-3xl p-6 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-indigo-500/5">
+    <div v-if="questions.length > 0" class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-brand-500/5">
       <div class="flex justify-between items-center mb-4">
         <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">📊 答题进度</span>
-        <span class="text-base font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{{ answeredCount }}/{{ questions.length }}</span>
+        <span class="text-base font-bold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">{{ answeredCount }}/{{ questions.length }}</span>
       </div>
-      <div class="h-3 bg-gray-100 dark:bg-black rounded-full overflow-hidden shadow-inner">
-        <div class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full transition-all duration-500 ease-out shadow-lg shadow-indigo-500/30" :style="{ width: (answeredCount / questions.length * 100) + '%' }"></div>
+      <div class="h-3 bg-gray-100 dark:bg-dark-surface rounded-full overflow-hidden shadow-inner">
+        <div class="h-full bg-gradient-to-r from-brand-500 via-purple-500 to-pink-500 rounded-full transition-all duration-500 ease-out shadow-lg shadow-brand-500/30" :style="{ width: (answeredCount / questions.length * 100) + '%' }"></div>
       </div>
     </div>
 
@@ -54,13 +54,13 @@
     <div v-if="questions.length > 0" class="grid grid-cols-1 lg:grid-cols-5 gap-6">
       <!-- 左侧：题号导航区 (占1份，宽度稍小) -->
       <div class="lg:col-span-1">
-        <div class="bg-white/80 dark:bg-black backdrop-blur-xl rounded-3xl border border-white/20 dark:border-gray-700/30 sticky top-24 shadow-2xl shadow-indigo-500/5">
-          <div class="p-5 border-b border-gray-200/30 dark:border-gray-700/30 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-transparent dark:to-transparent">
+        <div class="app-card-surface border border-white/20 dark:border-gray-700/30 sticky top-24 shadow-2xl shadow-brand-500/5">
+          <div class="p-5 border-b border-gray-200/30 dark:border-gray-700/30 bg-gradient-to-r from-brand-50/50 to-purple-50/50 dark:from-transparent dark:to-transparent">
             <div class="flex justify-between items-center">
               <h3 class="font-bold text-gray-800 dark:text-gray-200">🧭 题目导航</h3>
               <div class="flex gap-3 text-xs">
                 <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500 shadow-sm"></span>已答</span>
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-300 dark:bg-black"></span>未答</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-300 dark:bg-dark-surface"></span>未答</span>
                 <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-500"></span>标记</span>
               </div>
             </div>
@@ -73,9 +73,9 @@
                 @click="currentIndex = idx"
                 :class="[
                   'w-10 h-10 rounded-xl text-sm font-medium transition-all duration-200',
-                  currentIndex === idx ? 'ring-2 ring-indigo-500 ring-offset-2 dark:ring-offset-gray-800' : '',
+                  currentIndex === idx ? 'ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-gray-800' : '',
                   isAnswered(question.id) ? 'bg-green-500 text-white hover:bg-green-600' : '',
-                  !isAnswered(question.id) && !isMarked(question.id) ? 'bg-gray-100 dark:bg-black text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-black' : '',
+                  !isAnswered(question.id) && !isMarked(question.id) ? 'bg-gray-100 dark:bg-dark-surface text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-black' : '',
                   isMarked(question.id) && !isAnswered(question.id) ? 'bg-yellow-500 text-white hover:bg-yellow-600' : ''
                 ]"
               >
@@ -104,7 +104,7 @@
                 清空
               </button>
             </div>
-            <button @click="showAnswerDetails = !showAnswerDetails" class="w-full py-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-medium hover:shadow-lg transition">
+            <button @click="showAnswerDetails = !showAnswerDetails" class="w-full py-2 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white text-sm font-medium hover:shadow-lg transition">
               {{ showAnswerDetails ? '隐藏答题详情' : '查看答题详情' }}
             </button>
           </div>
@@ -118,7 +118,7 @@
                 <span>{{ answeredCount }} 题</span>
               </div>
               <div class="flex justify-between">
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-300 dark:bg-black"></span>未答</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-300 dark:bg-dark-surface"></span>未答</span>
                 <span>{{ questions.length - answeredCount }} 题</span>
               </div>
               <div class="flex justify-between">
@@ -129,7 +129,7 @@
             <div class="mt-4 space-y-1 max-h-64 overflow-y-auto">
               <div v-for="(question, idx) in questions" :key="question.id" class="flex items-center gap-2 py-1">
                 <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium" :class="[
-                  isAnswered(question.id) ? 'bg-green-500 text-white' : 'bg-gray-300 dark:bg-black text-gray-700 dark:text-gray-300',
+                  isAnswered(question.id) ? 'bg-green-500 text-white' : 'bg-gray-300 dark:bg-dark-surface text-gray-700 dark:text-gray-300',
                   markedQuestions.includes(question.id) ? 'ring-2 ring-yellow-500' : ''
                 ]">
                   {{ idx + 1 }}
@@ -146,12 +146,12 @@
 
       <!-- 右侧：答题区 (占4份，更宽敞) -->
       <div class="lg:col-span-4">
-        <div class="bg-white dark:bg-black rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+        <div class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
           <!-- 题目头部 -->
-          <div class="p-6 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-indigo-50/30 to-purple-50/30 dark:from-transparent dark:to-transparent">
+          <div class="p-6 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-brand-50/30 to-purple-50/30 dark:from-transparent dark:to-transparent">
             <div class="flex justify-between items-center flex-wrap gap-3">
               <div class="flex items-center gap-3">
-                <span class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-black text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg font-bold">
+                <span class="w-10 h-10 rounded-full bg-brand-100 dark:bg-dark-surface text-brand-600 dark:text-brand-400 flex items-center justify-center text-lg font-bold">
                   {{ currentIndex + 1 }}
                 </span>
                 <div>
@@ -159,10 +159,10 @@
                     <span class="px-2 py-1 rounded-lg text-xs font-medium" :class="getTypeClass(currentQuestion.questionType)">
                       {{ currentQuestion.questionType }}
                     </span>
-                    <span class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-black text-gray-600 dark:text-gray-400 text-xs">
+                    <span class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-dark-surface text-gray-600 dark:text-gray-400 text-xs">
                       {{ currentQuestion.categoryLevel }}
                     </span>
-                    <span v-if="currentQuestion.knowledgePoint || currentQuestion.knowledge_point" class="px-2 py-1 rounded-lg bg-blue-100 dark:bg-black text-blue-600 dark:text-blue-400 text-xs">
+                    <span v-if="currentQuestion.knowledgePoint || currentQuestion.knowledge_point" class="px-2 py-1 rounded-lg bg-blue-100 dark:bg-dark-surface text-blue-600 dark:text-blue-400 text-xs">
                       📌 {{ currentQuestion.knowledgePoint || currentQuestion.knowledge_point }}
                     </span>
                     <span class="text-sm text-gray-500">{{ currentQuestion.difficultyLevel }}</span>
@@ -172,7 +172,7 @@
               <div class="flex gap-2">
                 <button
                   @click="toggleScratchPaper"
-                  class="px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 dark:bg-black dark:text-blue-400 text-sm font-medium transition hover:bg-blue-200"
+                  class="px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 dark:bg-dark-surface dark:text-blue-400 text-sm font-medium transition hover:bg-blue-200"
                 >
                   📝 草稿纸
                 </button>
@@ -181,15 +181,15 @@
                   :class="[
                     'px-3 py-1.5 rounded-lg text-sm font-medium transition',
                     isMarked(currentQuestion.id)
-                      ? 'bg-yellow-100 text-yellow-700 dark:bg-black dark:text-yellow-400'
-                      : 'bg-gray-100 text-gray-600 dark:bg-black dark:text-gray-400 hover:bg-gray-200'
+                      ? 'bg-yellow-100 text-yellow-700 dark:bg-dark-surface dark:text-yellow-400'
+                      : 'bg-gray-100 text-gray-600 dark:bg-dark-surface dark:text-gray-400 hover:bg-gray-200'
                   ]"
                 >
                   {{ isMarked(currentQuestion.id) ? '⭐ 已标记' : '☆ 标记此题' }}
                 </button>
                 <button
                   @click="reportQuestion(currentQuestion.id)"
-                  class="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 dark:bg-black dark:text-gray-400 text-sm hover:bg-gray-200 transition"
+                  class="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 dark:bg-dark-surface dark:text-gray-400 text-sm hover:bg-gray-200 transition"
                 >
                   📢 反馈
                 </button>
@@ -212,15 +212,15 @@
                 class="flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all"
                 :class="[
                   (currentQuestion.questionType === '多选' ? userAnswers[currentQuestion.id]?.includes(getOptionValue(option)) : userAnswers[currentQuestion.id] === getOptionValue(option))
-                    ? 'bg-indigo-50 dark:bg-black border-2 border-indigo-300 dark:border-indigo-700'
-                    : 'bg-gray-50 dark:bg-black border-2 border-transparent hover:border-indigo-200 dark:hover:border-indigo-800'
+                    ? 'bg-brand-50 dark:bg-dark-surface border-2 border-brand-300 dark:border-brand-700'
+                    : 'bg-gray-50 dark:bg-dark-surface border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-800'
                 ]"
               >
                 <div :class="[
                   'w-6 h-6 border-2 flex items-center justify-center transition-all',
                   currentQuestion.questionType === '多选' ? 'rounded' : 'rounded-full',
                   (currentQuestion.questionType === '多选' ? userAnswers[currentQuestion.id]?.includes(getOptionValue(option)) : userAnswers[currentQuestion.id] === getOptionValue(option))
-                    ? 'border-indigo-500 bg-indigo-500'
+                    ? 'border-brand-500 bg-brand-500'
                     : 'border-gray-300 dark:border-gray-600'
                 ]">
                   <span v-if="currentQuestion.questionType === '多选' ? userAnswers[currentQuestion.id]?.includes(getOptionValue(option)) : userAnswers[currentQuestion.id] === getOptionValue(option)" class="text-white text-sm">✓</span>
@@ -235,12 +235,12 @@
                 v-model="userAnswers[currentQuestion.id]"
                 :placeholder="currentQuestion.questionType === '填空' ? '请输入答案（多个空用逗号分隔）' : '请输入解答过程...'"
                 rows="6"
-                class="w-full px-5 py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+                class="w-full px-5 py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-surface text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-brand-500 focus:border-transparent text-base"
               ></textarea>
             </div>
 
             <!-- 解析区域（提交后显示） -->
-            <div v-if="submittedQuestions[currentQuestion.id]" class="mt-8 p-5 rounded-xl" :class="isAnswerCorrect(currentQuestion) ? 'bg-green-50 dark:bg-black' : 'bg-red-50 dark:bg-black'">
+            <div v-if="submittedQuestions[currentQuestion.id]" class="mt-8 p-5 rounded-xl" :class="isAnswerCorrect(currentQuestion) ? 'bg-green-50 dark:bg-dark-surface' : 'bg-red-50 dark:bg-dark-surface'">
               <div class="flex items-start gap-3">
                 <span class="text-2xl">{{ isAnswerCorrect(currentQuestion) ? '✅' : '❌' }}</span>
                 <div class="flex-1">
@@ -270,7 +270,7 @@
           </div>
 
           <!-- 底部导航按钮 -->
-          <div class="p-6 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-black flex justify-between">
+          <div class="p-6 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-dark-surface flex justify-between">
             <button
               @click="prevQuestion"
               :disabled="currentIndex === 0"
@@ -280,7 +280,7 @@
             </button>
             <button
               @click="submitCurrentAnswer"
-              class="px-6 py-2.5 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 transition"
+              class="px-6 py-2.5 rounded-xl bg-brand-500 text-white hover:bg-brand-600 transition"
             >
               提交本题
             </button>
@@ -299,25 +299,25 @@
     <!-- 加载状态 -->
     <div v-else-if="loading" class="flex justify-center py-20">
       <div class="text-center">
-        <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
+        <div class="w-12 h-12 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin mx-auto"></div>
         <p class="text-gray-500 mt-4">加载题目中...</p>
       </div>
     </div>
 
     <!-- 空状态 -->
-    <div v-else class="text-center py-20 bg-white dark:bg-black rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
+    <div v-else class="text-center py-20 bg-white dark:bg-dark-surface rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
       <span class="text-6xl opacity-50">📚</span>
       <p class="text-gray-500 mt-4">点击"开始练习"按钮开始答题</p>
     </div>
 
     <!-- 提交结果弹窗 -->
     <div v-if="showResultModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.self="showResultModal = false">
-      <div class="bg-white dark:bg-black rounded-2xl w-full max-w-md p-6">
+      <div class="bg-white dark:bg-dark-surface rounded-2xl w-full max-w-md p-6">
         <div class="text-center">
           <span class="text-5xl">{{ resultData.score >= 60 ? '🎉' : '📚' }}</span>
           <h3 class="text-xl font-bold mt-3">练习完成</h3>
-          <div class="mt-4 p-4 bg-gray-100 dark:bg-black rounded-xl">
-            <div class="text-3xl font-bold text-indigo-600">{{ resultData.score }}分</div>
+          <div class="mt-4 p-4 bg-gray-100 dark:bg-dark-surface rounded-xl">
+            <div class="text-3xl font-bold text-brand-600">{{ resultData.score }}分</div>
             <div class="text-sm text-gray-500 mt-1">正确率 {{ resultData.accuracy }}%</div>
           </div>
           <div class="mt-4 space-y-2 text-left">
@@ -327,7 +327,7 @@
           </div>
           <div class="flex gap-3 mt-6">
             <button @click="showResultModal = false" class="flex-1 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">关闭</button>
-            <button @click="goToAnswerRecords" class="flex-1 py-2 rounded-xl bg-indigo-500 text-white">查看答题记录</button>
+            <button @click="goToAnswerRecords" class="flex-1 py-2 rounded-xl bg-brand-500 text-white">查看答题记录</button>
           </div>
         </div>
       </div>
@@ -336,7 +336,7 @@
     <!-- 草稿纸弹窗 (尺寸调大) -->
     <div v-if="showScratchPaper" class="fixed inset-0 z-50" @click.self="toggleScratchPaper">
       <div
-        class="bg-white dark:bg-black rounded-2xl shadow-2xl overflow-hidden absolute"
+        class="bg-white dark:bg-dark-surface rounded-2xl shadow-2xl overflow-hidden absolute"
         :style="{
           width: scratchPaperSize.width + 'px',
           height: scratchPaperSize.height + 'px',
@@ -346,7 +346,7 @@
       >
         <!-- 标题栏（可拖动） -->
         <div
-          class="px-5 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 flex justify-between items-center cursor-move select-none"
+          class="px-5 py-4 bg-gradient-to-r from-brand-500 to-brand-600 flex justify-between items-center cursor-move select-none"
           @mousedown="startScratchPaperDrag"
           @touchstart="startScratchPaperDrag"
         >
@@ -475,11 +475,11 @@ const getOptionValue = (option) => {
 // 获取题型样式
 const getTypeClass = (type) => {
   const map = {
-    '单选': 'bg-blue-100 text-blue-600 dark:bg-black dark:text-blue-400',
-    '多选': 'bg-purple-100 text-purple-600 dark:bg-black dark:text-purple-400',
-    '判断': 'bg-emerald-100 text-emerald-600 dark:bg-black dark:text-emerald-400',
-    '填空': 'bg-amber-100 text-amber-600 dark:bg-black dark:text-amber-400',
-    '解答': 'bg-rose-100 text-rose-600 dark:bg-black dark:text-rose-400'
+    '单选': 'bg-blue-100 text-blue-600 dark:bg-dark-surface dark:text-blue-400',
+    '多选': 'bg-purple-100 text-purple-600 dark:bg-dark-surface dark:text-purple-400',
+    '判断': 'bg-emerald-100 text-emerald-600 dark:bg-dark-surface dark:text-emerald-400',
+    '填空': 'bg-amber-100 text-amber-600 dark:bg-dark-surface dark:text-amber-400',
+    '解答': 'bg-rose-100 text-rose-600 dark:bg-dark-surface dark:text-rose-400'
   }
   return map[type] || 'bg-gray-100 text-gray-600'
 }

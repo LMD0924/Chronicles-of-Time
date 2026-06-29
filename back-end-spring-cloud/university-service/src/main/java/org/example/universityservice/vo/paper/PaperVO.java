@@ -21,6 +21,10 @@ public class PaperVO {
 
     private String content;         // 论文内容
 
+    private String stage;
+
+    private String status;
+
     private LocalDateTime createdAt; // 创建时间
 
     private LocalDateTime updatedAt; // 更新时间

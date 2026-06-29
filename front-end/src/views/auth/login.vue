@@ -65,13 +65,13 @@ const activePanel = computed(() => isDefaultLayout.value ? 'login' : 'register')
 // 优化：统一主题类名计算逻辑
 const themeClasses = computed(() => ({
   base: isDark.value
-    ? 'bg-black text-white'
-    : 'bg-slate-100 text-slate-900',
+    ? 'bg-dark-bg text-white'
+    : 'app-page-bg text-slate-900',
   transition: 'transition-colors duration-500 ease-in-out',
   // 按钮主题样式
   themeBtn: isDark.value
     ? 'bg-white/10 text-white hover:bg-white/20 border-white/20'
-    : 'bg-black/10 text-black hover:bg-black/20 border-black/10'
+    : 'bg-white/90 text-brand-600 border border-brand-200/80 hover:bg-brand-50 shadow-soft',
 }))
 
 // ==================== 打字机效果相关 ====================
@@ -301,7 +301,7 @@ const handleRegister = () => {
 // 带过渡效果的导航
 const navigateWithTransition = (path) => {
   if (transitionRef.value) {
-    transitionRef.value.show()
+    transitionRef.value.show?.()
     setTimeout(() => {
       router.push(path)
     }, 500)
@@ -318,15 +318,15 @@ const navigateWithTransition = (path) => {
   <div :class="[themeClasses.base, themeClasses.transition]" class="min-h-screen flex items-center justify-center p-4 overflow-hidden">
     <!-- 背景装饰（增强毛玻璃效果） -->
     <div class="absolute inset-0 z-0">
-      <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-      <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
+      <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-500/20 rounded-full blur-3xl animate-pulse"></div>
+      <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-fuchsia-500/20 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
     </div>
 
     <!-- Logo 和主题切换按钮区域 -->
     <div class="absolute top-6 left-6 right-6 flex justify-between items-center z-30">
       <!-- Logo -->
       <div class="flex items-center space-x-3 backdrop-blur-md bg-white/10 rounded-full px-4 py-2 border border-white/20 shadow-lg">
-        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+        <div class="w-8 h-8 bg-gradient-to-br from-brand-500 to-pink-500 rounded-lg flex items-center justify-center">
           <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z"/>
             <path d="M10 6a4 4 0 100 8 4 4 0 000-8z"/>
@@ -420,7 +420,7 @@ const navigateWithTransition = (path) => {
               <button
                 @click="togglePanel"
                 :disabled="isAnimating"
-                class="px-10 py-3 rounded-full font-semibold shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-md border border-white/20 bg-blue-600/80 text-white hover:bg-blue-700/80"
+                class="px-10 py-3 rounded-full font-semibold shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-md border border-white/20 bg-brand-600/80 text-white hover:bg-brand-700/80"
               >
                 {{ activePanel === 'login' ? '去注册' : '去登录' }}
               </button>
@@ -461,7 +461,7 @@ const navigateWithTransition = (path) => {
                     <input
                       v-model="loginForm.username"
                       placeholder="请输入用户名或邮箱"
-                      class="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-md"
+                      class="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500 backdrop-blur-md"
                       :class="[
                         isDark
                           ? 'bg-gray-800/40 border-gray-700/50 text-white placeholder:text-gray-400'
@@ -475,7 +475,7 @@ const navigateWithTransition = (path) => {
                       v-model="loginForm.password"
                       type="password"
                       placeholder="请输入您的密码"
-                      class="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-md"
+                      class="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500 backdrop-blur-md"
                       :class="[
                         isDark
                           ? 'bg-gray-800/40 border-gray-700/50 text-white placeholder:text-gray-400'
@@ -489,7 +489,7 @@ const navigateWithTransition = (path) => {
                     <button
                       type="button"
                       @click="showForgotPassword = true"
-                      class="text-sm text-blue-500 hover:text-blue-600 transition-colors"
+                      class="text-sm text-brand-500 hover:text-brand-600 transition-colors"
                     >
                       忘记密码？
                     </button>
@@ -497,7 +497,7 @@ const navigateWithTransition = (path) => {
 
                   <button
                     type="submit"
-                    class="w-full py-3 rounded-full font-semibold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-md border border-white/20 bg-blue-600/80 text-white hover:bg-blue-700/80"
+                    class="w-full py-3 rounded-full font-semibold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-md border border-white/20 bg-brand-600/80 text-white hover:bg-brand-700/80"
                     :disabled="isAnimating"
                   >
                     登录
@@ -512,7 +512,7 @@ const navigateWithTransition = (path) => {
                       v-model="registerForm.name"
                       type="text"
                       placeholder="请输入您的姓名"
-                      class="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-md"
+                      class="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500 backdrop-blur-md"
                       :class="[
                         isDark
                           ? 'bg-gray-800/40 border-gray-700/50 text-white placeholder:text-gray-400'
@@ -525,7 +525,7 @@ const navigateWithTransition = (path) => {
                     <input
                       v-model="registerForm.username"
                       placeholder="请输入您的用户名"
-                      class="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-md"
+                      class="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500 backdrop-blur-md"
                       :class="[
                         isDark
                           ? 'bg-gray-800/40 border-gray-700/50 text-white placeholder:text-gray-400'
@@ -539,7 +539,7 @@ const navigateWithTransition = (path) => {
                       v-model="registerForm.password"
                       type="password"
                       placeholder="请输入您的密码"
-                      class="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-md"
+                      class="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500 backdrop-blur-md"
                       :class="[
                         isDark
                           ? 'bg-gray-800/40 border-gray-700/50 text-white placeholder:text-gray-400'
@@ -549,7 +549,7 @@ const navigateWithTransition = (path) => {
                   </div>
                   <button
                     type="submit"
-                    class="w-full py-3 rounded-full font-semibold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-md border border-white/20 bg-blue-600/80 text-white hover:bg-blue-700/80"
+                    class="w-full py-3 rounded-full font-semibold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-md border border-white/20 bg-brand-600/80 text-white hover:bg-brand-700/80"
                     :disabled="isAnimating"
                   >
                     注册
@@ -575,7 +575,7 @@ const navigateWithTransition = (path) => {
                       type="button"
                       @click="handleSocialLogin('Google')"
                       class="p-2 rounded-full hover:bg-white/10 transition-all duration-300"
-                      :class="isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'"
+                      :class="isDark ? 'hover:bg-white/10' : 'hover:bg-brand-50/80'"
                     >
                       <svg class="w-6 h-6" viewBox="0 0 24 24">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -590,7 +590,7 @@ const navigateWithTransition = (path) => {
                       type="button"
                       @click="handleSocialLogin('GitHub')"
                       class="p-2 rounded-full hover:bg-white/10 transition-all duration-300"
-                      :class="isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-black'"
+                      :class="isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-brand-50/80 text-slate-900'"
                     >
                       <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.03-2.682-.103-.253-.447-1.27.098-2.646 0 0 .84-.269 2.75 1.025.8-.223 1.65-.334 2.5-.334.85 0 1.7.111 2.5.334 1.91-1.294 2.75-1.025 2.75-1.025.545 1.376.201 2.393.099 2.646.64.698 1.03 1.591 1.03 2.682 0 3.841-2.337 4.687-4.565 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
@@ -602,7 +602,7 @@ const navigateWithTransition = (path) => {
                       type="button"
                       @click="handleSocialLogin('WeChat')"
                       class="p-2 rounded-full hover:bg-white/10 transition-all duration-300"
-                      :class="isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-black'"
+                      :class="isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-brand-50/80 text-slate-900'"
                     >
                       <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8.5 10.5c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm7 0c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm4.5-4.5c-3.6 0-6.5 2.6-6.5 5.9 0 3.3 2.9 5.9 6.5 5.9.7 0 1.4-.1 2.1-.3.3-.1.6 0 .8.2l1.6 1.1c.2.1.4.1.6 0 .1-.1.1-.3.1-.4l-.3-1.5c0-.2 0-.4-.1-.6-.2-.5-.3-1-.3-1.5.1-1.1.5-2.1 1.2-3 .5-.7.8-1.5.8-2.4 0-3.3-2.9-5.9-6.5-5.9z"/>
@@ -648,7 +648,7 @@ const navigateWithTransition = (path) => {
           v-model="forgotEmail"
           type="email"
           placeholder="请输入邮箱地址"
-          class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 transition-all duration-300"
+          class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-brand-500 mb-4 transition-all duration-300"
           :class="[
             isDark
               ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-gray-500'
@@ -663,7 +663,7 @@ const navigateWithTransition = (path) => {
         <div class="flex space-x-3">
           <button
             @click="handleForgotPassword"
-            class="flex-1 py-2 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-blue-600 text-white hover:bg-blue-700"
+            class="flex-1 py-2 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-brand-600 text-white hover:bg-brand-700"
           >
             发送重置链接
           </button>

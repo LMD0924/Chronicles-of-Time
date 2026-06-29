@@ -96,7 +96,7 @@ const handleTransitionComplete = () => {
 const navigateWithTransition = (path) => {
   if (transitionRef.value) {
     // 显示过渡层
-    transitionRef.value.show()
+    transitionRef.value.show?.()
     // 延迟跳转，让过渡动画显示足够长时间
     setTimeout(() => {
       router.push(path)
@@ -355,7 +355,7 @@ onUnmounted(() => {
 
   <div
     :class="[
-      isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-800',
+      isDark ? 'bg-dark-bg text-white' : 'app-page-bg text-slate-900',
       'min-h-screen transition-colors duration-500'
     ]"
   >
@@ -377,8 +377,8 @@ onUnmounted(() => {
     <!-- 导航栏 -->
     <nav
       ref="navbarRef"
-      class="fixed top-0 left-0 right-0 z-40 backdrop-blur-md border-b transition-all duration-500 shadow-md"
-      :class="isDark ? 'bg-black/80 border-gray-600/50' : 'bg-white/80 border-slate-200/50'"
+      class="fixed top-0 left-0 right-0 z-40 backdrop-blur-xl border-b transition-all duration-500"
+      :class="isDark ? 'bg-dark-bg/90 border-dark-border/50' : 'bg-white/80 border-[#E5E7EB] shadow-soft'"
     >
       <div class="container mx-auto px-6 py-4">
         <div class="flex items-center justify-between">
@@ -386,7 +386,7 @@ onUnmounted(() => {
           <div class="flex items-center space-x-3 cursor-pointer group" @click="scrollToSection('hero')">
             <div
               class="w-10 h-10 rounded-xl shadow-lg flex items-center justify-center transition-all duration-300 group-hover:scale-110"
-              :class="isDark ? 'bg-gradient-to-br from-gray-700 to-gray-900' : 'bg-gradient-to-br from-slate-700 to-slate-900'"
+              :class="isDark ? 'bg-gradient-to-br from-zinc-700 to-zinc-900' : 'bg-gradient-to-br from-brand-500 to-brand-600 shadow-soft'"
             >
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
@@ -406,7 +406,7 @@ onUnmounted(() => {
               :href="`#${item.id}`"
               @click.prevent="scrollToSection(item.id)"
               class="relative transition-colors duration-300 hover:font-medium group"
-              :class="isDark ? 'text-gray-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'"
+              :class="isDark ? 'text-gray-300 hover:text-white' : 'text-slate-600 hover:text-brand-600'"
             >
               {{ item.label }}
               <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full"></span>
@@ -418,7 +418,7 @@ onUnmounted(() => {
             <button
             @click="navigateWithTransition('/login')"
             class="transition-colors duration-300"
-            :class="isDark ? 'text-gray-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'"
+            :class="isDark ? 'text-gray-300 hover:text-white' : 'text-slate-600 hover:text-brand-600'"
           >登录</button>
             <button
               class="px-5 py-2 rounded-full hover:scale-105 transition-all duration-300 shadow-lg"
@@ -445,7 +445,7 @@ onUnmounted(() => {
         ></div>
         <div
           class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-3xl animate-pulse-slow transition-colors duration-500"
-          :class="isDark ? 'bg-indigo-900/20' : 'bg-indigo-50/20'"
+          :class="isDark ? 'bg-brand-900/20' : 'bg-brand-50/20'"
         ></div>
       </div>
 

@@ -8,7 +8,7 @@
         :class="[
           'px-4 py-2 rounded-md text-sm font-medium transition-all',
           currentGraphType === type.value
-            ? 'bg-blue-500 text-white shadow-lg'
+            ? 'bg-brand-500 text-white shadow-lg'
             : 'text-gray-300 hover:bg-white/10 hover:text-white'
         ]"
       >
@@ -45,14 +45,14 @@
           </div>
           <div class="flex justify-between items-center py-2 border-b">
             <span class="text-gray-500">关联权重</span>
-            <span class="font-medium text-blue-600">{{ selectedNode.value }}</span>
+            <span class="font-medium text-brand-600">{{ selectedNode.value }}</span>
           </div>
         </div>
       </div>
     </div>
 
     <div v-if="loading" class="absolute inset-0 bg-[#0f1219]/90 flex flex-col items-center justify-center z-20">
-      <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+      <div class="w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mb-3"></div>
       <span class="text-gray-300 text-sm">知识图谱构建中...</span>
     </div>
   </div>
@@ -85,8 +85,8 @@ const getNodeTypeLabel = (type) => {
 
 const getNodeTypeClass = (type) => {
   const cls = {
-    tag: 'bg-purple-100 text-purple-600',
-    category: 'bg-blue-100 text-blue-600',
+    tag: 'bg-accent-100 text-accent-600',
+    category: 'bg-brand-100 text-brand-600',
     knowledge_point: 'bg-green-100 text-green-600',
     subject: 'bg-orange-100 text-orange-600'
   }
@@ -165,8 +165,8 @@ const renderAdvancedGraph = (data) => {
     lineStyle: {
       width: Math.min(4, 0.5 + link.value / 15),
       color: new echarts.graphic.LinearGradient(0,0,1,0,[
-        { offset: 0, color: '#6366f1' },
-        { offset: 1, color: '#8b5cf6' }
+        { offset: 0, color: getCssColor('--theme-primary', '#d946ef') },
+        { offset: 1, color: getCssColor('--theme-secondary', '#8b5cf6') }
       ])
     }
   }))
@@ -199,12 +199,17 @@ const renderAdvancedGraph = (data) => {
 
 const getNodeColor = (type) => {
   const colors = {
-    tag: '#a855f7',
-    category: '#3b82f6',
+    tag: getCssColor('--theme-secondary', '#8b5cf6'),
+    category: getCssColor('--theme-primary', '#d946ef'),
     knowledge_point: '#10b981',
     subject: '#f59e0b'
   }
   return colors[type] || '#6b7280'
+}
+
+const getCssColor = (name, fallback) => {
+  if (typeof window === 'undefined') return fallback
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
 }
 
 const getNodeGradient = (type) => {

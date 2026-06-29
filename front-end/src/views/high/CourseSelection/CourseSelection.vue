@@ -1,23 +1,23 @@
 <template>
-  <div :class="isDark ? 'dark bg-black' : ''">
+  <div :class="isDark ? 'dark bg-dark-bg' : ''">
     <div :class="[
-      isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 text-gray-900',
+      isDark ? 'bg-dark-bg text-white' : 'app-page-bg text-gray-900',
       'min-h-screen transition-colors duration-300'
     ]">
 
       <Nav :isDark="isDark" :menuItems="menuItems"/>
 
-    <div class="max-w-[min(92vw,1420px)] mx-auto px-4 sm:px-6 lg:px-10 py-20 md:py-24" :class="isDark ? 'bg-black' : ''">
+    <div class="max-w-[min(92vw,1420px)] mx-auto px-4 sm:px-6 lg:px-10 py-20 md:py-24" :class="isDark ? 'bg-dark-bg' : ''">
       <!-- 头部 -->
       <div class="mb-8 md:mb-10">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/40 dark:bg-black backdrop-blur-sm mb-4 ring-1 ring-slate-200/60 dark:ring-slate-600/40">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/40 dark:bg-dark-surface backdrop-blur-sm mb-4 ring-1 ring-slate-200/60 dark:ring-slate-600/40">
           <span class="relative flex h-2 w-2">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
           <span class="text-xs font-medium text-slate-600 dark:text-slate-300">3+1+2新高考选课系统</span>
         </div>
-        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent tracking-tight">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent tracking-tight">
           新高考选课系统
         </h1>
         <p class="text-slate-500 dark:text-slate-400 mt-2 text-sm sm:text-base max-w-2xl">物理/历史二选一 · 化学/生物/政治/地理四选二</p>
@@ -25,22 +25,22 @@
 
       <!-- 统计卡片 -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 md:mb-8">
-        <div class="rounded-xl p-4 bg-white/50 dark:bg-black backdrop-blur-sm border border-white/20 dark:border-slate-800">
+        <div class="rounded-xl p-4 bg-white/50 dark:bg-dark-surface backdrop-blur-sm border border-white/20 dark:border-slate-800">
           <div class="text-2xl mb-1">📊</div>
           <div class="text-2xl font-bold">{{ statistics.totalStudents || 0 }}</div>
           <div class="text-xs text-slate-500 dark:text-slate-400">总选课人数</div>
         </div>
-        <div class="rounded-xl p-4 bg-white/50 dark:bg-black backdrop-blur-sm border border-white/20 dark:border-slate-800">
+        <div class="rounded-xl p-4 bg-white/50 dark:bg-dark-surface backdrop-blur-sm border border-white/20 dark:border-slate-800">
           <div class="text-2xl mb-1">🏆</div>
           <div class="text-2xl font-bold">{{ statistics.confirmedCount || 0 }}</div>
           <div class="text-xs text-slate-500 dark:text-slate-400">已确认人数</div>
         </div>
-        <div class="rounded-xl p-4 bg-white/50 dark:bg-black backdrop-blur-sm border border-white/20 dark:border-slate-800">
+        <div class="rounded-xl p-4 bg-white/50 dark:bg-dark-surface backdrop-blur-sm border border-white/20 dark:border-slate-800">
           <div class="text-2xl mb-1">📚</div>
           <div class="text-2xl font-bold">{{ statistics.combinationCount || 0 }}</div>
           <div class="text-xs text-slate-500 dark:text-slate-400">可选组合</div>
         </div>
-        <div class="rounded-xl p-4 bg-white/50 dark:bg-black backdrop-blur-sm border border-white/20 dark:border-slate-800">
+        <div class="rounded-xl p-4 bg-white/50 dark:bg-dark-surface backdrop-blur-sm border border-white/20 dark:border-slate-800">
           <div class="text-2xl mb-1">🎯</div>
           <div class="text-2xl font-bold">{{ statistics.hotCombination || '物化生' }}</div>
           <div class="text-xs text-slate-500 dark:text-slate-400">最热门组合</div>
@@ -56,7 +56,7 @@
             class="selection-menu"
             :background-color="isDark ? '#000000' : '#ffffff'"
             :text-color="isDark ? '#94a3b8' : '#000000'"
-            :active-text-color="isDark ? '#818cf8' : '#6366f1'"
+            :active-text-color="isDark ? 'rgb(var(--color-brand-400))' : 'var(--theme-primary)'"
             mode="vertical"
             @select="handleMenuSelect"
           >
@@ -396,12 +396,12 @@ onMounted(async () => {
 }
 
 .menu-item:hover {
-  background: rgba(99, 102, 241, 0.1) !important;
+  background: rgba(var(--theme-primary-rgb), 0.1) !important;
 }
 
 :deep(.el-menu-item.is-active) {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15)) !important;
-  border-left: 4px solid #6366f1;
+  background: var(--theme-gradient-soft) !important;
+  border-left: 4px solid var(--theme-primary);
 }
 
 .menu-icon {

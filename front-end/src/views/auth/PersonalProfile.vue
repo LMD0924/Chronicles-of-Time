@@ -3,8 +3,9 @@ import { ref, onMounted, computed, nextTick, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
-import { getStoredTheme, onThemeChange, ThemeType } from '@/utils/theme';
-import {message} from "ant-design-vue";
+import { getStoredTheme, onThemeChange, ThemeType } from '@/utils/theme'
+import { message } from 'ant-design-vue'
+import Nav from '@/components/Nav.vue'
 
 const [messageApi, contextHolder] = message.useMessage();
 const router = useRouter()
@@ -349,64 +350,14 @@ onMounted(async () => {
 
 <template>
   <contextHolder />
-  <div :class="[isDark ? 'bg-black text-white' : 'bg-gradient-to-br from-gray-50 via-white to-indigo-50/30', 'min-h-screen']">
+  <div :class="[isDark ? 'app-shell-dark' : 'app-shell-light', 'app-shell min-h-screen']">
+    <Nav :isDark="isDark" :menuItems="[{ key: 'profile', label: '个人档案', icon: '👤', path: '/PersonalProfile' }, { key: 'resume', label: '简历', icon: '📄', path: '/Resume' }]" />
 
-    <!-- 保持原有导航栏不变 -->
-    <div class="flex justify-between items-center pt-4 px-6">
-      <div class="w-32"></div>
-      <div class="mt-4 shadow-lg" :class="[isDark ? 'bg-gray-900/80 backdrop-blur-sm' : 'bg-gray-50/80 backdrop-blur-sm', 'flex items-center gap-1 rounded-full p-1 shadow-sm']">
-        <button
-          @click="$router.push('/Resume')"
-          class="relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group hover:shadow-lg"
-          :class="[
-            route.path === '/Resume'
-              ? (isDark ? 'bg-indigo-900/50 text-indigo-400' : 'bg-indigo-100 text-indigo-600')
-              : (isDark ? 'text-gray-300 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600')
-          ]"
-        >
-          <span class="relative flex items-center gap-2 z-10">
-            <span class="text-base">👤</span>
-            <span>个人简历</span>
-          </span>
-        </button>
-        <button
-          @click="$router.push('/PersonalProfile')"
-          class="relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group hover:shadow-lg"
-          :class="[
-            route.path === '/PersonalProfile'
-              ? (isDark ? 'bg-indigo-900/50 text-indigo-400' : 'bg-indigo-100 text-indigo-600 shadow-lg')
-              : (isDark ? 'text-gray-300 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600')
-          ]"
-        >
-          <span class="relative flex items-center gap-2 z-10">
-            <span class="text-base">👤</span>
-            <span>个人档案</span>
-          </span>
-        </button>
-      </div>
-
-      <div class="mt-4 mr-56" :class="[isDark ? 'bg-gray-900/80 backdrop-blur-sm' : 'bg-gray-50/80 backdrop-blur-sm', 'flex items-center gap-1 rounded-full p-1 shadow-sm']">
-        <button
-          @click="$router.push('/home')"
-          class="relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group hover:shadow-lg"
-          :class="[isDark ? 'text-gray-300 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600']"
-        >
-          <span class="relative flex items-center gap-2 z-10">
-            <span class="text-base">🏠</span>
-            <span>返回首页</span>
-          </span>
-        </button>
-        <button
-          @click="handleLogout"
-          class="relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group hover:shadow-lg"
-          :class="[isDark ? 'text-gray-300 hover:text-red-400' : 'text-gray-600 hover:text-red-600']"
-        >
-          <span class="relative flex items-center gap-2 z-10">
-            <span class="text-base">🚪</span>
-            <span>退出登录</span>
-          </span>
-        </button>
-      </div>
+    <div class="app-main">
+    <div class="app-container flex flex-wrap gap-2 mb-4">
+      <button type="button" class="app-btn-secondary text-sm" @click="$router.push('/Resume')">个人简历</button>
+      <button type="button" class="app-btn-secondary text-sm" @click="$router.push('/Settings')">设置</button>
+      <button type="button" class="text-sm text-red-600 hover:underline ml-auto" @click="handleLogout">退出登录</button>
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -416,13 +367,13 @@ onMounted(async () => {
         <div class="lg:col-span-4 space-y-6">
           <!-- 个人信息卡片 -->
           <div :class="[isDark ? 'bg-white/10 backdrop-blur-sm border border-white/20' : 'bg-white border border-gray-100', 'rounded-2xl shadow-sm overflow-hidden fade-in-up']">
-            <div class="relative h-24 bg-gradient-to-r from-indigo-500 to-purple-600">
+            <div class="relative h-24 bg-gradient-to-r from-brand-500 to-pink-500">
               <div class="absolute inset-0 bg-black/20"></div>
             </div>
             <div class="relative px-6 pb-6">
               <div class="flex flex-col items-center -mt-12 mb-4">
                 <div class="relative group avatar-container cursor-pointer" @click="handleAvatarClick">
-                  <div class="w-24 h-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center text-5xl shadow-lg border-4 border-white transition-all group-hover:scale-105">
+                  <div class="w-24 h-24 bg-gradient-to-br from-brand-100 to-brand-200 rounded-2xl flex items-center justify-center text-5xl shadow-lg border-4 border-white transition-all group-hover:scale-105">
                     <img v-if="userInfo?.avatar" :src="userInfo.avatar" class="w-full h-full object-cover rounded-2xl" />
                     <span v-else>👤</span>
                   </div>
@@ -448,27 +399,27 @@ onMounted(async () => {
 
               <div v-if="!isEditing" class="text-center">
                 <p :class="isDark ? 'text-gray-300' : 'text-gray-600'" class="text-sm">{{ userInfo?.introduction || userInfo?.bio || '这个人很懒，还没写介绍~' }}</p>
-                <button @click="startEdit" :class="[isDark ? 'border-white/20 text-gray-300 hover:border-indigo-400 hover:text-indigo-400' : 'border-gray-300 text-gray-600 hover:border-indigo-400 hover:text-indigo-500', 'mt-4 px-5 py-2 border rounded-full text-sm transition-all hover:scale-105']">
+                <button @click="startEdit" :class="[isDark ? 'border-white/20 text-gray-300 hover:border-brand-400 hover:text-brand-400' : 'border-gray-300 text-gray-600 hover:border-brand-400 hover:text-brand-600', 'mt-4 px-5 py-2 border rounded-full text-sm transition-all hover:scale-105']">
                   编辑资料
                 </button>
               </div>
 
               <div v-else class="space-y-3">
                 <div>
-                  <input v-model="editForm.name" type="text" placeholder="昵称" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-gray-50 border-gray-200', 'w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-indigo-400']">
+                  <input v-model="editForm.name" type="text" placeholder="昵称" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-gray-50 border-gray-200', 'w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-brand-400']">
                 </div>
                 <div>
-                  <input v-model="editForm.email" type="email" placeholder="邮箱" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-gray-50 border-gray-200', 'w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-indigo-400']">
+                  <input v-model="editForm.email" type="email" placeholder="邮箱" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-gray-50 border-gray-200', 'w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-brand-400']">
                 </div>
                 <div>
-                  <input v-model="editForm.phone" type="tel" placeholder="手机号" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-gray-50 border-gray-200', 'w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-indigo-400']">
+                  <input v-model="editForm.phone" type="tel" placeholder="手机号" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-gray-50 border-gray-200', 'w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-brand-400']">
                 </div>
                 <div>
-                  <textarea v-model="editForm.introduction" rows="2" placeholder="个人简介" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-gray-50 border-gray-200', 'w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-indigo-400 resize-none']"></textarea>
+                  <textarea v-model="editForm.introduction" rows="2" placeholder="个人简介" :class="[isDark ? 'bg-white/5 border-white/20 text-white' : 'bg-gray-50 border-gray-200', 'w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-brand-400 resize-none']"></textarea>
                 </div>
                 <div class="flex gap-2">
                   <button @click="cancelEdit" :class="[isDark ? 'border-white/20 text-gray-300' : 'border-gray-300 text-gray-600', 'flex-1 px-3 py-2 border rounded-lg text-sm transition-all hover:scale-105']">取消</button>
-                  <button @click="saveEdit" class="flex-1 px-3 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm hover:shadow-lg transition-all hover:scale-105">保存</button>
+                  <button @click="saveEdit" class="flex-1 px-3 py-2 bg-gradient-to-r from-brand-500 to-pink-500 text-white rounded-lg text-sm hover:shadow-lg transition-all hover:scale-105">保存</button>
                 </div>
               </div>
             </div>
@@ -481,19 +432,19 @@ onMounted(async () => {
             </h3>
             <div class="grid grid-cols-2 gap-4">
               <div class="text-center">
-                <div class="text-2xl font-bold text-indigo-500">{{ stats.totalArticles }}</div>
+                <div class="text-2xl font-bold text-brand-600">{{ stats.totalArticles }}</div>
                 <div :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-xs">发表文章</div>
               </div>
               <div class="text-center">
-                <div class="text-2xl font-bold text-indigo-500">{{ stats.totalLikes }}</div>
+                <div class="text-2xl font-bold text-brand-600">{{ stats.totalLikes }}</div>
                 <div :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-xs">获得点赞</div>
               </div>
               <div class="text-center">
-                <div class="text-2xl font-bold text-indigo-500">{{ stats.totalFavorites }}</div>
+                <div class="text-2xl font-bold text-brand-600">{{ stats.totalFavorites }}</div>
                 <div :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-xs">收藏数量</div>
               </div>
               <div class="text-center">
-                <div class="text-2xl font-bold text-indigo-500">{{ stats.totalComments }}</div>
+                <div class="text-2xl font-bold text-brand-600">{{ stats.totalComments }}</div>
                 <div :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-xs">评论数量</div>
               </div>
             </div>
@@ -508,7 +459,7 @@ onMounted(async () => {
               <div v-for="badge in badges" :key="badge.name" class="text-center group cursor-pointer">
                 <div :class="[
                   badge.earned
-                    ? 'bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg'
+                    ? 'bg-gradient-to-br from-brand-500 to-pink-500 shadow-lg'
                     : (isDark ? 'bg-gray-800' : 'bg-gray-100'),
                   'w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-all group-hover:scale-110'
                 ]">
@@ -536,13 +487,13 @@ onMounted(async () => {
                 @click="switchTab(tab.id)"
                 class="flex-1 px-4 py-3 text-center transition-all duration-300 relative group"
                 :class="activeRightTab === tab.id
-                  ? 'text-indigo-600 font-medium'
+                  ? 'text-brand-600 font-medium'
                   : (isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')"
               >
                 <span class="text-lg mr-1">{{ tab.icon }}</span>
                 <span>{{ tab.name }}</span>
-                <span class="ml-1 text-xs" :class="activeRightTab === tab.id ? 'text-indigo-500' : 'text-gray-400'">({{ tab.count }})</span>
-                <div v-if="activeRightTab === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+                <span class="ml-1 text-xs" :class="activeRightTab === tab.id ? 'text-brand-600' : 'text-gray-400'">({{ tab.count }})</span>
+                <div v-if="activeRightTab === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-500 to-pink-500"></div>
               </button>
             </div>
 
@@ -552,12 +503,12 @@ onMounted(async () => {
               <!-- 我的发表 -->
               <div v-if="activeRightTab === 'articles'">
                 <div v-if="articlesLoading" class="text-center py-8">
-                  <div class="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div class="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
                 </div>
                 <div v-else-if="myArticles.length === 0" class="text-center py-12">
                   <div class="text-5xl mb-3">📝</div>
                   <p :class="isDark ? 'text-gray-400' : 'text-gray-500'">还没有发表过文章</p>
-                  <button @click="$router.push('/content/create')" class="mt-4 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm">去写文章</button>
+                  <button @click="$router.push('/content/create')" class="mt-4 px-4 py-2 bg-gradient-to-r from-brand-500 to-pink-500 text-white rounded-lg text-sm">去写文章</button>
                 </div>
                 <div v-else class="space-y-4">
                   <div v-for="article in myArticles" :key="article.id"
@@ -588,7 +539,7 @@ onMounted(async () => {
               <!-- 我的点赞 -->
               <div v-if="activeRightTab === 'likes'">
                 <div v-if="likesLoading" class="text-center py-8">
-                  <div class="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div class="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
                 </div>
                 <div v-else-if="likedArticles.length === 0" class="text-center py-12">
                   <div class="text-5xl mb-3">❤️</div>
@@ -616,7 +567,7 @@ onMounted(async () => {
               <!-- 我的收藏 -->
               <div v-if="activeRightTab === 'favorites'">
                 <div v-if="favoritesLoading" class="text-center py-8">
-                  <div class="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div class="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
                 </div>
                 <div v-else-if="favoritedArticles.length === 0" class="text-center py-12">
                   <div class="text-5xl mb-3">⭐</div>
@@ -645,7 +596,7 @@ onMounted(async () => {
               <!-- 我的评论 -->
               <div v-if="activeRightTab === 'comments'">
                 <div v-if="commentsLoading" class="text-center py-8">
-                  <div class="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div class="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
                 </div>
                 <div v-else-if="myComments.length === 0" class="text-center py-12">
                   <div class="text-5xl mb-3">💬</div>
@@ -687,7 +638,7 @@ onMounted(async () => {
                      class="flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all hover:translate-x-1"
                      :class="isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'">
                   <div class="flex items-center gap-3">
-                    <span class="text-sm font-bold text-indigo-500 w-6">{{ idx + 1 }}</span>
+                    <span class="text-sm font-bold text-brand-600 w-6">{{ idx + 1 }}</span>
                     <span :class="isDark ? 'text-gray-300' : 'text-gray-700'" class="text-sm">{{ article.title }}</span>
                   </div>
                   <div class="flex items-center gap-2 text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
@@ -707,7 +658,7 @@ onMounted(async () => {
                 <a v-for="link in friendLinks" :key="link.name"
                    :href="link.url" target="_blank"
                    class="px-3 py-2 rounded-lg text-sm transition-all hover:scale-105"
-                   :class="isDark ? 'bg-white/5 text-gray-300 hover:bg-indigo-500/20 hover:text-indigo-400' : 'bg-gray-50 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600'">
+                   :class="isDark ? 'bg-white/5 text-gray-300 hover:bg-brand-500/20 hover:text-brand-400' : 'bg-gray-50 text-gray-600 hover:bg-brand-50 hover:text-brand-600'">
                   {{ link.name }}
                 </a>
               </div>
@@ -724,6 +675,7 @@ onMounted(async () => {
         </div>
 
       </div>
+    </div>
     </div>
   </div>
 </template>
@@ -770,12 +722,12 @@ onMounted(async () => {
 }
 
 .content-scroll-area::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #6366f1, #a855f7);
+  background: var(--theme-gradient);
   border-radius: 10px;
 }
 
 .content-scroll-area::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #4f46e5, #9333ea);
+  background: linear-gradient(to bottom, var(--theme-primary), var(--theme-secondary));
 }
 
 /* 暗色模式滚动条 */
@@ -795,12 +747,12 @@ onMounted(async () => {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #6366f1, #a855f7);
+  background: var(--theme-gradient);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #4f46e5, #9333ea);
+  background: linear-gradient(to bottom, var(--theme-primary), var(--theme-secondary));
 }
 
 .dark ::-webkit-scrollbar-track {

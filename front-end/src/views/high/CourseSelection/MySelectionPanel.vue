@@ -113,7 +113,7 @@ watch(() => props.studentId, (val) => {
   <div class="cs-panel space-y-4">
     <!-- 加载状态 -->
     <div v-if="loading" class="flex justify-center py-12">
-      <div class="w-8 h-8 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+      <div class="w-8 h-8 border-2 border-brand-200 border-t-brand-600 rounded-full animate-spin"></div>
     </div>
 
     <!-- 无选课记录 -->
@@ -125,7 +125,7 @@ watch(() => props.studentId, (val) => {
     <!-- 选课列表 -->
     <div v-else class="space-y-4">
       <div v-for="item in selections" :key="item.id"
-           class="rounded-xl bg-white/70 dark:bg-black backdrop-blur-sm border border-white/30 p-5 hover:shadow-lg transition-all">
+           class="rounded-xl bg-white/70 dark:bg-dark-surface backdrop-blur-sm border border-white/30 p-5 hover:shadow-lg transition-all">
         <div class="flex items-start justify-between">
           <div class="flex-1">
             <!-- 基本信息 -->
@@ -142,17 +142,17 @@ watch(() => props.studentId, (val) => {
 
             <!-- 选科信息 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div class="p-3 rounded-lg bg-indigo-50/50 dark:bg-black">
+              <div class="p-3 rounded-lg bg-brand-50/50 dark:bg-dark-surface">
                 <div class="text-xs text-slate-500 mb-1">首选科目</div>
                 <div class="font-semibold text-lg">{{ item.firstSubjectName }}</div>
                 <div class="text-sm text-slate-500">成绩: {{ item.firstSubjectScore || '-' }}分</div>
               </div>
-              <div class="p-3 rounded-lg bg-emerald-50/50 dark:bg-black">
+              <div class="p-3 rounded-lg bg-emerald-50/50 dark:bg-dark-surface">
                 <div class="text-xs text-slate-500 mb-1">再选科目1</div>
                 <div class="font-semibold text-lg">{{ item.secondSubject1Name }}</div>
                 <div class="text-sm text-slate-500">成绩: {{ item.secondSubject1Score || '-' }}分</div>
               </div>
-              <div class="p-3 rounded-lg bg-amber-50/50 dark:bg-black">
+              <div class="p-3 rounded-lg bg-amber-50/50 dark:bg-dark-surface">
                 <div class="text-xs text-slate-500 mb-1">再选科目2</div>
                 <div class="font-semibold text-lg">{{ item.secondSubject2Name }}</div>
                 <div class="text-sm text-slate-500">成绩: {{ item.secondSubject2Score || '-' }}分</div>
@@ -167,7 +167,7 @@ watch(() => props.studentId, (val) => {
               </div>
               <div class="flex items-center gap-1">
                 <span class="text-slate-500">赋分总分:</span>
-                <span class="font-bold text-indigo-600">{{ item.totalScoreWeighted }}</span>
+                <span class="font-bold text-brand-600">{{ item.totalScoreWeighted }}</span>
               </div>
               <div v-if="item.classRank" class="flex items-center gap-1">
                 <span class="text-slate-500">班级排名:</span>
@@ -180,7 +180,7 @@ watch(() => props.studentId, (val) => {
             </div>
 
             <!-- 选课理由 -->
-            <div v-if="item.selectionReason" class="p-2 rounded-lg bg-slate-50 dark:bg-black text-sm">
+            <div v-if="item.selectionReason" class="p-2 rounded-lg bg-slate-50 dark:bg-dark-surface text-sm">
               <span class="text-slate-500">选课理由：</span>
               {{ item.selectionReason }}
             </div>
@@ -194,7 +194,7 @@ watch(() => props.studentId, (val) => {
               确认
             </button>
             <button @click="editRecord(item)"
-                    class="px-3 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20 transition-all text-sm">
+                    class="px-3 py-1.5 rounded-lg bg-brand-500/10 text-brand-600 hover:bg-brand-500/20 transition-all text-sm">
               修改
             </button>
             <button @click="cancelSelection(item.id)"

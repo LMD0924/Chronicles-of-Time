@@ -8,7 +8,7 @@
             <p class="stat-label">方案总数</p>
             <p class="stat-value">{{ volunteerPlans.length }}</p>
           </div>
-          <div class="stat-icon-wrapper bg-blue-500/20">
+          <div class="stat-icon-wrapper bg-brand-500/20">
             <span class="text-2xl">📋</span>
           </div>
         </div>
@@ -33,7 +33,7 @@
             <p class="stat-label">平均分数</p>
             <p class="stat-value">{{ avgScore || '--' }}</p>
           </div>
-          <div class="stat-icon-wrapper bg-purple-500/20">
+          <div class="stat-icon-wrapper bg-fuchsia-500/20">
             <span class="text-2xl">📊</span>
           </div>
         </div>
@@ -537,7 +537,7 @@ const openMatchingReport = async () => {
       const report = res.data || []
       let html = '<div class="space-y-3"><h4 class="font-bold text-lg">📊 选科匹配报告</h4>'
       report.forEach(r => {
-        html += `<div class="p-3 bg-gray-50 rounded-lg dark:bg-black">
+        html += `<div class="p-3 bg-gray-50 rounded-lg dark:bg-dark-surface">
           <p class="font-medium">${r.priority}. ${r.universityName} - ${r.majorName}</p>
           <p>匹配度：${r.matchingScore || '未计算'}分</p>
           <p class="text-sm text-gray-500 dark:text-gray-400">建议：${r.suggestion || ''}</p>
@@ -580,7 +580,7 @@ const openStatistics = async () => {
       const stats = res.data || []
       let html = '<div class="space-y-2"><h4 class="font-bold text-lg">📊 志愿统计分析</h4>'
       stats.forEach(s => {
-        html += `<div class="p-2 bg-gray-50 rounded dark:bg-black"><p>${s.year}年：${s.count}个方案，最高分${s.maxScore}，最低分${s.minScore}</p></div>`
+        html += `<div class="p-2 bg-gray-50 rounded dark:bg-dark-surface"><p>${s.year}年：${s.count}个方案，最高分${s.maxScore}，最低分${s.minScore}</p></div>`
       })
       html += '</div>'
       ElMessageBox.alert(html, '统计分析', { dangerouslyUseHTMLString: true })
@@ -667,7 +667,7 @@ onMounted(() => {
   bottom: 0;
   left: 0;
   height: 3px;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  background: linear-gradient(90deg, #d946ef, #8b5cf6);
   transition: width 0.5s ease;
 }
 
@@ -754,7 +754,7 @@ onMounted(() => {
 
 .edit-btn:hover {
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
+  color: #d946ef;
 }
 
 .delete-btn {
@@ -856,7 +856,7 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #d946ef, #8b5cf6);
   border: none;
   border-radius: 40px;
   font-size: 14px;
@@ -916,7 +916,7 @@ onMounted(() => {
 .btn-primary {
   background: rgba(99, 102, 241, 0.15);
   border: 1px solid rgba(99, 102, 241, 0.3);
-  color: #6366f1;
+  color: #d946ef;
 }
 
 .btn-primary:hover {
@@ -940,7 +940,7 @@ onMounted(() => {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #d946ef, #8b5cf6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -953,7 +953,7 @@ onMounted(() => {
 .priority-line {
   flex: 1;
   width: 2px;
-  background: linear-gradient(180deg, #6366f1, transparent);
+  background: linear-gradient(180deg, #d946ef, transparent);
   margin-top: 8px;
 }
 
@@ -1122,7 +1122,7 @@ onMounted(() => {
 }
 
 .dialog-btn.confirm {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #d946ef, #8b5cf6);
   color: white;
 }
 
@@ -1159,7 +1159,7 @@ onMounted(() => {
 .batch-item-index {
   font-size: 13px;
   font-weight: 600;
-  color: #6366f1;
+  color: #d946ef;
 }
 
 .batch-remove {
@@ -1197,7 +1197,7 @@ onMounted(() => {
   border-radius: 40px;
   background: rgba(99, 102, 241, 0.1);
   border: 1px dashed rgba(99, 102, 241, 0.3);
-  color: #6366f1;
+  color: #d946ef;
   display: flex;
   align-items: center;
   justify-content: center;

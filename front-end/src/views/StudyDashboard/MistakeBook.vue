@@ -1,7 +1,7 @@
 <template>
-  <div class="space-y-6 max-w-[1400px] mx-auto px-4 lg:px-6 mt-24">
+  <div class="space-y-6 space-y-6">
     <!-- 头部 -->
-    <div class="bg-white/80 dark:bg-black backdrop-blur-xl rounded-3xl p-6 border border-white/20 dark:border-gray-700/30 shadow-2xl shadow-rose-500/10">
+    <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-2xl shadow-rose-500/10">
       <div class="flex flex-wrap justify-between items-center gap-4">
         <div class="flex items-center gap-4">
           <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500 via-red-500 to-orange-500 flex items-center justify-center shadow-lg shadow-rose-500/30">
@@ -20,7 +20,7 @@
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-white dark:bg-black rounded-2xl p-5 border border-gray-200/50 dark:border-gray-700/50">
+      <div class="bg-white dark:bg-dark-surface rounded-2xl p-5 border border-gray-200/50 dark:border-gray-700/50">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-500 dark:text-gray-400 text-sm">错题总数</p>
@@ -29,7 +29,7 @@
           <span class="text-3xl">❌</span>
         </div>
       </div>
-      <div class="bg-white dark:bg-black rounded-2xl p-5 border border-gray-200/50 dark:border-gray-700/50">
+      <div class="bg-white dark:bg-dark-surface rounded-2xl p-5 border border-gray-200/50 dark:border-gray-700/50">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-500 dark:text-gray-400 text-sm">未掌握</p>
@@ -38,7 +38,7 @@
           <span class="text-3xl">⚠️</span>
         </div>
       </div>
-      <div class="bg-white dark:bg-black rounded-2xl p-5 border border-gray-200/50 dark:border-gray-700/50">
+      <div class="bg-white dark:bg-dark-surface rounded-2xl p-5 border border-gray-200/50 dark:border-gray-700/50">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-500 dark:text-gray-400 text-sm">已掌握</p>
@@ -50,7 +50,7 @@
     </div>
 
     <!-- 筛选栏 -->
-    <div class="bg-white dark:bg-black rounded-2xl p-4 border border-gray-200/50 dark:border-gray-700/50">
+    <div class="bg-white dark:bg-dark-surface rounded-2xl p-4 border border-gray-200/50 dark:border-gray-700/50">
       <div class="space-y-4">
         <!-- 科目筛选 -->
         <div class="space-y-2">
@@ -64,7 +64,7 @@
                 'px-3 py-1.5 rounded-full text-sm transition-all',
                 (subject === '全部' && !filters.subject) || (filters.subject === subject)
                   ? 'bg-gradient-to-r from-rose-500 to-red-500 text-white shadow-md'
-                  : 'bg-gray-100 dark:bg-black text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-black'
+                  : 'bg-gray-100 dark:bg-dark-surface text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-black'
               ]"
             >
               {{ subject }}
@@ -83,8 +83,8 @@
               :class="[
                 'px-3 py-1.5 rounded-full text-sm transition-all',
                 (kp === '全部' && !filters.knowledgePoint) || (filters.knowledgePoint === kp)
-                  ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md'
-                  : 'bg-gray-100 dark:bg-black text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-black'
+                  ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-md'
+                  : 'bg-gray-100 dark:bg-dark-surface text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-black'
               ]"
             >
               {{ kp }}
@@ -108,7 +108,7 @@
                 'px-3 py-1.5 rounded-full text-sm transition-all',
                 filters.mastered === status.value
                   ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
-                  : 'bg-gray-100 dark:bg-black text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-black'
+                  : 'bg-gray-100 dark:bg-dark-surface text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-black'
               ]"
             >
               {{ status.label }}
@@ -154,7 +154,7 @@
                 <p class="text-red-600 dark:text-red-400"><span class="text-gray-500">❌ 错答：</span>{{ mistake.wrongAnswer || mistake.studentChoice }}</p>
                 <p class="text-green-600 dark:text-green-400"><span class="text-gray-500">✅ 正解：</span>{{ mistake.correctAnswer }}</p>
               </div>
-              <div v-if="mistake.answerAnalysis" class="mt-3 p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 text-sm text-gray-600 dark:text-gray-400">
+              <div v-if="mistake.answerAnalysis" class="mt-3 p-3 rounded-xl bg-brand-50 dark:bg-brand-950/30 text-sm text-gray-600 dark:text-gray-400">
                 📝 {{ mistake.answerAnalysis }}
               </div>
             </div>

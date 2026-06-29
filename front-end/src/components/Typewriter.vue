@@ -116,7 +116,7 @@ const cursorStyle = computed(() => ({
 // 包装器样式
 const wrapperStyle = computed(() => ({
   background: props.gradient
-    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    ? 'var(--theme-gradient)'
     : 'transparent',
   backgroundClip: props.gradient ? 'text' : 'unset',
   WebkitBackgroundClip: props.gradient ? 'text' : 'unset',

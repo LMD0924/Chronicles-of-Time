@@ -1,12 +1,12 @@
 <template>
-  <div class="relative w-full h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-900">
+  <div class="relative w-full h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-brand-950 to-accent-950">
     <!-- 3D画布容器 -->
     <div ref="canvasContainer" class="absolute inset-0 z-0"></div>
 
     <!-- 高级UI覆盖层 - 玻璃态控制面板 更精致 -->
     <div class="absolute top-6 left-6 z-20 backdrop-blur-2xl bg-white/5 rounded-2xl border border-white/20 shadow-2xl p-5 w-80 transition-all duration-300 hover:bg-white/10">
       <div class="flex items-center gap-3 mb-4">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg animate-pulse">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-pink-500 flex items-center justify-center shadow-lg animate-pulse">
           <i class="fas fa-brain text-white text-xl"></i>
         </div>
         <div>
@@ -17,19 +17,19 @@
 
       <!-- 统计卡片 带光效 -->
       <div class="grid grid-cols-2 gap-3 mb-5">
-        <div class="bg-white/5 rounded-xl p-2 backdrop-blur-sm border border-white/10 hover:border-indigo-400/50 transition-all">
+        <div class="bg-white/5 rounded-xl p-2 backdrop-blur-sm border border-white/10 hover:border-brand-400/50 transition-all">
           <div class="text-white/50 text-xs">总节点</div>
           <div class="text-white text-xl font-bold">{{ stats.totalNodes }}</div>
         </div>
-        <div class="bg-white/5 rounded-xl p-2 backdrop-blur-sm border border-white/10 hover:border-indigo-400/50 transition-all">
+        <div class="bg-white/5 rounded-xl p-2 backdrop-blur-sm border border-white/10 hover:border-brand-400/50 transition-all">
           <div class="text-white/50 text-xs">关联关系</div>
           <div class="text-white text-xl font-bold">{{ stats.totalEdges }}</div>
         </div>
-        <div class="bg-white/5 rounded-xl p-2 backdrop-blur-sm border border-white/10 hover:border-indigo-400/50 transition-all">
+        <div class="bg-white/5 rounded-xl p-2 backdrop-blur-sm border border-white/10 hover:border-brand-400/50 transition-all">
           <div class="text-white/50 text-xs">科目覆盖</div>
           <div class="text-white text-xl font-bold">{{ stats.subjects }}</div>
         </div>
-        <div class="bg-white/5 rounded-xl p-2 backdrop-blur-sm border border-white/10 hover:border-indigo-400/50 transition-all">
+        <div class="bg-white/5 rounded-xl p-2 backdrop-blur-sm border border-white/10 hover:border-brand-400/50 transition-all">
           <div class="text-white/50 text-xs">掌握率</div>
           <div class="text-white text-xl font-bold">{{ stats.masteryRate }}%</div>
         </div>
@@ -39,7 +39,7 @@
       <div class="space-y-3">
         <div>
           <label class="text-white/70 text-xs block mb-1">筛选学科</label>
-          <select v-model="selectedSubject" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+          <select v-model="selectedSubject" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
             <option value="all">全部学科</option>
             <option v-for="subj in subjects" :key="subj" :value="subj">{{ subj }}</option>
           </select>
@@ -47,9 +47,9 @@
         <div>
           <label class="text-white/70 text-xs block mb-1">节点类型</label>
           <div class="flex gap-2">
-            <button @click="toggleType('subject')" :class="['px-3 py-1 rounded-lg text-xs transition-all', showTypes.subject ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/50' : 'bg-white/10 text-white/60 hover:bg-white/20']">科目</button>
-            <button @click="toggleType('type')" :class="['px-3 py-1 rounded-lg text-xs transition-all', showTypes.type ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/50' : 'bg-white/10 text-white/60 hover:bg-white/20']">题型</button>
-            <button @click="toggleType('knowledge')" :class="['px-3 py-1 rounded-lg text-xs transition-all', showTypes.knowledge ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/50' : 'bg-white/10 text-white/60 hover:bg-white/20']">知识点</button>
+            <button @click="toggleType('subject')" :class="['px-3 py-1 rounded-lg text-xs transition-all', showTypes.subject ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/50' : 'bg-white/10 text-white/60 hover:bg-white/20']">科目</button>
+            <button @click="toggleType('type')" :class="['px-3 py-1 rounded-lg text-xs transition-all', showTypes.type ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/50' : 'bg-white/10 text-white/60 hover:bg-white/20']">题型</button>
+            <button @click="toggleType('knowledge')" :class="['px-3 py-1 rounded-lg text-xs transition-all', showTypes.knowledge ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/50' : 'bg-white/10 text-white/60 hover:bg-white/20']">知识点</button>
           </div>
         </div>
       </div>
@@ -94,7 +94,7 @@
           <div class="mt-2">
             <div class="text-white/50 text-xs mb-1">复习次数</div>
             <div class="w-full bg-white/10 rounded-full h-1.5">
-              <div class="bg-gradient-to-r from-indigo-400 to-purple-400 h-1.5 rounded-full" :style="{ width: `${Math.min(100, selectedNode.reviewCount * 10)}%` }"></div>
+              <div class="bg-gradient-to-r from-brand-400 to-accent-400 h-1.5 rounded-full" :style="{ width: `${Math.min(100, selectedNode.reviewCount * 10)}%` }"></div>
             </div>
             <div class="text-white/70 text-xs mt-1">{{ selectedNode.reviewCount }} 次复习</div>
           </div>
@@ -170,11 +170,18 @@ let nodesGroup = new THREE.Group()
 let edgesGroup = new THREE.Group()
 let glowGroup = new THREE.Group() // 用于光晕效果
 
+const getCssColor = (name, fallback) => {
+  if (typeof window === 'undefined') return fallback
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
+}
+
+const getThemeColor = (name, fallback) => new THREE.Color(getCssColor(name, fallback))
+
 const getNodeColor = (type) => {
   const colors = {
     subject: 'bg-gradient-to-br from-emerald-500 to-teal-500',
     type: 'bg-gradient-to-br from-amber-500 to-orange-500',
-    knowledge: 'bg-gradient-to-br from-indigo-500 to-purple-500'
+    knowledge: 'bg-gradient-to-br from-brand-500 to-accent-500'
   }
   return colors[type] || 'bg-gray-500'
 }
@@ -325,13 +332,13 @@ const initThree = () => {
   mainLight.position.set(2, 5, 3)
   mainLight.castShadow = true
   scene.add(mainLight)
-  const backLight = new THREE.PointLight(0x4466ff, 0.6)
+  const backLight = new THREE.PointLight(getThemeColor('--theme-secondary', '#8b5cf6'), 0.6)
   backLight.position.set(-2, 1, -4)
   scene.add(backLight)
   const fillLight = new THREE.PointLight(0xffaa66, 0.4)
   fillLight.position.set(3, 2, 2)
   scene.add(fillLight)
-  const purpleLight = new THREE.PointLight(0xaa66ff, 0.5)
+  const purpleLight = new THREE.PointLight(getThemeColor('--theme-primary', '#d946ef'), 0.5)
   purpleLight.position.set(0, 3, 0)
   scene.add(purpleLight)
 
@@ -362,7 +369,7 @@ const initThree = () => {
     particlePositions[i*3+2] = r * Math.cos(phi)
   }
   particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3))
-  const particleMat = new THREE.PointsMaterial({ color: 0x88aaff, size: 0.06, transparent: true, blending: THREE.AdditiveBlending })
+  const particleMat = new THREE.PointsMaterial({ color: getThemeColor('--theme-secondary', '#8b5cf6'), size: 0.06, transparent: true, blending: THREE.AdditiveBlending })
   const particles = new THREE.Points(particleGeo, particleMat)
   scene.add(particles)
 
@@ -399,7 +406,7 @@ const buildGraph = () => {
       points.push(pos1, mid, pos2)
       const curve = new THREE.CatmullRomCurve3(points)
       const tubeGeometry = new THREE.TubeGeometry(curve, 30, 0.04, 8, false)
-      const material = new THREE.MeshBasicMaterial({ color: 0x66ccff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending })
+      const material = new THREE.MeshBasicMaterial({ color: getThemeColor('--theme-primary', '#d946ef'), transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending })
       const tube = new THREE.Mesh(tubeGeometry, material)
       edgesGroup.add(tube)
 
@@ -412,7 +419,7 @@ const buildGraph = () => {
       }
       const flowGeo = new THREE.BufferGeometry()
       flowGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(flowPositions), 3))
-      const flowMat = new THREE.PointsMaterial({ color: 0x88ddff, size: 0.07, transparent: true, blending: THREE.AdditiveBlending })
+      const flowMat = new THREE.PointsMaterial({ color: getThemeColor('--theme-secondary', '#8b5cf6'), size: 0.07, transparent: true, blending: THREE.AdditiveBlending })
       const flowPoints = new THREE.Points(flowGeo, flowMat)
       edgesGroup.add(flowPoints)
     }
@@ -423,7 +430,7 @@ const buildGraph = () => {
     const pos = positions.get(node.id)
     if (!pos) return
 
-    const colorMap = { subject: 0x4ade80, type: 0xfb923c, knowledge: 0xa855f7 }
+    const colorMap = { subject: 0x4ade80, type: 0xfb923c, knowledge: getThemeColor('--theme-primary', '#d946ef') }
     const baseColor = colorMap[node.type] || 0x6c5ce7
 
     // 核心球体 (高光材质)

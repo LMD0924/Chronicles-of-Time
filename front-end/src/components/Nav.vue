@@ -11,8 +11,8 @@
         <!-- Logo -->
         <div class="flex items-center gap-3 cursor-pointer group" @click="handleLogoClick">
           <div class="relative">
-            <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
-            <div class="relative w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div class="absolute inset-0 bg-gradient-to-r from-brand-500 to-accent-500 rounded-xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
+            <div class="relative w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-br from-brand-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg">
               <span class="text-xl lg:text-2xl">{{ logoIcon }}</span>
             </div>
           </div>
@@ -38,8 +38,8 @@
                       ? 'bg-white/30 text-white shadow-lg'
                       : 'bg-white/30 text-gray-700 shadow-lg'
                     : isDark
-                      ? 'text-gray-300 hover:text-indigo-600 hover:bg-gray-800'
-                      : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-100'
+                      ? 'text-gray-300 hover:text-brand-400 hover:bg-gray-800'
+                      : 'text-gray-700 hover:text-brand-600 hover:bg-brand-50'
                 ]"
               >
                 <span class="relative flex items-center gap-2 z-10">
@@ -81,8 +81,8 @@
                     ? 'bg-white/30 text-white shadow-lg'
                     : 'bg-white/30 text-gray-700 shadow-lg'
                   : isDark
-                    ? 'text-gray-300 hover:text-indigo-600 hover:bg-gray-800'
-                    : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-100'
+                    ? 'text-gray-300 hover:text-brand-400 hover:bg-gray-800'
+                    : 'text-gray-700 hover:text-brand-600 hover:bg-brand-50'
               ]"
             >
               <span class="relative flex items-center gap-2 z-10">
@@ -97,10 +97,10 @@
         <div class="flex items-center gap-4 user-menu-container relative">
           <!-- 用户信息 -->
           <div class="hidden md:flex items-center gap-2 cursor-pointer group" @click="toggleUserMenu">
-            <div class="relative w-9 h-9 rounded-full overflow-hidden border-2 border-indigo-200 group-hover:border-indigo-400 transition-colors">
+            <div class="relative w-9 h-9 rounded-full overflow-hidden border-2 border-brand-200 group-hover:border-brand-400 transition-colors">
               <img :src="UserInfo.avatar" alt="User Avatar">
             </div>
-            <span :class="[isDark ? 'text-gray-300 group-hover:text-indigo-400' : 'text-gray-700 group-hover:text-indigo-600', 'text-sm font-medium transition-colors']">{{UserInfo.name}}</span>
+            <span :class="[isDark ? 'text-gray-300 group-hover:text-brand-400' : 'text-gray-700 group-hover:text-brand-600', 'text-sm font-medium transition-colors']">{{UserInfo.name}}</span>
           </div>
 
           <!-- 下拉菜单 -->
@@ -114,7 +114,7 @@
                 <span>👤</span>
                 <span>个人简历</span>
               </button>
-              <button @click="navigateWithTransition('settings')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
+              <button @click="navigateWithTransition('/Settings')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
                 <span>⚙️</span>
                 <span>设置</span>
               </button>
@@ -134,7 +134,7 @@
             :class="[
               isDark
                 ? 'text-gray-300 hover:text-white hover:bg-gray-500'
-                : 'text-gray-500 hover:text-indigo-600 hover:bg-gray-100'
+                : 'text-gray-500 hover:text-brand-600 hover:bg-brand-50'
             ]"
           >
             <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
