@@ -3,19 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --theme-primary: #d946ef;
-  --theme-secondary: #8b5cf6;
-  --theme-primary-rgb: 217 70 239;
-  --theme-secondary-rgb: 139 92 246;
-  --theme-gradient: linear-gradient(135deg, #d946ef 0%, #8b5cf6 100%);
-  --theme-gradient-soft: linear-gradient(135deg, rgba(217, 70, 239, 0.14), rgba(139, 92, 246, 0.14));
+  --theme-primary: #c026d3;
+  --theme-secondary: #6d28d9;
+  --theme-primary-rgb: 192 38 211;
+  --theme-secondary-rgb: 109 40 217;
+  --theme-gradient: linear-gradient(135deg, #c026d3 0%, #6d28d9 100%);
+  --theme-gradient-soft: linear-gradient(135deg, rgba(192, 38, 211, 0.13), rgba(109, 40, 217, 0.13));
 
-  --color-brand-50: 253 244 255;
+  --color-brand-50: 252 244 255;
   --color-brand-100: 250 232 255;
   --color-brand-200: 245 208 254;
   --color-brand-300: 240 171 252;
-  --color-brand-400: 232 121 249;
-  --color-brand-500: 217 70 239;
+  --color-brand-400: 217 112 232;
+  --color-brand-500: 192 38 211;
   --color-brand-600: 192 38 211;
   --color-brand-700: 162 28 175;
   --color-brand-800: 134 25 143;
@@ -26,23 +26,23 @@
   --color-accent-100: 237 233 254;
   --color-accent-200: 221 214 254;
   --color-accent-300: 196 181 253;
-  --color-accent-400: 167 139 250;
-  --color-accent-500: 139 92 246;
-  --color-accent-600: 124 58 237;
-  --color-accent-700: 109 40 217;
-  --color-accent-800: 91 33 182;
-  --color-accent-900: 76 29 149;
-  --color-accent-950: 46 16 101;
+  --color-accent-400: 156 129 242;
+  --color-accent-500: 109 40 217;
+  --color-accent-600: 98 36 195;
+  --color-accent-700: 88 28 176;
+  --color-accent-800: 73 26 147;
+  --color-accent-900: 59 23 116;
+  --color-accent-950: 38 15 77;
 
-  --app-text: #1f1230;
-  --app-text-secondary: #5b5068;
-  --app-text-muted: #7c7288;
-  --app-surface: #fff7ff;
-  --app-surface-muted: #fbf5ff;
+  --app-text: #1d1428;
+  --app-text-secondary: #5a4c66;
+  --app-text-muted: #7b7087;
+  --app-surface: #fdf9ff;
+  --app-surface-muted: #f8f2ff;
   --app-card: rgba(255, 255, 255, 0.86);
-  --app-card-border: rgba(var(--theme-primary-rgb), 0.18);
-  --app-card-shadow: 0 18px 52px -34px rgba(var(--theme-primary-rgb), 0.45);
-  --app-card-shadow-hover: 0 22px 62px -34px rgba(var(--theme-secondary-rgb), 0.52);
+  --app-card-border: rgba(var(--theme-primary-rgb), 0.15);
+  --app-card-shadow: 0 18px 54px -36px rgba(var(--theme-primary-rgb), 0.34);
+  --app-card-shadow-hover: 0 24px 68px -38px rgba(var(--theme-secondary-rgb), 0.42);
   --app-radius-lg: 18px;
   --app-radius-md: 14px;
   --app-radius-sm: 10px;
@@ -61,15 +61,15 @@ html.dark {
   --app-text: #fff7ff;
   --app-text-secondary: #ddd0ea;
   --app-text-muted: #aa9ab8;
-  --app-surface: #08040d;
-  --app-surface-muted: #12091a;
-  --app-card: rgba(21, 10, 31, 0.82);
-  --app-card-border: rgba(var(--theme-primary-rgb), 0.22);
+  --app-surface: #07050b;
+  --app-surface-muted: #130a1d;
+  --app-card: rgba(22, 13, 33, 0.84);
+  --app-card-border: rgba(var(--theme-primary-rgb), 0.2);
   --app-card-shadow: 0 24px 68px -40px rgba(0, 0, 0, 0.84);
   --app-card-shadow-hover: 0 28px 78px -42px rgba(var(--theme-primary-rgb), 0.32);
 
-  --el-bg-color: #12091a;
-  --el-bg-color-page: #08040d;
+  --el-bg-color: #130a1d;
+  --el-bg-color-page: #07050b;
   --el-text-color-primary: #fff7ff;
   --el-text-color-regular: #ddd0ea;
   --el-border-color: rgba(var(--theme-primary-rgb), 0.24);
@@ -127,9 +127,9 @@ html.dark {
   .app-page-bg {
     background-color: var(--app-surface);
     background-image:
-      radial-gradient(circle at 16% 8%, rgba(var(--theme-primary-rgb), 0.16), transparent 30%),
-      radial-gradient(circle at 84% 14%, rgba(var(--theme-secondary-rgb), 0.14), transparent 32%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 247, 255, 0.92));
+      radial-gradient(circle at 16% 8%, rgba(var(--theme-primary-rgb), 0.11), transparent 30%),
+      radial-gradient(circle at 84% 14%, rgba(var(--theme-secondary-rgb), 0.12), transparent 32%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(253, 249, 255, 0.94));
     background-attachment: fixed;
   }
 
@@ -137,9 +137,9 @@ html.dark {
   html.dark .app-page-bg {
     background-color: var(--app-surface);
     background-image:
-      radial-gradient(circle at 18% 10%, rgba(var(--theme-primary-rgb), 0.22), transparent 32%),
-      radial-gradient(circle at 84% 12%, rgba(var(--theme-secondary-rgb), 0.18), transparent 34%),
-      linear-gradient(180deg, #08040d, #12091a);
+      radial-gradient(circle at 18% 10%, rgba(var(--theme-primary-rgb), 0.18), transparent 32%),
+      radial-gradient(circle at 84% 12%, rgba(var(--theme-secondary-rgb), 0.16), transparent 34%),
+      linear-gradient(180deg, #07050b, #130a1d);
     background-attachment: fixed;
   }
 }

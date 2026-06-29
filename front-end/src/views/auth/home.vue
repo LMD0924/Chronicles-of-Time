@@ -28,6 +28,14 @@ const texts = ref(['拾光记 · 弥补当时那个迷茫的自己'])
 const UserInfo = ref({})
 const [MessageApi,contextHolder] = message.useMessage();
 
+const homeNavItems = [
+  { id: 'home', name: '首页', icon: '🏠' },
+  { id: 'timeline', name: '时光轴', icon: '⏳' },
+  { id: 'milestone', name: '图谱总览', icon: '📜' },
+  { id: 'gallery', name: '回忆相册', icon: '📸' },
+  { id: 'journal', name: '云边小札', icon: '📖' }
+]
+
 // 浮动窗口控制
 const activePopup = ref(null)
 const popupPosition = ref({ left: '50%', top: 'auto' })
@@ -162,13 +170,16 @@ const lifeStages = [
 
 // 带过渡效果的导航
 const navigateWithTransition = (path) => {
+  const target = typeof path === 'string' && !path.startsWith('/') ? `/${path}` : path
+  closeUserMenu()
+
   if (transitionRef.value) {
     transitionRef.value.show?.()
     setTimeout(() => {
-      router.push(path)
-    }, 3000)
+      router.push(target)
+    }, 650)
   } else {
-    router.push(path)
+    router.push(target)
   }
 }
 
@@ -495,23 +506,17 @@ onUnmounted(() => {
             <div class="flex-1 flex justify-center">
               <div :class="[isDark ? 'bg-gray-900/80 backdrop-blur-sm' : 'bg-gray-50/80 backdrop-blur-sm', 'hidden md:flex items-center gap-1 rounded-full p-1 shadow-sm']">
                 <button
-                  v-for="item in [
-                    { id: 'home', name: '首页', icon: '🏠' },
-                    { id: 'timeline', name: '时光轴', icon: '⏳' },
-                    { id: 'milestone', name: '图谱总览', icon: '📜' },
-                    { id: 'gallery', name: '回忆相册', icon: '📸' },
-                    { id: 'journal', name: '云边小札', icon: '📖' }
-                  ]"
+                  v-for="item in homeNavItems"
                   :key="item.id"
                   @click="scrollToSection(item.id)"
                   class="relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group"
                   :class="[
                     activeNav === item.id
-                      ? isDark ? 'text-white shadow-lg' : 'text-black shadow-lg'
+                      ? 'text-white shadow-lg'
                       : isDark ? 'text-gray-400 hover:text-brand-400' : 'text-gray-600 hover:text-brand-600'
                   ]"
                 >
-                  <span v-if="activeNav === item.id" class="absolute inset-0 bg-gradient-to-r rounded-full shadow-md" :class="isDark ? 'bg-gray-600' : ''"></span>
+                  <span v-if="activeNav === item.id" class="absolute inset-0 bg-gradient-to-r from-brand-500 to-accent-500 rounded-full shadow-md shadow-brand-500/20"></span>
                   <span class="relative flex items-center gap-2 z-10">
                     <span class="text-base">{{ item.icon }}</span>
                     <span>{{ item.name }}</span>
@@ -530,11 +535,11 @@ onUnmounted(() => {
 
               <div v-if="showUserMenu" :class="[isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-100', 'absolute top-full right-0 mt-2 w-48 rounded-lg shadow-xl border overflow-hidden z-50']">
                 <div class="py-2">
-                  <button @click="navigateWithTransition('PersonalProfile')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
+                  <button @click="navigateWithTransition('/PersonalProfile')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
                     <span>👤</span>
                     <span>个人档案</span>
                   </button>
-                  <button @click="navigateWithTransition('Resume')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
+                  <button @click="navigateWithTransition('/Resume')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
                     <span>👤</span>
                     <span>个人简历</span>
                   </button>

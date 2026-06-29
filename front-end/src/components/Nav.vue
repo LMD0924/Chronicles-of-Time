@@ -25,7 +25,7 @@
         </div>
 
         <!-- 中间导航菜单 -->
-        <div class="flex items-center justify-center gap-2 rounded-full">
+        <div v-if="menuItems.length" class="flex items-center justify-center gap-2 rounded-full">
           <template v-for="item in menuItems" :key="item.key">
             <!-- 有子菜单的项 -->
             <div v-if="item.children && item.children.length" class="relative submenu-container" @click.stop>
@@ -52,16 +52,18 @@
               </button>
 
               <!-- 下拉子菜单 -->
-              <div class="absolute top-full left-0 mt-2 w-48 rounded-xl shadow-xl overflow-hidden z-50"
-                   :class="isDark ? 'bg-gray-900 border border-gray-800' : 'bg-white border border-gray-100'"
+              <div class="absolute top-full left-0 mt-3 w-52 rounded-2xl shadow-2xl overflow-hidden z-50 backdrop-blur-xl"
+                   :class="isDark ? 'bg-gray-900/95 border border-white/10' : 'bg-white/95 border border-brand-100/80'"
                    v-show="openSubmenuKey === item.key">
-                <div class="py-2">
+                <div class="p-1.5">
                   <button
                     v-for="child in item.children"
                     :key="child.key"
                     @click="handleMenuClick(child)"
-                    class="w-full px-4 py-2.5 text-left text-sm transition-colors flex items-center gap-3"
-                    :class="isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-50'"
+                    class="w-full px-3.5 py-2.5 text-left text-sm transition-all flex items-center gap-3 rounded-xl"
+                    :class="isNavItemActive(child)
+                      ? 'bg-gradient-to-r from-brand-500 to-accent-500 text-white shadow-md shadow-brand-500/20'
+                      : isDark ? 'text-gray-300 hover:bg-white/10 hover:text-white' : 'text-gray-700 hover:bg-brand-50 hover:text-brand-700'"
                   >
                     <span class="text-base">{{ child.icon }}</span>
                     <span>{{ child.label }}</span>
@@ -106,11 +108,11 @@
           <!-- 下拉菜单 -->
           <div v-if="showUserMenu" :class="[isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-100', 'absolute top-full right-0 mt-2 w-48 rounded-lg shadow-xl border overflow-hidden z-50']">
             <div class="py-2">
-              <button @click="navigateWithTransition('PersonalProfile')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
+              <button @click="navigateWithTransition('/PersonalProfile')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
                 <span>👤</span>
                 <span>个人档案</span>
               </button>
-              <button @click="navigateWithTransition('Resume')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
+              <button @click="navigateWithTransition('/Resume')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
                 <span>👤</span>
                 <span>个人简历</span>
               </button>
@@ -218,6 +220,61 @@ const activeNav = ref('')
 const UserInfo = ref({})
 const showUserMenu = ref(false)
 
+const normalizePath = (path) => {
+  if (!path) return ''
+  if (typeof path !== 'string') return path
+  if (path.startsWith('/') || path.startsWith('#')) return path
+  return `/${path}`
+}
+
+const resolveNavTarget = (itemOrPath) => {
+  if (!itemOrPath) return null
+  if (typeof itemOrPath === 'string') return normalizePath(itemOrPath)
+
+  if (itemOrPath.route) return itemOrPath.route
+  if (itemOrPath.to) return typeof itemOrPath.to === 'string' ? normalizePath(itemOrPath.to) : itemOrPath.to
+  if (itemOrPath.path) return normalizePath(itemOrPath.path)
+  if (itemOrPath.section) return { section: itemOrPath.section }
+  return null
+}
+
+const routeLocationFromString = (target) => {
+  const normalized = normalizePath(target)
+  if (!normalized || normalized.startsWith('#')) return normalized
+
+  const [pathWithQuery, hashPart] = normalized.split('#')
+  const [path, queryString] = pathWithQuery.split('?')
+  const location = { path: path || '/' }
+
+  if (queryString) {
+    location.query = Object.fromEntries(new URLSearchParams(queryString))
+  }
+  if (hashPart) {
+    location.hash = `#${hashPart}`
+  }
+
+  return location
+}
+
+const sameQuery = (expected = {}, actual = {}) => {
+  return Object.entries(expected).every(([key, value]) => String(actual[key] ?? '') === String(value))
+}
+
+const goToNavTarget = async (target) => {
+  if (!target) return
+
+  if (typeof target === 'object' && target.section) {
+    emit('menuClick', { section: target.section })
+    document.getElementById(target.section)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    return
+  }
+
+  const location = typeof target === 'string' ? routeLocationFromString(target) : target
+  if (!location) return
+
+  await router.push(location)
+}
+
 //获取用户信息
 const getUserInfo = () => {
   request.get('/user/getUserById', {}, (message, data) => {
@@ -225,9 +282,10 @@ const getUserInfo = () => {
   })
 }
 
-// 带过渡效果的导航
+// 统一导航入口
 const navigateWithTransition = (path) => {
-  router.push(path)
+  closeUserMenu()
+  goToNavTarget(path)
 }
 
 // 切换用户菜单
@@ -254,41 +312,41 @@ const handleClickOutside = (event) => {
 // 判断子菜单是否激活
 const isChildActive = (item) => {
   if (!item.children) return false
-  return item.children.some(child => {
-    if (!child.path) return false
-    const childPath = child.path.split('?')[0]
-    const currentPath = route.path
-    return currentPath === childPath || (childPath && currentPath.includes(childPath))
-  })
+  return item.children.some(isNavItemActive)
+}
+
+const isNavItemActive = (item) => {
+  const target = resolveNavTarget(item)
+  if (!target || (typeof target === 'object' && target.section)) return false
+
+  if (typeof target === 'string') {
+    const location = routeLocationFromString(target)
+    if (typeof location === 'string') return false
+    return route.path === location.path && sameQuery(location.query, route.query)
+  }
+
+  if (target.name) {
+    return route.name === target.name && sameQuery(target.query, route.query)
+  }
+
+  if (target.path) {
+    return route.path === target.path && sameQuery(target.query, route.query)
+  }
+
+  return false
 }
 
 // 更新当前激活的菜单项
 const updateActiveNav = () => {
-  const currentPath = route.path
-  const currentQuery = route.query
-
   for (const item of props.menuItems) {
-    // 检查普通菜单项
-    if (item.path) {
-      const itemPath = item.path.split('?')[0]
-      if (currentPath === itemPath) {
-        activeNav.value = item.key
-        return
-      }
+    if (isNavItemActive(item)) {
+      activeNav.value = item.key
+      return
     }
 
-    // 检查子菜单项
-    if (item.children) {
-      for (const child of item.children) {
-        if (child.path) {
-          const childPath = child.path.split('?')[0]
-          if (currentPath === childPath) {
-            activeNav.value = item.key
-            openSubmenuKey.value = item.key
-            return
-          }
-        }
-      }
+    if (isChildActive(item)) {
+      activeNav.value = item.key
+      return
     }
   }
   activeNav.value = ''
@@ -300,8 +358,9 @@ const handleMenuClick = (item) => {
   openSubmenuKey.value = null
   emit('menuClick', item)
 
-  if (item.path) {
-    router.push(item.path)
+  const target = resolveNavTarget(item)
+  if (target) {
+    goToNavTarget(target)
   } else if (item.handler) {
     item.handler()
   }
@@ -315,12 +374,12 @@ const toggleSubmenu = (key) => {
 // 处理 Logo 点击
 const handleLogoClick = () => {
   emit('logoClick')
-  router.push(props.logoPath)
+  goToNavTarget(props.logoPath)
 }
 
 // 处理返回首页
 const handleBackHome = () => {
-  router.push('/home')
+  goToNavTarget('/home')
 }
 
 // 滚动监听

@@ -99,6 +99,11 @@ const router = createRouter({
       component: () => import('@/views/university/paper/Paper.vue')
     },
     {
+      path:'/CourseTree',
+      name:'课程树',
+      component: () => import('@/views/university/paper/CourseTree.vue')
+    },
+    {
       path: '/test',
       name: '测试',
       component: () => import('@/views/test.vue')

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import request from '@/utils/request'
@@ -32,8 +32,10 @@ const checkTheme = () => {
   isDark.value = document.documentElement.classList.contains('dark')
 }
 
-const observer = new MutationObserver(() => {
+const observer = new MutationObserver(async () => {
   checkTheme()
+  await nextTick()
+  refreshCharts()
 })
 
 const loading = ref(false)
@@ -44,6 +46,7 @@ const tagCloudData = ref([])
 const cooccurrenceData = ref(null)
 const categoryData = ref([])
 const topicsData = ref({})
+let observerScroll = null
 
 let graphChart = null
 let tagBarChart = null
@@ -58,6 +61,95 @@ const tabs = [
   { key: 'category', name: '分类统计', icon: '📁' },
   { key: 'topics', name: '主题分布', icon: '🎯' }
 ]
+
+const formatNumber = (value) => Number(value || 0).toLocaleString('zh-CN')
+
+const getThemeColor = (name, fallback) => {
+  if (typeof window === 'undefined') return fallback
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
+}
+
+const getChartTheme = () => {
+  const primary = getThemeColor('--theme-primary', '#c026d3')
+  const secondary = getThemeColor('--theme-secondary', '#6d28d9')
+  const primaryRgb = getThemeColor('--theme-primary-rgb', '192 38 211').replace(/\s+/g, ', ')
+  const secondaryRgb = getThemeColor('--theme-secondary-rgb', '109 40 217').replace(/\s+/g, ', ')
+
+  return {
+    primary,
+    secondary,
+    primaryRgb,
+    secondaryRgb,
+    text: isDark.value ? '#fff7ff' : '#1d1428',
+    muted: isDark.value ? '#aa9ab8' : '#7b7087',
+    line: isDark.value ? 'rgba(255, 255, 255, 0.1)' : `rgba(${primaryRgb}, 0.12)`,
+    tooltipBg: isDark.value ? 'rgba(20, 12, 30, 0.94)' : 'rgba(255, 255, 255, 0.96)',
+    tooltipBorder: isDark.value ? `rgba(${primaryRgb}, 0.34)` : `rgba(${primaryRgb}, 0.18)`
+  }
+}
+
+const chartTitle = (text, subtext = '') => {
+  return { show: false, text, subtext }
+}
+
+const chartTooltip = (formatter, trigger = 'item') => {
+  const theme = getChartTheme()
+  return {
+    trigger,
+    borderWidth: 1,
+    borderColor: theme.tooltipBorder,
+    backgroundColor: theme.tooltipBg,
+    textStyle: { color: theme.text, fontSize: 12 },
+    extraCssText: 'box-shadow:0 18px 45px rgba(40,16,68,.16);border-radius:12px;backdrop-filter:blur(16px);',
+    formatter
+  }
+}
+
+const axisTextStyle = () => {
+  const theme = getChartTheme()
+  return {
+    axisLabel: { color: theme.muted, fontSize: 11 },
+    axisLine: { lineStyle: { color: theme.line } },
+    axisTick: { lineStyle: { color: theme.line } },
+    splitLine: { lineStyle: { color: theme.line, type: 'dashed' } },
+    nameTextStyle: { color: theme.muted, fontWeight: 700 }
+  }
+}
+
+const themedGradient = (direction = 'vertical') => {
+  const theme = getChartTheme()
+  const coords = direction === 'horizontal' ? [0, 0, 1, 0] : [0, 0, 0, 1]
+  return new echarts.graphic.LinearGradient(...coords, [
+    { offset: 0, color: theme.primary },
+    { offset: 1, color: theme.secondary }
+  ])
+}
+
+const contentStatsCards = computed(() => [
+  { key: 'articles', icon: '📝', label: '文章数', value: statistics.value.totalUserArticles || topicsData.value.totalContents || 0 },
+  { key: 'tags', icon: '🏷️', label: '标签数', value: statistics.value.totalTags || tagCloudData.value.length || 0 },
+  { key: 'categories', icon: '📁', label: '分类数', value: statistics.value.totalCategories || categoryData.value.length || 0 },
+  { key: 'relations', icon: '🔗', label: '关系数', value: graphData.value?.edges?.length || 0 }
+])
+
+const activeTabName = computed(() => tabs.find(tab => tab.key === activeTab.value)?.name || '标签分类图谱')
+
+const resizeCharts = () => {
+  ;[graphChart, tagBarChart, cooccurrenceChart, categoryChart, pieChart].forEach(chart => chart?.resize())
+}
+
+const refreshCharts = () => {
+  renderGraph()
+  renderTagBarChart()
+  renderCooccurrence()
+  renderCategoryChart()
+  renderPieChart()
+}
+
+const handleThemeColorChange = async () => {
+  await nextTick()
+  refreshCharts()
+}
 
 const goBack = () => {
   router.push('/')
@@ -160,20 +252,27 @@ const renderGraph = () => {
 
   if (graphChart) graphChart.dispose()
   graphChart = echarts.init(chartDom)
+  const theme = getChartTheme()
 
   const nodes = (graphData.value.nodes || []).map(node => ({
     id: node.id,
     name: node.name,
-    symbolSize: Math.min(50, 15 + (node.count || 5) / 2),
-    category: node.type,
+    symbolSize: Math.min(64, 18 + (node.count || 5) / 2),
+    category: node.type === 'tag' ? 0 : 1,
     count: node.count,
+    contentCount: node.contentCount,
     itemStyle: {
-      color: node.type === 'tag' ? '#ee6666' : '#5470c6'
+      color: node.type === 'tag' ? theme.primary : theme.secondary,
+      borderColor: isDark.value ? 'rgba(255, 255, 255, 0.38)' : 'rgba(255, 255, 255, 0.94)',
+      borderWidth: 2,
+      shadowBlur: 18,
+      shadowColor: node.type === 'tag' ? `rgba(${theme.primaryRgb}, 0.28)` : `rgba(${theme.secondaryRgb}, 0.28)`
     },
     label: {
       show: true,
       formatter: node.name,
       fontSize: 11,
+      color: theme.text,
       position: 'right'
     }
   }))
@@ -183,39 +282,41 @@ const renderGraph = () => {
     target: edge.target,
     lineStyle: {
       width: Math.min(4, (edge.weight || 1) / 3),
-      curveness: 0.2,
-      color: '#999'
+      curveness: 0.22,
+      color: `rgba(${theme.primaryRgb}, 0.28)`,
+      opacity: 0.76
     }
   }))
 
   const categories = [
-    { name: '标签', itemStyle: { color: '#ee6666' } },
-    { name: '分类', itemStyle: { color: '#5470c6' } }
+    { name: '标签', itemStyle: { color: theme.primary } },
+    { name: '分类', itemStyle: { color: theme.secondary } }
   ]
 
   graphChart.setOption({
-    title: {
-      text: '标签分类关系图谱',
-      left: 'center',
-      textStyle: { color: isDark.value ? '#fff' : '#333' }
-    },
-    tooltip: {
-      trigger: 'item',
-      formatter: (params) => {
-        if (params.dataType === 'node') {
-          return `${params.data.name}<br/>使用次数: ${params.data.count || 0}次`
-        }
-        return `${params.data.source} → ${params.data.target}<br/>关联强度: ${params.data.lineStyle.width}`
+    color: [theme.primary, theme.secondary],
+    title: chartTitle('标签分类关系图谱', '展示文章标签、分类与内容语义之间的关联结构'),
+    tooltip: chartTooltip((params) => {
+      if (params.dataType === 'node') {
+        return `${params.data.name}<br/>使用次数：${params.data.count || 0}次<br/>关联文章：${params.data.contentCount || 0}篇`
       }
+      return `${params.data.source} → ${params.data.target}<br/>关联强度：${params.data.lineStyle.width}`
+    }),
+    legend: {
+      top: 24,
+      right: 24,
+      textStyle: { color: theme.muted },
+      itemWidth: 10,
+      itemHeight: 10
     },
     series: [{
       type: 'graph',
       layout: 'force',
       force: {
-        repulsion: 500,
-        edgeLength: [80, 150],
-        gravity: 0.1,
-        friction: 0.1
+        repulsion: 680,
+        edgeLength: [92, 180],
+        gravity: 0.08,
+        friction: 0.22
       },
       categories: categories,
       data: nodes,
@@ -229,6 +330,7 @@ const renderGraph = () => {
         show: true,
         position: 'right',
         fontSize: 11,
+        color: theme.text,
         offset: [5, 0]
       },
       lineStyle: {
@@ -237,13 +339,14 @@ const renderGraph = () => {
       },
       emphasis: {
         focus: 'adjacency',
-        lineStyle: { width: 3, color: '#2c3e50' }
-      }
+        scale: true,
+        lineStyle: { width: 4, color: theme.secondary, opacity: 0.9 }
+      },
+      animationDurationUpdate: 900,
+      animationEasingUpdate: 'quinticInOut'
     }],
     backgroundColor: 'transparent'
   })
-
-  window.addEventListener('resize', () => graphChart?.resize())
 }
 
 // 渲染标签柱状图（替代标签云）
@@ -260,63 +363,57 @@ const renderTagBarChart = () => {
   const sortedData = [...tagCloudData.value].sort((a, b) => b.value - a.value).slice(0, 20)
   const names = sortedData.map(item => item.name)
   const values = sortedData.map(item => item.value)
+  const theme = getChartTheme()
+  const axis = axisTextStyle()
 
   tagBarChart.setOption({
-    title: {
-      text: '标签使用排行 TOP 20',
-      left: 'center',
-      textStyle: { color: isDark.value ? '#fff' : '#333' }
-    },
+    title: chartTitle('标签使用排行 TOP 20', '按使用频率呈现内容关注点'),
     tooltip: {
-      trigger: 'axis',
+      ...chartTooltip((params) => `${params[0].name}<br/>使用次数：${params[0].value}次`, 'axis'),
       axisPointer: { type: 'shadow' },
-      formatter: (params) => {
-        return `${params[0].name}<br/>使用次数: ${params[0].value}次`
-      }
     },
     grid: {
       containLabel: true,
-      left: '12%',
-      right: '5%',
-      bottom: '5%',
-      top: '15%'
+      left: 56,
+      right: 32,
+      bottom: 54,
+      top: 72
     },
     xAxis: {
       type: 'category',
       data: names,
+      ...axis,
       axisLabel: {
+        ...axis.axisLabel,
         rotate: 45,
-        interval: 0,
-        fontSize: 11,
-        color: isDark.value ? '#9ca3af' : '#6b7280'
+        interval: 0
       }
     },
     yAxis: {
       type: 'value',
       name: '使用次数',
-      nameTextStyle: { color: isDark.value ? '#9ca3af' : '#6b7280' }
+      ...axis
     },
     series: [{
       type: 'bar',
       data: values,
+      barWidth: '46%',
       itemStyle: {
-        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: '#c026d3' },
-          { offset: 1, color: '#7c3aed' }
-        ]),
-        borderRadius: [4, 4, 0, 0]
+        color: themedGradient('vertical'),
+        borderRadius: [9, 9, 2, 2],
+        shadowBlur: 12,
+        shadowColor: `rgba(${theme.primaryRgb}, 0.18)`
       },
       label: {
         show: true,
         position: 'top',
         formatter: '{c}',
-        fontSize: 11
+        fontSize: 11,
+        color: theme.muted
       }
     }],
     backgroundColor: 'transparent'
   })
-
-  window.addEventListener('resize', () => tagBarChart?.resize())
 }
 
 // 渲染共现网络
@@ -328,57 +425,69 @@ const renderCooccurrence = () => {
 
   if (cooccurrenceChart) cooccurrenceChart.dispose()
   cooccurrenceChart = echarts.init(chartDom)
+  const theme = getChartTheme()
 
   const nodes = (cooccurrenceData.value.nodes || []).map(node => ({
     id: node.id,
     name: node.name,
-    symbolSize: Math.min(40, 10 + (node.count || 5) / 2),
-    itemStyle: { color: '#ee6666' },
-    label: { show: true, formatter: node.name, fontSize: 11 }
+    symbolSize: Math.min(48, 12 + (node.count || 5) / 2),
+    count: node.count,
+    itemStyle: {
+      color: theme.primary,
+      borderColor: isDark.value ? 'rgba(255, 255, 255, 0.34)' : 'rgba(255, 255, 255, 0.94)',
+      borderWidth: 2,
+      shadowBlur: 16,
+      shadowColor: `rgba(${theme.primaryRgb}, 0.26)`
+    },
+    label: { show: true, formatter: node.name, fontSize: 11, color: theme.text }
   }))
 
   const edges = (cooccurrenceData.value.edges || []).map(edge => ({
     source: edge.source,
     target: edge.target,
-    lineStyle: { width: Math.min(5, (edge.weight || 1) / 2), curveness: 0.2 }
+    weight: edge.weight,
+    lineStyle: {
+      width: Math.min(5, (edge.weight || 1) / 2),
+      curveness: 0.22,
+      color: `rgba(${theme.secondaryRgb}, 0.3)`,
+      opacity: 0.72
+    }
   }))
 
   cooccurrenceChart.setOption({
-    title: {
-      text: '标签共现网络',
-      left: 'center',
-      textStyle: { color: isDark.value ? '#fff' : '#333' },
-      subtext: `共 ${cooccurrenceData.value.statistics?.totalTags || 0} 个标签，${cooccurrenceData.value.statistics?.totalRelations || 0} 个关系`
-    },
-    tooltip: {
-      trigger: 'item',
-      formatter: (params) => {
-        if (params.dataType === 'node') {
-          return `${params.data.name}<br/>使用次数: ${params.data.symbolSize || 0}次`
-        }
-        return `${params.data.source} ↔ ${params.data.target}<br/>共现次数: ${params.data.lineStyle.width * 2}`
+    color: [theme.primary, theme.secondary],
+    title: chartTitle('标签共现网络', `共 ${cooccurrenceData.value.statistics?.totalTags || 0} 个标签 · ${cooccurrenceData.value.statistics?.totalRelations || 0} 个关系`),
+    tooltip: chartTooltip((params) => {
+      if (params.dataType === 'node') {
+        return `${params.data.name}<br/>使用次数：${params.data.count || 0}次`
       }
-    },
+      return `${params.data.source} ↔ ${params.data.target}<br/>共现次数：${params.data.weight || 0}`
+    }),
     series: [{
       type: 'graph',
       layout: 'force',
       force: {
-        repulsion: 800,
-        edgeLength: 120,
-        gravity: 0.1
+        repulsion: 900,
+        edgeLength: 128,
+        gravity: 0.08,
+        friction: 0.22
       },
       data: nodes,
       links: edges,
       roam: true,
       draggable: true,
-      label: { show: true, position: 'right', fontSize: 11 },
-      lineStyle: { color: '#999', curveness: 0.3 },
-      emphasis: { focus: 'adjacency' }
+      label: { show: true, position: 'right', fontSize: 11, color: theme.text },
+      lineStyle: { color: theme.secondary, curveness: 0.3 },
+      emphasis: {
+        focus: 'adjacency',
+        scale: true,
+        lineStyle: { color: theme.primary, width: 4 }
+      },
+      animationDurationUpdate: 900,
+      animationEasingUpdate: 'quinticInOut'
     }],
     backgroundColor: 'transparent'
   })
-
-  window.addEventListener('resize', () => cooccurrenceChart?.resize())
 }
 
 // 渲染分类统计柱状图
@@ -393,55 +502,55 @@ const renderCategoryChart = () => {
 
   const names = categoryData.value.map(c => c.name)
   const values = categoryData.value.map(c => c.value)
+  const theme = getChartTheme()
+  const axis = axisTextStyle()
 
   categoryChart.setOption({
-    title: {
-      text: '分类文章统计',
-      left: 'center',
-      textStyle: { color: isDark.value ? '#fff' : '#333' }
-    },
-    tooltip: {
-      trigger: 'axis',
-      formatter: (params) => {
+    title: chartTitle('分类文章统计', '按分类查看文章数量与占比'),
+    tooltip: chartTooltip((params) => {
         const data = params[0]
         const percentage = categoryData.value[data.dataIndex]?.percentage || 0
-        return `${data.name}<br/>文章数: ${data.value}<br/>占比: ${percentage.toFixed(1)}%`
-      }
-    },
+        return `${data.name}<br/>文章数：${data.value}<br/>占比：${percentage.toFixed(1)}%`
+      }, 'axis'),
     grid: {
       containLabel: true,
-      left: '10%',
-      right: '5%',
-      bottom: '5%',
-      top: '10%'
+      left: 56,
+      right: 32,
+      bottom: 54,
+      top: 72
     },
     xAxis: {
       type: 'category',
       data: names,
-      axisLabel: { rotate: 45, interval: 0, fontSize: 11 },
-      name: '分类'
+      name: '分类',
+      ...axis,
+      axisLabel: { ...axis.axisLabel, rotate: 35, interval: 0 }
     },
     yAxis: {
       type: 'value',
-      name: '文章数'
+      name: '文章数',
+      ...axis
     },
     series: [{
       type: 'bar',
       data: values,
+      barWidth: '44%',
       itemStyle: {
-        color: '#5470c6',
-        borderRadius: [4, 4, 0, 0]
+        color: themedGradient('vertical'),
+        borderRadius: [9, 9, 2, 2],
+        shadowBlur: 12,
+        shadowColor: `rgba(${theme.secondaryRgb}, 0.18)`
       },
       label: {
         show: true,
         position: 'top',
-        formatter: '{c}'
+        formatter: '{c}',
+        color: theme.muted,
+        fontSize: 11
       }
     }],
     backgroundColor: 'transparent'
   })
-
-  window.addEventListener('resize', () => categoryChart?.resize())
 }
 
 // 渲染饼图
@@ -458,47 +567,53 @@ const renderPieChart = () => {
     name: item.name,
     value: item.value
   }))
+  const theme = getChartTheme()
 
   pieChart.setOption({
+    color: [
+      theme.primary,
+      theme.secondary,
+      '#f43f5e',
+      '#f59e0b',
+      '#10b981',
+      '#06b6d4'
+    ],
     tooltip: {
-      trigger: 'item',
-      formatter: '{b}: {d}% ({c}篇)'
+      ...chartTooltip('{b}: {d}% ({c}篇)'),
+      trigger: 'item'
+    },
+    legend: {
+      bottom: 0,
+      textStyle: { color: theme.muted },
+      itemWidth: 10,
+      itemHeight: 10
     },
     series: [{
       type: 'pie',
-      radius: ['40%', '70%'],
+      radius: ['46%', '72%'],
+      center: ['50%', '46%'],
       avoidLabelOverlap: false,
       itemStyle: {
-        borderRadius: 8,
-        borderColor: isDark.value ? '#1a1a1a' : '#fff',
+        borderRadius: 10,
+        borderColor: isDark.value ? '#12091a' : '#fff',
         borderWidth: 2
       },
       label: {
         show: true,
         formatter: '{b}: {d}%',
-        fontSize: 11
+        fontSize: 11,
+        color: theme.muted
       },
       emphasis: {
         scale: true,
-        label: { show: true, fontWeight: 'bold' }
+        scaleSize: 8,
+        label: { show: true, fontWeight: 'bold', color: theme.text }
       },
       data: data
     }],
     backgroundColor: 'transparent'
   })
-
-  window.addEventListener('resize', () => pieChart?.resize())
 }
-
-// 监听主题变化
-watch(isDark, async () => {
-  await nextTick()
-  renderGraph()
-  renderTagBarChart()
-  renderCooccurrence()
-  renderCategoryChart()
-  renderPieChart()
-})
 
 // 监听tab切换
 watch(activeTab, async (newTab) => {
@@ -508,14 +623,17 @@ watch(activeTab, async (newTab) => {
   else if (newTab === 'cooccurrence') renderCooccurrence()
   else if (newTab === 'category') renderCategoryChart()
   else if (newTab === 'topics') renderPieChart()
+  resizeCharts()
 })
 
 onMounted(() => {
   checkTheme()
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style'] })
+  window.addEventListener('theme-color-change', handleThemeColorChange)
+  window.addEventListener('resize', resizeCharts)
   loadData()
 
-  const observerScroll = new IntersectionObserver((entries) => {
+  observerScroll = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('animated')
@@ -527,6 +645,9 @@ onMounted(() => {
 
 onUnmounted(() => {
   observer.disconnect()
+  observerScroll?.disconnect()
+  window.removeEventListener('theme-color-change', handleThemeColorChange)
+  window.removeEventListener('resize', resizeCharts)
   ;[graphChart, tagBarChart, cooccurrenceChart, categoryChart, pieChart].forEach(chart => {
     if (chart) chart.dispose()
   })
@@ -547,23 +668,48 @@ onUnmounted(() => {
       @logoClick="handleLogoClick"
     />
 
-    <!-- Tab 切换 -->
-    <div class="tabs-container scroll-animate">
-      <div class="tabs-bar">
-        <button
-          v-for="tab in tabs"
-          :key="tab.key"
-          @click="activeTab = tab.key"
-          class="tab-btn"
-          :class="{
-            active: activeTab === tab.key,
-            [isDark ? 'dark' : 'light']: true
-          }"
-        >
-          <span class="tab-icon">{{ tab.icon }}</span>
-          <span>{{ tab.name }}</span>
-        </button>
+    <main class="graph-shell">
+      <section class="graph-hero scroll-animate">
+        <div class="hero-copy">
+          <span class="hero-kicker">Content Intelligence</span>
+          <h1>文章知识图谱</h1>
+          <p>把你发布过的文章、标签、分类和主题分布整理成一张可探索的内容关系网。</p>
+        </div>
+        <div class="hero-panel">
+          <span class="panel-label">当前视图</span>
+          <strong>{{ activeTabName }}</strong>
+          <div class="panel-meta">
+            <span>{{ statistics.topTag || '暂无热门标签' }}</span>
+            <span>{{ statistics.topCategory || '暂无热门分类' }}</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="stats-cards">
+        <div v-for="item in contentStatsCards" :key="item.key" class="stat-card scroll-animate">
+          <div class="stat-icon">{{ item.icon }}</div>
+          <div class="stat-value">{{ formatNumber(item.value) }}</div>
+          <div class="stat-label">{{ item.label }}</div>
+        </div>
       </div>
+
+      <!-- Tab 切换 -->
+      <div class="tabs-container scroll-animate">
+        <div class="tabs-bar">
+          <button
+            v-for="tab in tabs"
+            :key="tab.key"
+            @click="activeTab = tab.key"
+            class="tab-btn"
+            :class="{
+              active: activeTab === tab.key,
+              [isDark ? 'dark' : 'light']: true
+            }"
+          >
+            <span class="tab-icon">{{ tab.icon }}</span>
+            <span>{{ tab.name }}</span>
+          </button>
+        </div>
 
       <!-- 标签分类图谱 -->
       <div v-show="activeTab === 'graph'" class="tab-content">
@@ -641,7 +787,8 @@ onUnmounted(() => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </main>
 
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-overlay">
@@ -999,6 +1146,430 @@ onUnmounted(() => {
   .pie-chart {
     width: 280px;
     height: 280px;
+  }
+}
+/* Modern graph dashboard overrides */
+.knowledge-graph-container {
+  min-height: 100vh;
+  padding: 0;
+  color: var(--app-text);
+  background: var(--app-surface);
+}
+
+.knowledge-graph-container.dark {
+  background: var(--app-surface);
+}
+
+.graph-shell {
+  width: min(1320px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 104px 0 56px;
+}
+
+.graph-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 20px;
+}
+
+.hero-copy,
+.hero-panel,
+.stat-card,
+.chart-container,
+.topics-container {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--app-card-border);
+  background: var(--app-card);
+  box-shadow: var(--app-card-shadow);
+  backdrop-filter: blur(20px);
+}
+
+.hero-copy {
+  min-height: 180px;
+  border-radius: 22px;
+  padding: 30px;
+}
+
+.hero-copy::after,
+.chart-container::after,
+.topics-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(var(--theme-primary-rgb), 0.12), transparent 34%),
+    linear-gradient(315deg, rgba(var(--theme-secondary-rgb), 0.1), transparent 38%);
+}
+
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--theme-primary-rgb), 0.2);
+  color: rgb(var(--color-brand-600));
+  background: rgba(var(--theme-primary-rgb), 0.1);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.hero-copy h1 {
+  margin: 18px 0 10px;
+  color: var(--app-text);
+  font-size: clamp(32px, 4vw, 56px);
+  font-weight: 900;
+  line-height: 1.04;
+  letter-spacing: 0;
+}
+
+.hero-copy p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.hero-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 22px;
+  padding: 26px;
+  background:
+    linear-gradient(135deg, rgba(var(--theme-primary-rgb), 0.16), rgba(var(--theme-secondary-rgb), 0.1)),
+    var(--app-card);
+}
+
+.panel-label {
+  color: var(--app-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.hero-panel strong {
+  margin-top: 14px;
+  color: var(--app-text);
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.12;
+}
+
+.panel-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.panel-meta span {
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--theme-primary-rgb), 0.18);
+  color: var(--app-text-secondary);
+  background: rgba(255, 255, 255, 0.48);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dark .panel-meta span {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.stats-cards {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  max-width: none;
+  margin: 0 0 22px;
+}
+
+.stat-card {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  grid-template-areas:
+    'icon value'
+    'icon label';
+  column-gap: 14px;
+  align-items: center;
+  min-height: 118px;
+  border-radius: 18px;
+  padding: 20px;
+  text-align: left;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  inset: auto 18px 0;
+  height: 3px;
+  border-radius: 999px 999px 0 0;
+  background: var(--theme-gradient);
+  opacity: 0.8;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--app-card-shadow-hover);
+}
+
+.stat-icon {
+  grid-area: icon;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  margin: 0;
+  border-radius: 14px;
+  color: white;
+  background: var(--theme-gradient);
+  box-shadow: 0 16px 32px -22px rgba(var(--theme-primary-rgb), 0.9);
+  font-size: 21px;
+}
+
+.stat-value {
+  grid-area: value;
+  background: var(--theme-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.stat-label {
+  grid-area: label;
+  margin: 6px 0 0;
+  color: var(--app-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tabs-container {
+  max-width: none;
+}
+
+.tabs-bar {
+  justify-content: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 8px;
+  border: 1px solid var(--app-card-border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.56);
+  box-shadow: var(--app-card-shadow);
+  backdrop-filter: blur(16px);
+}
+
+.dark .tabs-bar {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tab-btn {
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.tab-btn.light,
+.tab-btn.dark {
+  color: var(--app-text-secondary);
+  background: transparent;
+}
+
+.tab-btn:hover {
+  border-color: rgba(var(--theme-primary-rgb), 0.18);
+  color: rgb(var(--color-brand-600));
+  background: rgba(var(--theme-primary-rgb), 0.08);
+}
+
+.tab-btn.active {
+  color: white;
+  background: var(--theme-gradient);
+  box-shadow: 0 18px 34px -24px rgba(var(--theme-primary-rgb), 0.92);
+}
+
+.tab-content {
+  position: relative;
+}
+
+.chart-header {
+  position: absolute;
+  z-index: 2;
+  top: 22px;
+  left: 24px;
+  margin: 0;
+  text-align: left;
+}
+
+.chart-header h3 {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.chart-desc {
+  margin: 6px 0 0;
+  color: var(--app-text-muted);
+  font-size: 12px;
+}
+
+.chart-container {
+  border-radius: 22px;
+  padding: 18px;
+}
+
+.chart {
+  position: relative;
+  z-index: 1;
+  height: 590px;
+}
+
+.topics-container {
+  border-radius: 22px;
+  padding: 28px;
+  background: var(--app-card) !important;
+}
+
+.topics-section,
+.empty-tip {
+  position: relative;
+  z-index: 1;
+}
+
+.topics-section h4 {
+  color: var(--app-text);
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.topic-item {
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid rgba(var(--theme-primary-rgb), 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.dark .topic-item {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.topic-rank {
+  background: var(--theme-gradient);
+}
+
+.topic-name {
+  color: var(--app-text-secondary);
+  font-weight: 800;
+}
+
+.topic-count {
+  color: var(--app-text-muted);
+}
+
+.topic-bar {
+  background: rgba(var(--theme-primary-rgb), 0.1);
+}
+
+.topic-bar-fill {
+  background: var(--theme-gradient);
+}
+
+.pie-chart {
+  width: min(460px, 100%);
+  height: 380px;
+}
+
+.empty-tip p {
+  color: var(--app-text-muted);
+}
+
+.loading-overlay {
+  background: rgba(12, 6, 20, 0.54);
+  backdrop-filter: blur(12px);
+}
+
+.loading-spinner {
+  border-color: rgba(var(--theme-primary-rgb), 0.18);
+  border-top-color: var(--theme-primary);
+}
+
+@media (max-width: 1024px) {
+  .graph-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .graph-shell {
+    width: min(100% - 24px, 1320px);
+    padding-top: 88px;
+  }
+
+  .hero-copy,
+  .hero-panel {
+    padding: 22px;
+    border-radius: 18px;
+  }
+
+  .hero-copy h1 {
+    font-size: 34px;
+  }
+
+  .stats-cards {
+    grid-template-columns: 1fr;
+    margin-top: 0;
+  }
+
+  .tabs-bar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+
+  .tab-btn {
+    flex: 0 0 auto;
+    padding: 0 14px;
+  }
+
+  .chart-header {
+    position: static;
+    margin: 0 0 12px;
+  }
+
+  .chart {
+    height: 420px;
+  }
+
+  .chart-container,
+  .topics-container {
+    border-radius: 18px;
+    padding: 16px;
+  }
+
+  .topic-name,
+  .topic-count {
+    width: auto;
+  }
+
+  .pie-chart {
+    height: 320px;
   }
 }
 </style>

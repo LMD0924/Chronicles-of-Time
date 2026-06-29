@@ -4,11 +4,11 @@ export const ThemeType = {
 };
 
 export const THEME_COLOR_PRESETS = [
-  { key: 'pink-purple', name: '粉紫', primary: '#d946ef', secondary: '#8b5cf6' },
-  { key: 'rose-violet', name: '玫紫', primary: '#e11d48', secondary: '#7c3aed' },
-  { key: 'cyan-purple', name: '青紫', primary: '#06b6d4', secondary: '#9333ea' },
-  { key: 'orange-pink', name: '橙粉', primary: '#f97316', secondary: '#ec4899' },
-  { key: 'blue-violet', name: '蓝紫', primary: '#2563eb', secondary: '#8b5cf6' }
+  { key: 'pink-purple', name: '玫紫', primary: '#c026d3', secondary: '#6d28d9' },
+  { key: 'rose-violet', name: '蔷薇', primary: '#db2777', secondary: '#7c3aed' },
+  { key: 'cyan-purple', name: '青紫', primary: '#0891b2', secondary: '#7e22ce' },
+  { key: 'orange-pink', name: '暖粉', primary: '#ea580c', secondary: '#db2777' },
+  { key: 'blue-violet', name: '蓝紫', primary: '#2563eb', secondary: '#7c3aed' }
 ];
 
 const THEME_STORAGE_KEY = 'app_theme';
