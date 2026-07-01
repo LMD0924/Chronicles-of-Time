@@ -1,4 +1,7 @@
-﻿export const TOKEN_KEY = 'cot_admin_token'
+/**
+ * 文件说明：拾光记后台管理系统通用工具脚本模块，封装通用工具相关的配置、状态、路由或工具逻辑。
+ */
+export const TOKEN_KEY = 'cot_admin_token'
 export const USER_KEY = 'cot_admin_user'
 export const SETTINGS_KEY = 'cot_admin_settings'
 

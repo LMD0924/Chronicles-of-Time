@@ -1,4 +1,7 @@
-﻿<script setup>
+<!--
+  文件说明：拾光记后台管理系统后台框架布局页面组件，承载后台框架布局场景的界面展示、交互操作和数据承接。
+-->
+<script setup>
 import { computed, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useAppStore } from '@/stores/app'

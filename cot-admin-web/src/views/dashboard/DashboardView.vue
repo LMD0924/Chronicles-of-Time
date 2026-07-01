@@ -1,4 +1,7 @@
-﻿<script setup>
+<!--
+  文件说明：拾光记后台管理系统数据驾驶舱页面组件，承载数据驾驶舱场景的界面展示、交互操作和数据承接。
+-->
+<script setup>
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Bell, Document, Histogram, Notebook, User, UserFilled } from '@element-plus/icons-vue'

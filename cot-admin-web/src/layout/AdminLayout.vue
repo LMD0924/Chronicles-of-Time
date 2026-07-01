@@ -1,4 +1,7 @@
-﻿<script setup>
+<!--
+  文件说明：拾光记后台管理系统后台框架布局页面组件，承载后台框架布局场景的界面展示、交互操作和数据承接。
+-->
+<script setup>
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useFullscreen } from '@vueuse/core'
@@ -16,10 +19,14 @@ const userStore = useUserStore()
 const { toggle: toggleFullscreen } = useFullscreen()
 const settingsVisible = ref(false)
 
+// 当前路由路径直接驱动侧边栏高亮，保证刷新和深链进入时菜单状态一致。
 const activeMenu = computed(() => route.path)
 const breadcrumbs = computed(() => route.matched.filter((item) => item.meta?.title))
 const keepAliveNames = computed(() => appStore.cachedViews)
 
+
+
+// 退出登录前二次确认，确认后清理 Pinia/localStorage 登录态并回到登录页。
 const logout = async () => {
   await ElMessageBox.confirm('确认退出拾光记后台管理系统？', '退出登录', { type: 'warning' })
   userStore.logout()
@@ -34,7 +41,8 @@ const reloadPage = () => {
 
 <template>
   <el-container class="admin-layout">
-    <el-aside class="admin-sidebar" :width="appStore.collapsed ? '64px' : '248px'">
+    <!-- 侧边栏宽度由 Pinia 持久化状态控制，刷新后仍保持折叠或展开。 -->
+<el-aside class="admin-sidebar" :width="appStore.collapsed ? '64px' : '248px'">
       <div class="brand" :class="{ collapsed: appStore.collapsed }">
         <div class="brand-mark">拾</div>
         <div v-show="!appStore.collapsed" class="brand-text">
@@ -99,6 +107,7 @@ const reloadPage = () => {
       </el-header>
 
       <el-main class="admin-main">
+                <!-- router-view + keep-alive 组合支持页面缓存，动画开关由系统设置统一控制。 -->
         <router-view v-slot="{ Component, route: currentRoute }">
           <transition :name="appStore.state.animation ? 'page' : ''" mode="out-in">
             <keep-alive :include="keepAliveNames">

@@ -1,4 +1,7 @@
-﻿<script setup>
+<!--
+  文件说明：拾光记后台管理系统系统监控页面组件，承载系统监控场景的界面展示、交互操作和数据承接。
+-->
+<script setup>
 import EnterpriseCrud from '@/components/crud/EnterpriseCrud.vue'
 
 const moduleConfig = {

@@ -1,10 +1,14 @@
-﻿<script setup>
+<!--
+  文件说明：拾光记后台管理系统通用组件页面组件，承载通用组件场景的界面展示、交互操作和数据承接。
+-->
+<script setup>
 import { computed, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete, Download, Edit, Plus, Refresh, Search } from '@element-plus/icons-vue'
 import BaseChart from '@/components/charts/BaseChart.vue'
 import { crudApi, makeRows } from '@/api/mock'
 
+// 通用企业 CRUD 组件通过 module 配置驱动页面标题、分类、权限点和模拟数据。
 const props = defineProps({
   module: { type: Object, required: true },
 })
@@ -30,6 +34,9 @@ const pendingCount = computed(() => allRows.value.filter((item) => item.status =
 const riskCount = computed(() => allRows.value.filter((item) => ['待审核', '已下架', '禁用'].includes(item.status)).length)
 const activeRate = computed(() => Math.round((statusCount.value.find((item) => item.status === '正常')?.value || 0) / allRows.value.length * 100))
 
+
+
+// 顶部指标卡把列表数据转成运营视角，解决后台页面只有表格、不够直观的问题。
 const insightCards = computed(() => [
   { label: '总数据量', value: allRows.value.length, suffix: '条', tone: 'primary', desc: '当前模块全部记录' },
   { label: '待处理', value: pendingCount.value, suffix: '条', tone: 'warning', desc: '需要审核或跟进' },
@@ -37,6 +44,9 @@ const insightCards = computed(() => [
   { label: '累计访问', value: totalViews.value, suffix: '次', tone: 'info', desc: '模拟业务热度' },
 ])
 
+
+
+// 图表数据由同一份模块数据派生，真实接入时只需要替换 crudApi.list 或新增统计接口。
 const trendOption = computed(() => {
   const base = props.module.key.length * 13
   return {
@@ -102,6 +112,9 @@ const rules = {
   status: [{ required: true, message: '请选择状态', trigger: 'change' }],
 }
 
+
+
+// 所有列表查询统一通过 query 对象驱动，分页、筛选和重置保持同一套状态。
 const fetchData = async () => {
   loading.value = true
   const data = await crudApi.list(props.module, query)
@@ -129,6 +142,9 @@ const openEdit = (row) => {
   dialogVisible.value = true
 }
 
+
+
+// 弹窗提交前先走 Element Plus 表单校验，再触发新增或编辑后的列表刷新。
 const submit = async () => {
   await formRef.value.validate()
   ElMessage.success(dialogMode.value === 'create' ? '新增成功' : '编辑成功')

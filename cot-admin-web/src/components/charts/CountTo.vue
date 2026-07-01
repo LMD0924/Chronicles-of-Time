@@ -1,4 +1,7 @@
-﻿<script setup>
+<!--
+  文件说明：拾光记后台管理系统通用组件页面组件，承载通用组件场景的界面展示、交互操作和数据承接。
+-->
+<script setup>
 import { onMounted, ref, watch } from 'vue'
 
 const props = defineProps({ value: { type: Number, required: true }, duration: { type: Number, default: 700 } })

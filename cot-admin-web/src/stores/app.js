@@ -1,7 +1,11 @@
-﻿import { defineStore } from 'pinia'
+/**
+ * 文件说明：拾光记后台管理系统全局状态脚本模块，封装全局状态相关的配置、状态、路由或工具逻辑。
+ */
+import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { SETTINGS_KEY } from '@/utils/auth'
 
+// 系统设置默认值会与 localStorage 中的用户偏好合并，实现侧边栏、主题和缓存记忆。
 const defaults = {
   collapsed: false,
   dark: false,
@@ -11,6 +15,9 @@ const defaults = {
   cachePages: true,
 }
 
+
+
+// 将用户输入或色板返回值统一规范成 6 位十六进制颜色，避免 CSS 变量写入非法值。
 const normalizeHex = (color) => {
   if (!color) return defaults.primaryColor
   if (/^#[0-9a-fA-F]{6}$/.test(color)) return color.toLowerCase()
@@ -32,6 +39,9 @@ const hexToRgb = (hex) => {
 
 const rgbToHex = ({ r, g, b }) => `#${[r, g, b].map((value) => Math.round(value).toString(16).padStart(2, '0')).join('')}`
 
+
+
+// 根据主色生成亮色、暗色和柔和背景色，保证 Element Plus 组件和自定义样式同步换肤。
 const mix = (color, target, weight) => {
   const source = hexToRgb(color)
   const targetRgb = hexToRgb(target)
@@ -51,6 +61,9 @@ export const useAppStore = defineStore('app', () => {
     set: (value) => { state.value.collapsed = value },
   })
 
+
+
+  // 把主题状态同步到 html/body/#app，覆盖 Element Plus 与业务 CSS 依赖的变量。
   const applyTheme = () => {
     const color = normalizeHex(state.value.primaryColor)
     state.value.primaryColor = color
@@ -81,6 +94,9 @@ export const useAppStore = defineStore('app', () => {
     applyTheme()
   }
 
+
+
+  // keep-alive 名单只记录需要缓存的页面名称，避免无界增长和重复缓存。
   const addCachedView = (name) => {
     if (state.value.cachePages && name && !cachedViews.value.includes(name)) cachedViews.value.push(name)
   }

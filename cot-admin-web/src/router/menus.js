@@ -1,4 +1,7 @@
-﻿import {
+/**
+ * 文件说明：拾光记后台管理系统路由与菜单脚本模块，封装路由与菜单相关的配置、状态、路由或工具逻辑。
+ */
+import {
   Aim,
   Bell,
   Briefcase,
@@ -36,6 +39,7 @@
   Warning,
 } from '@element-plus/icons-vue'
 
+// Element Plus 图标统一映射，菜单只保存字符串标识，避免把组件实例直接写进业务配置。
 export const iconMap = {
   Aim,
   Bell,
@@ -74,6 +78,10 @@ export const iconMap = {
   Warning,
 }
 
+
+
+// 后台侧边栏的唯一菜单源：页面标题、图标、组件路径和缓存信息都从这里生成。
+// 新增后台模块时优先维护这个数组，路由表会通过 toRouteRecords 自动展开为真实路由。
 export const adminMenus = [
   { path: '/dashboard', name: 'Dashboard', title: '首页控制台', icon: 'House', component: 'dashboard/DashboardView', affix: true },
   {
@@ -146,8 +154,14 @@ export const adminMenus = [
   },
 ]
 
+
+
+// Vite 会在构建期收集 views 下的 Vue 页面，运行时按菜单中的 component 字段懒加载。
 const viewModules = import.meta.glob('@/views/**/*.vue')
 
+
+
+// 将多级菜单扁平化为 vue-router 子路由，父级只负责分组，叶子节点才对应实际页面。
 export const toRouteRecords = (menus) => menus.flatMap((item) => {
   if (item.children?.length) return toRouteRecords(item.children)
   return [{
