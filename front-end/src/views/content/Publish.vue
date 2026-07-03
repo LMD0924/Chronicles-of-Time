@@ -1,3 +1,6 @@
+<!--
+  文件说明：拾光记前台应用内容社区页面组件，承载内容社区场景的界面展示、交互操作和数据承接。
+-->
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'

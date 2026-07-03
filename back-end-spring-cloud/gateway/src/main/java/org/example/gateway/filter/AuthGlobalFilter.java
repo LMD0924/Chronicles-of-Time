@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记微服务后端网关网关过滤源码，负责网关过滤相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
+ */
 package org.example.gateway.filter;
 
 import lombok.RequiredArgsConstructor;
@@ -15,47 +18,25 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
-/*
- * @Author:总会落叶
- * @Date:2026/3/25
- * @Description: 网关认证过滤器 - 使用common模块的JwtUtil
+/**
+ * 类说明：当前类是网关过滤模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
-    private final JwtUtil jwtUtil;  // ✅ 注入common模块的JwtUtil
+    private final JwtUtil jwtUtil;
     private final ReactiveRedisTemplate<String, String> redisTemplate;
 
-    /**
-     * 支持两种配置写法：
-     * 1) 逗号分隔字符串：/api/auth/login,/api/auth/refresh,/actuator/health
-     * 2) YAML 列表：
-     *    - /api/auth/login
-     *    - /api/auth/refresh
-     *    - /actuator/health
-     */
-    @Value("${auth.white-list:/api/auth/login,/api/auth/refresh,/api/actuator/health}")
+    @Value("${auth.white-list:/api/auth/login,/api/auth/register,/api/auth/refresh,/api/actuator/health}")
     private String whiteListRaw;
-
-    private List<String> parseWhiteList() {
-        // 兼容 Spring 将 YAML list 转成形如 [a, b, c] 的情况
-        String raw = whiteListRaw;
-        if (raw == null) {
-            return Collections.emptyList();
-        }
-        raw = raw.replace("[", "").replace("]", "");
-        return Arrays.stream(raw.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
-    }
 
     private static final String ACCESS_TOKEN_PREFIX = "access_token:";
     private static final String TOKEN_BLACKLIST_PREFIX = "blacklist:";
@@ -65,85 +46,75 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
-        // 1. 白名单放行
         if (isWhiteListed(path)) {
-            log.debug("白名单路径: {}", path);
             return chain.filter(exchange);
         }
 
-        // 2. 获取 Token
+
         String token = extractToken(request);
         if (token == null) {
-            log.warn("未提供Token: {}", path);
             return unauthorized(exchange, "未提供认证Token");
         }
-
-        // 3. 检查 Token 格式
         if (token.chars().filter(ch -> ch == '.').count() != 2) {
-            log.warn("Token格式错误: {}", token);
             return unauthorized(exchange, "Token格式错误");
         }
-
-        // 4. 验证 Token ✅ 使用common模块的JwtUtil
         if (!jwtUtil.validateToken(token)) {
-            log.warn("Token无效: {}", token);
             return unauthorized(exchange, "Token无效或已过期");
         }
 
-        // 4. 检查黑名单
-        String blacklistKey = TOKEN_BLACKLIST_PREFIX + token;
-        return redisTemplate.hasKey(blacklistKey)
+
+
+        // Redis 同时承担黑名单和在线 token 校验，支持服务端主动踢下线和注销后即时失效。
+        return redisTemplate.hasKey(TOKEN_BLACKLIST_PREFIX + token)
                 .flatMap(isBlacklisted -> {
                     if (Boolean.TRUE.equals(isBlacklisted)) {
-                        log.warn("Token已被注销: {}", token);
                         return unauthorized(exchange, "Token已被注销");
                     }
-
-                    // 5. 检查 Redis 缓存
-                    String accessKey = ACCESS_TOKEN_PREFIX + token;
-                    return redisTemplate.hasKey(accessKey)
+                    return redisTemplate.hasKey(ACCESS_TOKEN_PREFIX + token)
                             .flatMap(exists -> {
                                 if (Boolean.FALSE.equals(exists)) {
-                                    log.warn("Token已失效: {}", token);
                                     return unauthorized(exchange, "Token已失效");
                                 }
 
-                                // 6. 从 Token 中提取用户信息 ✅ 使用common模块的JwtUtil
                                 Long userId = jwtUtil.getUserIdFromToken(token);
                                 String username = jwtUtil.getUsernameFromToken(token);
                                 String role = jwtUtil.getRoleFromToken(token);
+                                String roles = String.join(",", jwtUtil.getRolesFromToken(token));
+                                String permissions = String.join(",", jwtUtil.getPermissionsFromToken(token));
 
-                                // 7. 将用户信息添加到请求头中，传递给下游服务
+
+
+                                // 将用户身份透传给下游服务，下游可通过请求头构造 AuthContext。
                                 ServerHttpRequest mutatedRequest = request.mutate()
                                         .header("X-User-Id", String.valueOf(userId))
                                         .header("X-Username", username)
                                         .header("X-User-Role", role)
+                                        .header("X-User-Roles", roles)
+                                        .header("X-User-Permissions", permissions)
                                         .header("X-Auth-Token", token)
                                         .build();
-
-                                log.debug("认证通过: userId={}, username={}, role={}, path={}",
-                                        userId, username, role, path);
-
+                                log.debug("认证通过: userId={}, username={}, roles={}, path={}", userId, username, roles, path);
                                 return chain.filter(exchange.mutate().request(mutatedRequest).build());
                             });
                 });
     }
 
-    /**
-     * 检查是否为白名单路径
-     */
     private boolean isWhiteListed(String path) {
-        List<String> whiteList = parseWhiteList();
-        return whiteList.stream().anyMatch(path::startsWith);
+        return parseWhiteList().stream().anyMatch(path::startsWith);
     }
 
-    /**
-     * 从请求中提取 Token
-     */
-    private String extractToken(ServerHttpRequest request) {
-        HttpHeaders headers = request.getHeaders();
-        List<String> authHeaders = headers.get(HttpHeaders.AUTHORIZATION);
+    private List<String> parseWhiteList() {
+        if (whiteListRaw == null) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(whiteListRaw.replace("[", "").replace("]", "").split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+    }
 
+    private String extractToken(ServerHttpRequest request) {
+        List<String> authHeaders = request.getHeaders().get(HttpHeaders.AUTHORIZATION);
         if (authHeaders != null && !authHeaders.isEmpty()) {
             String authHeader = authHeaders.get(0);
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -153,20 +124,17 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         return null;
     }
 
-    /**
-     * 返回未授权响应
-     */
     private Mono<Void> unauthorized(ServerWebExchange exchange, String message) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-        exchange.getResponse().getHeaders().add("Content-Type", "application/json");
-        String body = String.format("{\"code\":401,\"message\":\"%s\"}", message);
+        exchange.getResponse().getHeaders().add("Content-Type", "application/json;charset=UTF-8");
+        String body = String.format("{\"code\":401,\"msg\":\"%s\"}", message);
         return exchange.getResponse().writeWith(
-                Mono.just(exchange.getResponse().bufferFactory().wrap(body.getBytes()))
+                Mono.just(exchange.getResponse().bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8)))
         );
     }
 
     @Override
     public int getOrder() {
-        return -100; // 优先级最高
+        return -100;
     }
 }

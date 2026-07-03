@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记前台应用通用工具脚本模块，封装通用工具相关的配置、状态、路由或工具逻辑。
+ */
 export const ThemeType = {
   LIGHT: 'light',
   DARK: 'dark'

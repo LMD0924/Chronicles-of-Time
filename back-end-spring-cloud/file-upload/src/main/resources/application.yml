@@ -1,3 +1,4 @@
+# 文件说明：拾光记微服务后端文件上传服务配置文件，统一维护服务端口、注册发现、数据源和中间件参数。
 server:
   port: 8090
 
@@ -12,20 +13,20 @@ spring:
       max-request-size: 20MB
       file-size-threshold: 2MB
 
-# ??????
+# 文件上传配置
 file:
   upload:
-    # ?????
+    # 基础上传目录
     base-path: E:/GitHub/Chronicles-Of-Time/back-end-spring-cloud/file-upload/uploads/
-    # ?????
+    # 图片子目录
     image-path: images/
-    # ?????
+    # 视频子目录
     video-path: videos/
-    # ?????
+    # 文档子目录
     document-path: documents/
-    # ???????
+    # 其他文件子目录
     other-path: others/
-    # ???????
+    # 允许上传的图片 MIME 类型
     allowed-image-types:
       - image/jpeg
       - image/jpg
@@ -33,12 +34,12 @@ file:
       - image/gif
       - image/webp
       - image/bmp
-    # ???????
+    # 允许上传的视频 MIME 类型
     allowed-video-types:
       - video/mp4
       - video/mpeg
       - video/quicktime
-    # ???????
+    # 允许上传的文档 MIME 类型
     allowed-document-types:
       - application/pdf
       - application/msword
@@ -46,18 +47,18 @@ file:
       - application/vnd.ms-excel
       - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
       - text/plain
-    # ?????? (MB)
+    # 单文件最大体积（MB）
     max-file-size: 10
-    # ???????
+    # 是否生成缩略图
     generate-thumbnail: true
-    # ?????
+    # 缩略图宽度
     thumbnail-width: 200
-    # ?????
+    # 缩略图高度
     thumbnail-height: 200
-    # ??URL??
+    # 文件访问 URL 前缀
     access-url: http://localhost:8090/files/
 
-# Eureka??
+# Eureka 注册发现配置
 eureka:
   client:
     enabled: false

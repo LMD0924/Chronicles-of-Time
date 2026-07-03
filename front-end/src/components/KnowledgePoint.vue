@@ -1,3 +1,6 @@
+<!--
+  文件说明：拾光记前台应用通用组件页面组件，承载通用组件场景的界面展示、交互操作和数据承接。
+-->
 <template>
   <div class="relative w-full h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-brand-950 to-accent-950">
     <!-- 3D画布容器 -->

@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记项目拾光记项目脚本模块，封装拾光记项目相关的配置、状态、路由或工具逻辑。
+ */
 const fs = require('fs');
 const path = require('path');
 

@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  文件说明：拾光记微服务后端高中服务业务服务配置或映射文件，用于描述项目依赖、构建或 SQL 映射关系。
+-->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.example.highservice.mapper.volunteer.AdmissionSimulationMapper">
@@ -19,11 +22,11 @@
                 ELSE 'rejected'
                 END as simulation_status,
             (uv.score - ap.min_score) as score_diff
-        FROM volunteer_detail vd
-                 JOIN user_volunteer uv ON vd.volunteer_id = uv.id
+        FROM user_volunteer_detail vd
+                 JOIN user_volunteer_plan uv ON vd.volunteer_id = uv.id
                  JOIN university u ON vd.university_id = u.id
-                 JOIN major m ON vd.major_id = m.id
-                 LEFT JOIN admission_plan ap ON ap.major_id = m.id
+                 JOIN gaokao_major m ON vd.major_id = m.id
+                 LEFT JOIN gaokao_admission_plan ap ON ap.major_id = m.id
             AND ap.university_id = u.id
             AND ap.year = uv.year
         WHERE uv.user_id = #{userId}
@@ -43,9 +46,9 @@
                         ELSE 0.10
                         END, 2
             ) as probability
-        FROM volunteer_detail vd
-                 JOIN user_volunteer uv ON vd.volunteer_id = uv.id
-                 LEFT JOIN admission_plan ap ON ap.major_id = vd.major_id
+        FROM user_volunteer_detail vd
+                 JOIN user_volunteer_plan uv ON vd.volunteer_id = uv.id
+                 LEFT JOIN gaokao_admission_plan ap ON ap.major_id = vd.major_id
             AND ap.university_id = vd.university_id
             AND ap.year = uv.year
         WHERE vd.id = #{volunteerDetailId}
@@ -60,7 +63,7 @@
             predicted_probability = #{item.predictedProbability},
             score_diff = #{item.scoreDiff},
             admitted_time = #{item.admittedTime}
-            WHERE volunteer_detail_id = #{item.volunteerDetailId}
+            WHERE user_volunteer_detail_id = #{item.volunteerDetailId}
         </foreach>
     </update>
 

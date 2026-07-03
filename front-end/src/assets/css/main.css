@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记前台应用样式表，统一管理页面视觉、响应式和主题细节。
+ */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

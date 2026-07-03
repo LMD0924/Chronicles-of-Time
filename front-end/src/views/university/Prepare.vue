@@ -1,3 +1,6 @@
+<!--
+  文件说明：拾光记前台应用大学阶段页面组件，承载大学阶段场景的界面展示、交互操作和数据承接。
+-->
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'

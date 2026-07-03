@@ -1,21 +1,24 @@
+# 文件说明：拾光记微服务后端通用内容服务配置文件，统一维护服务端口、注册发现、数据源和中间件参数。
 spring:
   application:
     name: general-service
 
   datasource:
     dynamic:
-      primary: chroniclesoftime
+      primary: cot_content
       strict: false
       datasource:
-        chroniclesoftime:
-          url: jdbc:mysql://localhost:3306/chroniclesoftime?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+        cot_content:
+          url: jdbc:mysql://localhost:3306/cot_content?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
           username: root
-          password: 0924
+          #password: 0924
+          password: Liu0924#
           driver-class-name: com.mysql.cj.jdbc.Driver
-        futurestack:
-          url: jdbc:mysql://localhost:3306/futurestack?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+        cot_learning:
+          url: jdbc:mysql://localhost:3306/cot_learning?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
           username: root
-          password: 0924
+          #password: 0924
+          password: Liu0924#
           driver-class-name: com.mysql.cj.jdbc.Driver
 
 server:

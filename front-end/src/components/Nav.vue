@@ -1,3 +1,6 @@
+<!--
+  文件说明：拾光记前台应用通用组件页面组件，承载通用组件场景的界面展示、交互操作和数据承接。
+-->
 <template>
   <nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" :class="[
     isScrolled

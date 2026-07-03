@@ -1,10 +1,12 @@
+# 文件说明：拾光记微服务后端用户中心配置文件，统一维护服务端口、注册发现、数据源和中间件参数。
 spring:
   application:
     name: auth-center
   datasource:
-    url: jdbc:mysql://localhost:3306/chroniclesoftime?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    url: jdbc:mysql://localhost:3306/cot_profile?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
     username: root
-    password: 0924
+    #password: 0924
+    password: Liu0924#
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       minimum-idle: 10
@@ -14,7 +16,7 @@ spring:
 server:
   port: 8081
 
-# MyBatis-Plus ??
+# MyBatis-Plus 配置
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
   configuration:

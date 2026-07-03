@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记微服务后端高中服务业务服务源码，负责业务服务相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
+ */
 /*
  * @Author: 总会落叶
  * @Date: 2026/4/1
@@ -15,13 +18,16 @@ import org.example.highservice.entity.CourseSelectionHistory;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 类说明：当前类是业务服务模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
+ */
 @Mapper
 public interface CourseSelectionHistoryMapper extends BaseMapper<CourseSelectionHistory> {
 
     /**
      * 获取学生的选课变更历史
      */
-    @Select("SELECT * FROM course_selection_history " +
+    @Select("SELECT * FROM hs_selection_history " +
             "WHERE student_id = #{studentId} " +
             "ORDER BY change_time DESC")
     List<CourseSelectionHistory> getHistoryByStudent(@Param("studentId") Long studentId);
@@ -29,7 +35,7 @@ public interface CourseSelectionHistoryMapper extends BaseMapper<CourseSelection
     /**
      * 获取选课记录的变更历史
      */
-    @Select("SELECT * FROM course_selection_history " +
+    @Select("SELECT * FROM hs_selection_history " +
             "WHERE selection_id = #{selectionId} " +
             "ORDER BY change_time DESC")
     List<CourseSelectionHistory> getHistoryBySelection(@Param("selectionId") Long selectionId);
@@ -38,7 +44,7 @@ public interface CourseSelectionHistoryMapper extends BaseMapper<CourseSelection
      * 获取最近N天的变更统计
      */
     @Select("SELECT DATE(change_time) as date, change_type, COUNT(*) as count " +
-            "FROM course_selection_history " +
+            "FROM hs_selection_history " +
             "WHERE change_time >= DATE_SUB(NOW(), INTERVAL #{days} DAY) " +
             "GROUP BY DATE(change_time), change_type " +
             "ORDER BY date DESC")
@@ -47,7 +53,7 @@ public interface CourseSelectionHistoryMapper extends BaseMapper<CourseSelection
     /**
      * 获取待审批的变更记录
      */
-    @Select("SELECT * FROM course_selection_history " +
+    @Select("SELECT * FROM hs_selection_history " +
             "WHERE approve_status = 0 " +
             "ORDER BY change_time ASC")
     List<CourseSelectionHistory> getPendingApprovals();
@@ -56,7 +62,7 @@ public interface CourseSelectionHistoryMapper extends BaseMapper<CourseSelection
      * 统计各种变更类型的数量
      */
     @Select("SELECT change_type, COUNT(*) as count " +
-            "FROM course_selection_history " +
+            "FROM hs_selection_history " +
             "WHERE change_time >= #{startTime} " +
             "GROUP BY change_type")
     List<Map<String, Object>> getChangeTypeStatistics(@Param("startTime") String startTime);
@@ -64,11 +70,11 @@ public interface CourseSelectionHistoryMapper extends BaseMapper<CourseSelection
     /**
      * 更新审批状态
      */
-    @Update("UPDATE course_selection_history " +
+    @Update("UPDATE hs_selection_history " +
             "SET approve_status = #{status}, " +
             "approver = #{approver}, " +
             "approve_comment = #{comment}, " +
-            "update_time = NOW() " +
+            "updated_at = NOW() " +
             "WHERE id = #{id}")
     int updateApproveStatus(@Param("id") Long id,
                             @Param("status") Integer status,
@@ -78,7 +84,7 @@ public interface CourseSelectionHistoryMapper extends BaseMapper<CourseSelection
     /**
      * 获取学生的最后一次变更记录
      */
-    @Select("SELECT * FROM course_selection_history " +
+    @Select("SELECT * FROM hs_selection_history " +
             "WHERE student_id = #{studentId} " +
             "ORDER BY change_time DESC LIMIT 1")
     CourseSelectionHistory getLastChange(@Param("studentId") Long studentId);
@@ -90,7 +96,7 @@ public interface CourseSelectionHistoryMapper extends BaseMapper<CourseSelection
             "SUM(CASE WHEN change_type = '1' THEN 1 ELSE 0 END) as add_count, " +
             "SUM(CASE WHEN change_type = '2' THEN 1 ELSE 0 END) as modify_count, " +
             "SUM(CASE WHEN change_type = '3' THEN 1 ELSE 0 END) as cancel_count " +
-            "FROM course_selection_history " +
+            "FROM hs_selection_history " +
             "WHERE change_time >= #{startDate} AND change_time <= #{endDate} " +
             "GROUP BY DATE(change_time) " +
             "ORDER BY date")

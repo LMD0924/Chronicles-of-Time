@@ -1,3 +1,6 @@
+<!--
+  文件说明：拾光记前台应用高中阶段页面组件，承载高中阶段场景的界面展示、交互操作和数据承接。
+-->
 <template>
   <div class="space-y-6">
     <div :class="[isDark ? 'bg-gray-800/50' : 'bg-white', 'backdrop-blur-xl rounded-2xl p-6 shadow-lg', isDark ? 'border border-gray-700' : 'border border-gray-200']">

@@ -1,3 +1,4 @@
+# 文件说明：拾光记微服务后端网关配置文件，统一维护服务端口、注册发现、数据源和中间件参数。
 server:
   port: 8500
 
@@ -28,7 +29,7 @@ spring:
               uri: http://localhost:8080
               predicates:
                 - Path=/api/auth/**,/api/user/**,/api/admin/**
-              # 不加 filters，保留完整路径
+              # 不添加 StripPrefix，保留完整路径
             - id: file-upload-service
               uri: http://localhost:8090
               predicates:
@@ -51,6 +52,14 @@ spring:
               uri: http://localhost:8084
               predicates:
                 - Path=/api/growth/**,/api/mistake/**,/api/question/**,/api/score/**,/api/content/**,/api/notes/**,/api/graph/**
+            - id: workplace-service
+              uri: http://localhost:8085
+              predicates:
+                - Path=/api/workplace/**
+            - id: advanced-service
+              uri: http://localhost:8086
+              predicates:
+                - Path=/api/advanced/**
 # JWT 配置
 jwt:
   secret: mySecretKeyForJWTGenerationWithEnoughLength12345678
@@ -60,6 +69,7 @@ jwt:
 auth:
   white-list:
     - /api/auth/login
+    - /api/auth/register
     - /api/auth/refresh
     - /actuator/health
 

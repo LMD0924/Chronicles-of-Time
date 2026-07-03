@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记微服务后端通用内容服务业务服务源码，负责业务服务相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
+ */
 package org.example.generalservice.mapper;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
@@ -16,27 +19,30 @@ import java.util.Map;
  * @Date:2026/4/3
  * @Description: 成绩记录Mapper
  */
+/**
+ * 类说明：当前类是业务服务模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
+ */
 @Mapper
-@DS("chroniclesoftime")
+@DS("cot_learning")
 public interface ScoreRecordMapper extends BaseMapper<ScoreRecord> {
 
     /**
      * 查询某学生某科目的平均分
      */
-    @Select("SELECT AVG(score) FROM score_records WHERE user_id = #{userId} AND subject_name = #{subjectName}")
+    @Select("SELECT AVG(score) FROM score_record WHERE user_id = #{userId} AND subject_name = #{subjectName}")
     BigDecimal getAvgScoreByUserAndSubject(@Param("userId") Long userId, @Param("subjectName") String subjectName);
 
     /**
      * 查询某学生各科目平均分（用于薄弱科目分析）
      */
     @Select("SELECT subject_name, AVG(score) as avg_score, COUNT(*) as exam_count " +
-            "FROM score_records WHERE user_id = #{userId} GROUP BY subject_name ORDER BY avg_score ASC")
+            "FROM score_record WHERE user_id = #{userId} GROUP BY subject_name ORDER BY avg_score ASC")
     List<Map<String, Object>> getSubjectAvgRank(@Param("userId") Long userId);
 
     /**
      * 查询某学生某科目的成绩趋势（按时间排序）
      */
-    @Select("SELECT exam_date, score FROM score_records " +
+    @Select("SELECT exam_date, score FROM score_record " +
             "WHERE user_id = #{userId} AND subject_name = #{subjectName} ORDER BY exam_date ASC")
     List<Map<String, Object>> getScoreTrend(@Param("userId") Long userId, @Param("subjectName") String subjectName);
 }

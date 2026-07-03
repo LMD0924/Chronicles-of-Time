@@ -1,3 +1,6 @@
+<!--
+  文件说明：拾光记前台应用高中阶段页面组件，承载高中阶段场景的界面展示、交互操作和数据承接。
+-->
 <template>
   <div class="cs-panel space-y-4">
     <div class="rounded-xl bg-white/70 dark:bg-dark-surface border border-white/30 p-4">

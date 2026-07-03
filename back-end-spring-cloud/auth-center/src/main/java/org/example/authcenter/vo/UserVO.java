@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记微服务后端认证中心响应视图数据源码，负责响应视图数据相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
+ */
 package org.example.authcenter.vo;
 
 import lombok.AllArgsConstructor;
@@ -6,26 +9,27 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
-/*
- * @Author:总会落叶
- * @Date:2026/3/24
- * @Description: 用户信息VO
+/**
+ * 类说明：当前类是响应视图数据模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserVO implements Serializable {
 
-    private Long id;                    // 用户ID
-    private String username;            // 用户账号
-    private String name;                // 用户昵称
-    private String email;               // 邮箱
-    private String phone;               // 手机号
-    private String role;                // 角色
-    private String avatar;              // 头像URL
-    private String introduction;        // 个人简介
-    private Integer status;             // 状态：0-禁用，1-启用
-    private LocalDateTime createTime;   // 创建时间
-    private LocalDateTime lastLoginTime; // 最后登录时间
+    private Long id;
+    private String username;
+    private String name;
+    private String email;
+    private String phone;
+    private String role;
+    private List<String> roles;
+    private List<String> permissions;
+    private String avatar;
+    private String introduction;
+    private Integer status;
+    private LocalDateTime createTime;
+    private LocalDateTime lastLoginTime;
 }

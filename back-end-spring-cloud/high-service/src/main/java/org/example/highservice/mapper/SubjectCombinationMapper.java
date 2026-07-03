@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记微服务后端高中服务业务服务源码，负责业务服务相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
+ */
 /*
  * @Author: 总会落叶
  * @Date: 2026/4/1
@@ -14,6 +17,9 @@ import org.example.highservice.entity.SubjectCombination;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 类说明：当前类是业务服务模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
+ */
 @Mapper
 public interface SubjectCombinationMapper extends BaseMapper<SubjectCombination> {
 
@@ -25,8 +31,8 @@ public interface SubjectCombinationMapper extends BaseMapper<SubjectCombination>
             "ROUND(AVG(scs.total_score_weighted), 2) as avg_score, " +
             "MAX(scs.total_score_weighted) as max_score, " +
             "MIN(scs.total_score_weighted) as min_score " +
-            "FROM subject_combination sc " +
-            "LEFT JOIN student_course_selection scs ON sc.id = scs.combination_id " +
+            "FROM hs_subject_combination sc " +
+            "LEFT JOIN hs_student_selection scs ON sc.id = scs.combination_id " +
             "AND scs.is_confirmed = 1 AND scs.is_public = 1 " +
             "WHERE sc.is_active = 1 " +
             "GROUP BY sc.id, sc.name, sc.code, sc.description " +
@@ -37,8 +43,8 @@ public interface SubjectCombinationMapper extends BaseMapper<SubjectCombination>
      * 根据首选科目获取组合
      */
     @Select("SELECT sc.*, s.name as first_subject_name " +
-            "FROM subject_combination sc " +
-            "INNER JOIN subject s ON sc.first_subject_id = s.id " +
+            "FROM hs_subject_combination sc " +
+            "INNER JOIN hs_subject s ON sc.first_subject_id = s.id " +
             "WHERE s.name = #{firstSubject} AND sc.is_active = 1")
     List<SubjectCombination> getCombinationsByFirstSubject(@Param("firstSubject") String firstSubject);
 
@@ -49,10 +55,10 @@ public interface SubjectCombinationMapper extends BaseMapper<SubjectCombination>
             "s1.name as first_subject_name, " +
             "s2.name as second_subject_1_name, " +
             "s3.name as second_subject_2_name " +
-            "FROM subject_combination sc " +
-            "LEFT JOIN subject s1 ON sc.first_subject_id = s1.id " +
-            "LEFT JOIN subject s2 ON sc.second_subject_id_1 = s2.id " +
-            "LEFT JOIN subject s3 ON sc.second_subject_id_2 = s3.id " +
+            "FROM hs_subject_combination sc " +
+            "LEFT JOIN hs_subject s1 ON sc.first_subject_id = s1.id " +
+            "LEFT JOIN hs_subject s2 ON sc.second_subject_id_1 = s2.id " +
+            "LEFT JOIN hs_subject s3 ON sc.second_subject_id_2 = s3.id " +
             "WHERE sc.is_active = 1 " +
             "ORDER BY sc.popularity_rank")
     List<Map<String, Object>> getAllCombinationsWithDetails();
@@ -60,7 +66,7 @@ public interface SubjectCombinationMapper extends BaseMapper<SubjectCombination>
     /**
      * 根据科目ID查找包含该科目的组合
      */
-    @Select("SELECT sc.* FROM subject_combination sc " +
+    @Select("SELECT sc.* FROM hs_subject_combination sc " +
             "WHERE sc.first_subject_id = #{subjectId} " +
             "OR sc.second_subject_id_1 = #{subjectId} " +
             "OR sc.second_subject_id_2 = #{subjectId}")
@@ -70,8 +76,8 @@ public interface SubjectCombinationMapper extends BaseMapper<SubjectCombination>
      * 获取组合的选课人数统计
      */
     @Select("SELECT sc.id, sc.name, COUNT(scs.id) as student_count " +
-            "FROM subject_combination sc " +
-            "LEFT JOIN student_course_selection scs ON sc.id = scs.combination_id " +
+            "FROM hs_subject_combination sc " +
+            "LEFT JOIN hs_student_selection scs ON sc.id = scs.combination_id " +
             "AND scs.is_confirmed = 1 " +
             "GROUP BY sc.id, sc.name")
     List<Map<String, Object>> getCombinationStudentCount();
