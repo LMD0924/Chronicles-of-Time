@@ -1,3 +1,6 @@
+<!--
+  文件说明：拾光记前台应用通用组件页面组件，承载通用组件场景的界面展示、交互操作和数据承接。
+-->
 <template>
   <div class="graph-container w-full h-full relative bg-[#0f1219] rounded-2xl overflow-hidden">
     <div class="absolute top-4 left-4 z-10 flex gap-2 bg-white/10 backdrop-blur-md rounded-lg p-1 shadow-lg">

@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记微服务后端高中服务接口控制器源码，负责接口控制器相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
+ */
 /*
  * @Author: 总会落叶
  * @Date: 2026/4/1
@@ -15,6 +18,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 类说明：当前类是接口控制器模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
+ */
 @RestController
 @RequestMapping("api/major")
 public class MajorRequirementController {

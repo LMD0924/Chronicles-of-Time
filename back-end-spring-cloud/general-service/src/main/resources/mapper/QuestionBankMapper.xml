@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  文件说明：拾光记微服务后端通用内容服务业务服务配置或映射文件，用于描述项目依赖、构建或 SQL 映射关系。
+-->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.example.generalservice.mapper.question.QuestionBankMapper">
 
     <!-- 根据分类随机获取题目 -->
     <select id="getRandomQuestions" resultType="org.example.generalservice.entity.QuestionBank">
-        SELECT * FROM question_bank
+        SELECT * FROM question
         WHERE category_level = #{categoryLevel}
         <if test="subjectName != null and subjectName != ''">
             AND subject_name = #{subjectName}
@@ -18,14 +21,14 @@
 
     <!-- 更新题目使用统计 -->
     <update id="incrementUseCount">
-        UPDATE question_bank
+        UPDATE question
         SET use_count = use_count + 1
         WHERE id = #{id}
     </update>
 
     <!-- 更新错题统计 -->
     <update id="incrementMistakeCount">
-        UPDATE question_bank
+        UPDATE question
         SET mistake_count = mistake_count + 1,
             mistake_rate = (mistake_count + 1) / (use_count + 1) * 100
         WHERE id = #{id}
@@ -33,7 +36,7 @@
 
     <!-- 获取高频错题（错误率最高的题目） -->
     <select id="getHighMistakeRateQuestions" resultType="org.example.generalservice.entity.QuestionBank">
-        SELECT * FROM question_bank
+        SELECT * FROM question
         WHERE use_count > 0
         ORDER BY mistake_rate DESC
             LIMIT #{limit}
@@ -42,36 +45,36 @@
     <!-- 获取所有科目列表 -->
     <select id="getDistinctSubjects" resultType="java.lang.String">
         SELECT DISTINCT subject_name
-        FROM question_bank
+        FROM question
         ORDER BY subject_name
     </select>
 
     <!-- 获取所有题型列表 -->
     <select id="getDistinctQuestionTypes" resultType="java.lang.String">
         SELECT DISTINCT question_type
-        FROM question_bank
+        FROM question
         ORDER BY question_type
     </select>
 
     <!-- 获取所有知识点列表 -->
     <select id="getDistinctKnowledgePoints" resultType="java.lang.String">
         SELECT DISTINCT knowledge_point
-        FROM question_bank
+        FROM question
         WHERE knowledge_point IS NOT NULL AND knowledge_point != ''
         ORDER BY knowledge_point
     </select>
 
     <!-- 批量插入答题记录 -->
     <insert id="batchInsertAnswerRecords">
-        INSERT INTO answer_records (
+        INSERT INTO answer_record (
         user_id, question_id, subject_name, question_type,
-        category_level, knowledge_point, user_answer, correct_answer,
-        is_correct, score, answer_time, mistake_added, exam_session, answer_date
+        category_level, user_answer, correct_answer,
+        is_correct, score, answer_time_seconds, mistake_added, exam_session, answer_at
         ) VALUES
         <foreach collection="records" item="record" separator=",">
             (
             #{record.userId}, #{record.questionId}, #{record.subjectName}, #{record.questionType},
-            #{record.categoryLevel}, #{record.knowledgePoint}, #{record.userAnswer}, #{record.correctAnswer},
+            #{record.categoryLevel}, #{record.userAnswer}, #{record.correctAnswer},
             #{record.isCorrect}, #{record.score}, #{record.answerTime}, #{record.mistakeAdded},
             #{record.examSession}, #{record.answerDate}
             )
@@ -80,9 +83,9 @@
 
     <!-- 获取答题记录 -->
     <select id="getAnswerRecords" resultType="java.util.Map">
-        SELECT ar.*, qb.question_title, qb.options, qb.answer_analysis
-        FROM answer_records ar
-        LEFT JOIN question_bank qb ON ar.question_id = qb.id
+        SELECT ar.*, qb.question_title, qb.answer_analysis
+        FROM answer_record ar
+        LEFT JOIN question qb ON ar.question_id = qb.id
         WHERE 1=1
         <if test="userId != null">
             AND ar.user_id = #{userId}
@@ -100,12 +103,12 @@
             AND ar.knowledge_point = #{knowledgePoint}
         </if>
         <if test="startDate != null and startDate != ''">
-            AND ar.answer_date >= #{startDate}
+            AND ar.answer_at >= #{startDate}
         </if>
         <if test="endDate != null and endDate != ''">
-            AND ar.answer_date &lt;= #{endDate}
+            AND ar.answer_at &lt;= #{endDate}
         </if>
-        ORDER BY ar.answer_date DESC, ar.created_at DESC
+        ORDER BY ar.answer_at DESC, ar.created_at DESC
         LIMIT #{offset}, #{pageSize}
     </select>
 

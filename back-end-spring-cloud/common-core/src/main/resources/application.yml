@@ -1,3 +1,4 @@
+# 文件说明：拾光记微服务后端公共核心配置文件，统一维护服务端口、注册发现、数据源和中间件参数。
 spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss

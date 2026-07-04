@@ -65,7 +65,7 @@ const router = createRouter({
     {
       path:'/Publish',
       name:'发布',
-      component: () => import('@/views/content/publish.vue')
+      component: () => import('@/views/content/Publish.vue')
     },
     {
       path:'/List',
@@ -80,7 +80,7 @@ const router = createRouter({
     {
       path:'/PrePare',
       name:'准备',
-      component: () => import('@/views/university/PrePare.vue')
+      component: () => import('@/views/university/Prepare.vue')
     },
     {
       path:'/GraphView',
@@ -112,6 +112,7 @@ const router = createRouter({
 })
 
 // 路由守卫
+
 router.beforeEach((to, from, next) => {
   const token = getToken()
 

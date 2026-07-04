@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记微服务后端通用内容服务内容社区源码，负责内容社区相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
+ */
 package org.example.generalservice.entity.content;
 
 import com.baomidou.mybatisplus.annotation.*;
@@ -20,17 +23,20 @@ import java.util.List;
  * @author 总会落叶
  * @date 2026-04-06
  */
+/**
+ * 类说明：当前类是内容社区模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
+ */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("content")
+@TableName("content_article")
 public class Content {
 
     /**
      * 内容ID（主键，使用bigint支持长位数）
      */
     @JsonSerialize(using = ToStringSerializer.class) // 加这行
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
@@ -48,7 +54,7 @@ public class Content {
     /**
      * 内容（支持长文本）
      */
-    @TableField("content")
+    @TableField("content_md")
     private String content;
 
     /**
@@ -60,13 +66,13 @@ public class Content {
     /**
      * 封面图片URL
      */
-    @TableField("cover_image")
+    @TableField("cover_image_url")
     private String coverImage;
 
     /**
      * 多张图片JSON数组（存储为JSON格式）
      */
-    @TableField("images")
+    @TableField(exist = false)
     private String images;
 
     /**
@@ -90,19 +96,19 @@ public class Content {
     /**
      * 标签（用户直接输入，逗号分隔）
      */
-    @TableField("tags")
+    @TableField(exist = false)
     private String tags;
 
     /**
      * 分类（用户直接输入）
      */
-    @TableField("category")
+    @TableField(exist = false)
     private String category;
 
     /**
      * 是否公开：0-仅自己，1-公开，2-仅好友
      */
-    @TableField("is_public")
+    @TableField("visibility")
     private Integer isPublic;
 
     /**
@@ -126,45 +132,45 @@ public class Content {
     /**
      * 浏览量
      */
-    @TableField("views")
+    @TableField("view_count")
     private Long views;
 
     /**
      * 点赞数
      */
-    @TableField("likes_count")
+    @TableField("like_count")
     private Long likesCount;
 
     /**
      * 收藏数
      */
-    @TableField("favorites_count")
+    @TableField("favorite_count")
     private Long favoritesCount;
 
     /**
      * 评论数
      */
-    @TableField("comments_count")
+    @TableField("comment_count")
     private Long commentsCount;
 
     /**
      * 创建时间
      */
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createTime;
 
     /**
      * 更新时间
      */
-    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "updated_at", fill = FieldFill.INSERT_UPDATE)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime updateTime;
 
     /**
      * 发布时间
      */
-    @TableField("publish_time")
+    @TableField("publish_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime publishTime;
 

@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记微服务后端通用内容服务内容社区源码，负责内容社区相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
+ */
 package org.example.generalservice.entity.content;
 
 import com.baomidou.mybatisplus.annotation.*;
@@ -15,17 +18,20 @@ import java.time.LocalDateTime;
  * @author 总会落叶
  * @date 2026-04-06
  */
+/**
+ * 类说明：当前类是内容社区模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
+ */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("favorite_record")
+@TableName("content_favorite")
 public class FavoriteRecord {
 
 
     /**
      * 记录ID
      */
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
@@ -43,7 +49,7 @@ public class FavoriteRecord {
     /**
      * 收藏时间
      */
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createTime;
 }

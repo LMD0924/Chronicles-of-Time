@@ -1,3 +1,6 @@
+<!--
+  文件说明：拾光记前台应用通用组件页面组件，承载通用组件场景的界面展示、交互操作和数据承接。
+-->
 <template>
   <div v-if="visible" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.self="close">
     <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl p-6 max-h-[80vh] overflow-y-auto">

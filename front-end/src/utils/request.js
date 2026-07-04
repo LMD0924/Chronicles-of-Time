@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记前台应用通用工具脚本模块，封装通用工具相关的配置、状态、路由或工具逻辑。
+ */
 import axios from 'axios';
 import JSONbig from 'json-bigint';  // 🔥 新增：处理超大数字
 import { ElMessage } from "element-plus";
@@ -103,6 +106,7 @@ const refreshAccessToken = async () => {
 // ==========================
 // 创建 axios 实例
 // ==========================
+// 前台接口统一封装，保持与后端 /api 网关和 JWT 登录体系一致。
 const service = axios.create({
   baseURL: 'http://localhost:8500/api/',
   timeout: 15000,
@@ -122,6 +126,9 @@ const service = axios.create({
 // ==========================
 // 请求拦截器（只写一次！）
 // ==========================
+
+
+// 请求拦截器负责附加 token，业务页面不需要重复处理认证请求头。
 service.interceptors.request.use(
   (config) => {
     // 刷新接口不处理
@@ -142,6 +149,9 @@ service.interceptors.request.use(
 // ==========================
 // 响应拦截器（只写一次！）
 // ==========================
+
+
+// 响应拦截器把后端统一响应拆包，并集中处理登录过期和网络异常。
 service.interceptors.response.use(
   (response) => {
     const res = response.data

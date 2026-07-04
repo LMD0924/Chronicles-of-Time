@@ -27,16 +27,16 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Question-Bank" options="-parameters" />
       <module name="advanced-service" options="-parameters" />
-      <module name="auth-center" options="" />
+      <module name="auth-center" options="-parameters" />
       <module name="back-end-spring-cloud" options="" />
-      <module name="common-core" options="" />
-      <module name="common-db" options="" />
-      <module name="file-upload" options="" />
-      <module name="gateway" options="" />
+      <module name="common-core" options="-parameters" />
+      <module name="common-db" options="-parameters" />
+      <module name="file-upload" options="-parameters" />
+      <module name="gateway" options="-parameters" />
       <module name="general-service" options="-parameters" />
       <module name="high-service" options="-parameters" />
       <module name="university-service" options="-parameters" />
-      <module name="user-center" options="" />
+      <module name="user-center" options="-parameters" />
       <module name="workplace-service" options="-parameters" />
     </option>
   </component>

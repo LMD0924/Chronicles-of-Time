@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记微服务后端高中服务业务服务源码，负责业务服务相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
+ */
 /*
  * @Author: 总会落叶
  * @Date: 2026/4/1
@@ -16,13 +19,16 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 类说明：当前类是业务服务模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
+ */
 @Mapper
 public interface GradingScaleMapper extends BaseMapper<GradingScale> {
 
     /**
      * 根据原始分获取赋分等级
      */
-    @Select("SELECT * FROM grading_scale " +
+    @Select("SELECT * FROM hs_grading_scale " +
             "WHERE subject_id = #{subjectId} " +
             "AND academic_year = #{academicYear} " +
             "AND raw_score_min <= #{rawScore} " +
@@ -35,7 +41,7 @@ public interface GradingScaleMapper extends BaseMapper<GradingScale> {
     /**
      * 获取科目的所有赋分等级配置
      */
-    @Select("SELECT * FROM grading_scale " +
+    @Select("SELECT * FROM hs_grading_scale " +
             "WHERE subject_id = #{subjectId} " +
             "AND academic_year = #{academicYear} " +
             "AND is_active = 1 " +
@@ -46,13 +52,13 @@ public interface GradingScaleMapper extends BaseMapper<GradingScale> {
     /**
      * 获取当前有效的赋分等级配置
      */
-    @Select("SELECT * FROM grading_scale WHERE is_active = 1 ORDER BY subject_id, raw_score_min")
+    @Select("SELECT * FROM hs_grading_scale WHERE is_active = 1 ORDER BY subject_id, raw_score_min")
     List<GradingScale> getActiveScales();
 
     /**
      * 批量更新赋分等级状态
      */
-    @Update("UPDATE grading_scale SET is_active = #{isActive}, update_time = NOW() " +
+    @Update("UPDATE hs_grading_scale SET is_active = #{isActive}, updated_at = NOW() " +
             "WHERE academic_year = #{academicYear}")
     int batchUpdateStatusByYear(@Param("academicYear") String academicYear,
                                 @Param("isActive") Boolean isActive);
@@ -65,7 +71,7 @@ public interface GradingScaleMapper extends BaseMapper<GradingScale> {
             "SUM(CASE WHEN raw_score_min BETWEEN 75 AND 89 THEN 1 ELSE 0 END) as level_b_count, " +
             "SUM(CASE WHEN raw_score_min BETWEEN 60 AND 74 THEN 1 ELSE 0 END) as level_c_count, " +
             "SUM(CASE WHEN raw_score_min < 60 THEN 1 ELSE 0 END) as level_d_count " +
-            "FROM grading_scale " +
+            "FROM hs_grading_scale " +
             "WHERE is_active = 1 " +
             "GROUP BY subject_id")
     List<Map<String, Object>> getScoreDistribution();

@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  文件说明：拾光记微服务后端高中服务业务服务配置或映射文件，用于描述项目依赖、构建或 SQL 映射关系。
+-->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.example.highservice.mapper.volunteer.UserVolunteerMapper">
 
     <!-- 获取用户历年志愿方案 -->
     <select id="getUserVolunteerHistory" resultType="org.example.highservice.entity.volunteer.UserVolunteer">
-        SELECT * FROM user_volunteer
+        SELECT * FROM user_volunteer_plan
         WHERE user_id = #{userId}
         ORDER BY year DESC, submit_time DESC
     </select>
@@ -18,7 +21,7 @@
             MAX(score) as max_score,
             MIN(score) as min_score,
             AVG(score) as avg_score
-        FROM user_volunteer
+        FROM user_volunteer_plan
         WHERE user_id = #{userId}
           AND is_final = 1
     </select>

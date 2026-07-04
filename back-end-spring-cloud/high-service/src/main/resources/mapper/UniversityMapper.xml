@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  文件说明：拾光记微服务后端高中服务业务服务配置或映射文件，用于描述项目依赖、构建或 SQL 映射关系。
+-->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.example.highservice.mapper.volunteer.UniversityMapper">
 
     <select id="searchUniversities" resultType="org.example.highservice.entity.volunteer.University">
-        SELECT * FROM university
+        SELECT * FROM gaokao_university
         <where>
             <if test="keyword != null and keyword != ''">
                 AND (name LIKE CONCAT('%', #{keyword}, '%')

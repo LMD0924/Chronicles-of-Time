@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记微服务后端文件上传服务系统配置源码，负责系统配置相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
+ */
 package org.example.fileupload.config;
 
 import lombok.Data;
@@ -6,6 +9,9 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * 类说明：当前类是系统配置模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
+ */
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "file.upload")

@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记微服务后端通用内容服务内容社区源码，负责内容社区相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
+ */
 package org.example.generalservice.mapper.content;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
@@ -17,8 +20,11 @@ import java.util.List;
  * @author 总会落叶
  * @date 2026-04-06
  */
+/**
+ * 类说明：当前类是内容社区模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
+ */
 @Mapper
-@DS("futurestack")
+@DS("cot_content")
 public interface CommentMapper extends BaseMapper<Comment> {
 
     /**
@@ -27,7 +33,7 @@ public interface CommentMapper extends BaseMapper<Comment> {
      * @param contentId 内容ID
      * @return 顶级评论列表
      */
-    @Select("SELECT * FROM comment WHERE content_id = #{contentId} AND parent_id = 0 AND status = 1 ORDER BY create_time DESC")
+    @Select("SELECT * FROM content_comment WHERE content_id = #{contentId} AND parent_id = 0 AND status = 1 ORDER BY created_at DESC")
     List<Comment> selectTopComments(@Param("contentId") Long contentId);
 
     /**
@@ -36,7 +42,7 @@ public interface CommentMapper extends BaseMapper<Comment> {
      * @param parentId 父评论ID
      * @return 子评论列表
      */
-    @Select("SELECT * FROM comment WHERE parent_id = #{parentId} AND status = 1 ORDER BY create_time ASC")
+    @Select("SELECT * FROM content_comment WHERE parent_id = #{parentId} AND status = 1 ORDER BY created_at ASC")
     List<Comment> selectChildComments(@Param("parentId") Long parentId);
 
     /**
@@ -45,7 +51,7 @@ public interface CommentMapper extends BaseMapper<Comment> {
      * @param id 评论ID
      * @return 影响行数
      */
-    @Update("UPDATE comment SET likes_count = likes_count + 1 WHERE id = #{id}")
+    @Update("UPDATE content_comment SET like_count = like_count + 1 WHERE id = #{id}")
     int incrementLikesCount(@Param("id") Long id);
 
     /**
@@ -54,6 +60,6 @@ public interface CommentMapper extends BaseMapper<Comment> {
      * @param id 评论ID
      * @return 影响行数
      */
-    @Update("UPDATE comment SET likes_count = likes_count - 1 WHERE id = #{id}")
+    @Update("UPDATE content_comment SET like_count = GREATEST(like_count - 1, 0) WHERE id = #{id}")
     int decrementLikesCount(@Param("id") Long id);
 }

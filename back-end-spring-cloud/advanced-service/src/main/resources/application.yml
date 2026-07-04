@@ -1,0 +1,19 @@
+# 文件说明：拾光记微服务后端配置文件，统一维护服务端口、注册发现、数据源和中间件参数。
+server:
+  port: 8086
+
+spring:
+  application:
+    name: advanced-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/cot_advanced?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    username: root
+    password: 0924
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: assign_id

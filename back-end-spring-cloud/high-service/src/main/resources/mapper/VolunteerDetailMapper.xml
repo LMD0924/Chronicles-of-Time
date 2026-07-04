@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  文件说明：拾光记微服务后端高中服务业务服务配置或映射文件，用于描述项目依赖、构建或 SQL 映射关系。
+-->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.example.highservice.mapper.volunteer.VolunteerDetailMapper">
@@ -15,10 +18,10 @@
             ap.min_score,
             ap.min_rank,
             ap.avg_score
-        FROM volunteer_detail vd
+        FROM user_volunteer_detail vd
                  LEFT JOIN university u ON vd.university_id = u.id
-                 LEFT JOIN major m ON vd.major_id = m.id
-                 LEFT JOIN admission_plan ap ON ap.major_id = m.id AND ap.university_id = u.id
+                 LEFT JOIN gaokao_major m ON vd.major_id = m.id
+                 LEFT JOIN gaokao_admission_plan ap ON ap.major_id = m.id AND ap.university_id = u.id
         WHERE vd.volunteer_id = #{volunteerId}
         ORDER BY vd.priority
     </select>
@@ -30,19 +33,19 @@
             msm.matching_score,
             msm.importance_level,
             msm.description as matching_description
-        FROM volunteer_detail vd
-                 LEFT JOIN major_subject_matching msm ON msm.major_code = (
-            SELECT code FROM major WHERE id = vd.major_id
+        FROM user_volunteer_detail vd
+                 LEFT JOIN hs_major_subject_match msm ON msm.major_code = (
+            SELECT code FROM gaokao_major WHERE id = vd.major_id
         )
         WHERE vd.id = #{volunteerDetailId}
     </select>
 
     <!-- 批量插入志愿详情 -->
     <insert id="batchInsert" parameterType="java.util.List">
-        INSERT INTO volunteer_detail (
+        INSERT INTO user_volunteer_detail (
         volunteer_id, priority, university_id, major_id,
         is_major_adjusted, matching_check, matching_score,
-        create_time, update_time
+        created_at, updated_at
         ) VALUES
         <foreach collection="list" item="item" separator=",">
             (

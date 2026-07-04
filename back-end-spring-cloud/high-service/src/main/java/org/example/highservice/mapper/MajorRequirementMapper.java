@@ -1,3 +1,6 @@
+/**
+ * 文件说明：拾光记微服务后端高中服务业务服务源码，负责业务服务相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
+ */
 /*
  * @Author: 总会落叶
  * @Date: 2026/4/1
@@ -14,6 +17,9 @@ import org.example.highservice.entity.MajorRequirement;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 类说明：当前类是业务服务模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
+ */
 @Mapper
 public interface MajorRequirementMapper extends BaseMapper<MajorRequirement> {
 
@@ -23,8 +29,8 @@ public interface MajorRequirementMapper extends BaseMapper<MajorRequirement> {
     @Select("SELECT mr.*, " +
             "AVG(msm.matching_score) as avg_matching_score, " +
             "GROUP_CONCAT(DISTINCT msm.subject_name) as matched_subjects " +
-            "FROM major_requirement mr " +
-            "INNER JOIN major_subject_matching msm ON mr.major_code = msm.major_code " +
+            "FROM gaokao_major_requirement mr " +
+            "INNER JOIN hs_major_subject_match msm ON mr.major_code = msm.major_code " +
             "WHERE (mr.first_subject_required = '不限' OR mr.first_subject_required = #{firstSubject}) " +
             "AND msm.subject_id IN (#{subject1Id}, #{subject2Id}, #{subject3Id}) " +
             "GROUP BY mr.id " +
@@ -41,7 +47,7 @@ public interface MajorRequirementMapper extends BaseMapper<MajorRequirement> {
      */
     @Select("SELECT major_name, category, COUNT(*) as count, " +
             "GROUP_CONCAT(DISTINCT university_name) as universities " +
-            "FROM major_requirement " +
+            "FROM gaokao_major_requirement " +
             "GROUP BY major_name, category " +
             "ORDER BY count DESC " +
             "LIMIT #{limit}")
@@ -50,7 +56,7 @@ public interface MajorRequirementMapper extends BaseMapper<MajorRequirement> {
     /**
      * 根据大学层次筛选专业
      */
-    @Select("SELECT * FROM major_requirement WHERE university_level = #{level} ORDER BY create_time DESC")
+    @Select("SELECT * FROM gaokao_major_requirement WHERE university_level = #{level} ORDER BY created_at DESC")
     List<MajorRequirement> getMajorsByUniversityLevel(@Param("level") String level);
 
     /**
@@ -58,8 +64,8 @@ public interface MajorRequirementMapper extends BaseMapper<MajorRequirement> {
      */
     @Select("SELECT mr.*, " +
             "GROUP_CONCAT(DISTINCT CONCAT(msm.subject_name, '(', msm.importance_level, ')') ORDER BY msm.importance_level) as subjects_info " +
-            "FROM major_requirement mr " +
-            "LEFT JOIN major_subject_matching msm ON mr.major_code = msm.major_code " +
+            "FROM gaokao_major_requirement mr " +
+            "LEFT JOIN hs_major_subject_match msm ON mr.major_code = msm.major_code " +
             "WHERE mr.major_code = #{majorCode} " +
             "GROUP BY mr.id")
     Map<String, Object> getMajorDetail(@Param("majorCode") String majorCode);
@@ -68,7 +74,7 @@ public interface MajorRequirementMapper extends BaseMapper<MajorRequirement> {
      * 根据专业类别统计
      */
     @Select("SELECT category, COUNT(*) as count " +
-            "FROM major_requirement " +
+            "FROM gaokao_major_requirement " +
             "GROUP BY category " +
             "ORDER BY count DESC")
     List<Map<String, Object>> getCategoryStatistics();

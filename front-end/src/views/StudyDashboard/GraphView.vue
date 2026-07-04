@@ -1,3 +1,6 @@
+<!--
+  文件说明：拾光记前台应用数据驾驶舱页面组件，承载数据驾驶舱场景的界面展示、交互操作和数据承接。
+-->
 <script setup>
 import * as echarts from 'echarts'
 import request from '@/utils/request'
