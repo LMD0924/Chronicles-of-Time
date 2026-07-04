@@ -91,7 +91,7 @@ public class ScoreRecordController {
      * 删除成绩记录
      */
     @DeleteMapping("/delete/{id}")
-    public RestBean<String> deleteScore(@PathVariable Integer id) {
+    public RestBean<String> deleteScore(@PathVariable Long id) {
         log.info("删除成绩记录: id={}", id);
         if (scoreRecordService.removeById(id)) {
             return RestBean.success("删除成功");

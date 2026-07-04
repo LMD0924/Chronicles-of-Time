@@ -4,6 +4,7 @@
 package org.example.generalservice.mapper.question;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import org.apache.ibatis.annotations.Mapper;
 import org.example.generalservice.entity.AnswerRecords;
 
@@ -11,5 +12,6 @@ import org.example.generalservice.entity.AnswerRecords;
  * 类说明：当前类是业务服务模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
  */
 @Mapper
+@DS("cot_learning")
 public interface AnswerRecordsMapper extends BaseMapper<AnswerRecords> {
 }

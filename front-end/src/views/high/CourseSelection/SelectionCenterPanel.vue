@@ -5,6 +5,7 @@
 import { ref, watch, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
+import AiInsightPanel from '@/views/high/components/AiInsightPanel.vue'
 
 const props = defineProps({
   isDark: Boolean,
@@ -21,6 +22,29 @@ const selectedSecondSubjects = ref([])
 const selectionReason = ref('')
 const futurePlan = ref('')
 const advice = ref('')
+
+const selectedSubjectNames = computed(() => {
+  const names = []
+  if (selectedFirstSubject.value?.name) names.push(selectedFirstSubject.value.name)
+  selectedSecondSubjects.value.forEach(subject => {
+    if (subject?.name) names.push(subject.name)
+  })
+  return names
+})
+
+const aiPayload = computed(() => ({
+  userId: props.studentId,
+  profile: {
+    firstSubject: selectedFirstSubject.value?.name || '',
+    secondSubjects: selectedSecondSubjects.value.map(subject => subject.name),
+    subjects: selectedSubjectNames.value,
+    selectionReason: selectionReason.value,
+    futurePlan: futurePlan.value,
+    localAdvice: advice.value
+  },
+  candidates: [],
+  question: '请分析这个选科组合对目标专业、专业覆盖面和后续志愿填报的影响。'
+}))
 
 // 获取科目列表
 const fetchSubjects = async () => {
@@ -260,5 +284,15 @@ fetchSubjects()
       </div>
       <p class="text-sm text-slate-600 dark:text-slate-300">{{ advice }}</p>
     </div>
+
+    <AiInsightPanel
+      scenario="subject_selection"
+      title="AI 选科分析"
+      description="结合当前选科、选课理由和未来规划，分析专业覆盖、潜在限制和下一步调整方向。"
+      button-text="分析选科"
+      :is-dark="isDark"
+      :payload="aiPayload"
+      :disabled="selectedSubjectNames.length < 3"
+    />
   </div>
 </template>

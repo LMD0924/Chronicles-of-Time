@@ -15,9 +15,14 @@
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">✨ 记录你的每一次进步</p>
           </div>
         </div>
-        <button @click="showAddModal = true" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500 via-red-500 to-orange-500 text-white text-sm font-medium shadow-lg shadow-rose-500/30 hover:shadow-xl hover:shadow-rose-500/40 transform hover:-translate-y-0.5 transition-all">
-          ➕ 添加错题
-        </button>
+        <div class="flex gap-3">
+          <button @click="startMistakePractice" class="px-6 py-2.5 rounded-2xl bg-gray-900 text-white text-sm font-medium shadow-lg">
+            错题练习
+          </button>
+          <button @click="showAddModal = true" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500 via-red-500 to-orange-500 text-white text-sm font-medium shadow-lg shadow-rose-500/30 hover:shadow-xl hover:shadow-rose-500/40 transform hover:-translate-y-0.5 transition-all">
+            ➕ 添加错题
+          </button>
+        </div>
       </div>
     </div>
 
@@ -239,6 +244,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request.js'
 
@@ -248,6 +254,7 @@ const props = defineProps({
 })
 
 const userId = ref('')
+const router = useRouter()
 const mistakeList = ref([])
 const filters = reactive({ subject: '', mastered: '', knowledgePoint: '' })
 const filterSubjects = ref([])
@@ -337,6 +344,10 @@ const selectMastered = (mastered) => {
 const selectKnowledgePoint = (kp) => {
   filters.knowledgePoint = kp
   fetchMistakes()
+}
+
+const startMistakePractice = () => {
+  router.push('/StudyDashboard?tab=practice&mode=mistake')
 }
 
 const reviewMistake = async (id) => {

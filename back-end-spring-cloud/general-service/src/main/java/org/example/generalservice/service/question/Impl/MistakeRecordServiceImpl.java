@@ -13,6 +13,7 @@ import org.example.generalservice.service.question.MistakeRecordService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -35,9 +36,12 @@ public class MistakeRecordServiceImpl extends ServiceImpl<MistakeRecordMapper, M
     public Boolean addMistake(MistakeRecord mistakeRecord) {
         log.info("添加错题: userId={}, subjectName={}, mistakeName={}",
                 mistakeRecord.getUserId(), mistakeRecord.getSubjectName(), mistakeRecord.getMistakeName());
-        mistakeRecord.setMistakeDate(LocalDate.now());
-        mistakeRecord.setMastered(false);
-        mistakeRecord.setReviewCount(0);
+        mistakeRecord.setMistakeDate(mistakeRecord.getMistakeDate() == null ? LocalDate.now() : mistakeRecord.getMistakeDate());
+        mistakeRecord.setLastMistakeAt(mistakeRecord.getLastMistakeAt() == null ? LocalDateTime.now() : mistakeRecord.getLastMistakeAt());
+        mistakeRecord.setMastered(mistakeRecord.getMastered() != null && mistakeRecord.getMastered());
+        mistakeRecord.setMistakeCount(mistakeRecord.getMistakeCount() == null ? 1 : mistakeRecord.getMistakeCount());
+        mistakeRecord.setReviewCount(mistakeRecord.getReviewCount() == null ? 0 : mistakeRecord.getReviewCount());
+        mistakeRecord.setNextReviewDate(mistakeRecord.getNextReviewDate() == null ? LocalDate.now().plusDays(1) : mistakeRecord.getNextReviewDate());
         return save(mistakeRecord);
     }
 
@@ -48,19 +52,19 @@ public class MistakeRecordServiceImpl extends ServiceImpl<MistakeRecordMapper, M
     }
 
     @Override
-    public Boolean markAsMastered(Integer id) {
+    public Boolean markAsMastered(Long id) {
         log.info("标记错题为已掌握: id={}", id);
         return mistakeRecordMapper.markAsMastered(id) > 0;
     }
 
     @Override
-    public Boolean markAsUnmastered(Integer id) {
+    public Boolean markAsUnmastered(Long id) {
         log.info("标记错题为未掌握: id={}", id);
         return mistakeRecordMapper.markAsUnmastered(id) > 0;
     }
 
     @Override
-    public Boolean reviewMistake(Integer id) {
+    public Boolean reviewMistake(Long id) {
         log.info("复习错题: id={}", id);
         return mistakeRecordMapper.incrementReviewCount(id) > 0;
     }
@@ -85,7 +89,7 @@ public class MistakeRecordServiceImpl extends ServiceImpl<MistakeRecordMapper, M
         if (knowledgePoint != null && !knowledgePoint.isEmpty()) {
             wrapper.eq(MistakeRecord::getKnowledgePoint, knowledgePoint);
         }
-        wrapper.orderByDesc(MistakeRecord::getMistakeDate);
+        wrapper.orderByDesc(MistakeRecord::getLastMistakeAt);
         return list(wrapper);
     }
 }

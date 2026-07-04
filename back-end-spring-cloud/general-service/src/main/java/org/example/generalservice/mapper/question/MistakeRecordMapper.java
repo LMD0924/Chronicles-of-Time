@@ -29,7 +29,7 @@ public interface MistakeRecordMapper extends BaseMapper<MistakeRecord> {
     /**
      * 查询未掌握的错题
      */
-    @Select("SELECT * FROM mistake_record WHERE user_id = #{userId} AND mastered = FALSE ORDER BY last_mistake_at DESC")
+    @Select("SELECT * FROM mistake_record WHERE user_id = #{userId} AND mastered = FALSE AND deleted_at IS NULL ORDER BY last_mistake_at DESC")
     List<MistakeRecord> getUnmasteredMistakes(@Param("userId") Long userId);
 
     /**
@@ -37,26 +37,26 @@ public interface MistakeRecordMapper extends BaseMapper<MistakeRecord> {
      */
     @Select("SELECT subject_name, COUNT(*) as mistake_count, " +
             "SUM(CASE WHEN mastered = TRUE THEN 1 ELSE 0 END) as mastered_count " +
-            "FROM mistake_record WHERE user_id = #{userId} GROUP BY subject_name")
+            "FROM mistake_record WHERE user_id = #{userId} AND deleted_at IS NULL GROUP BY subject_name")
     List<Map<String, Object>> getMistakeStatistics(@Param("userId") Long userId);
 
     /**
      * 标记错题为已掌握
      */
-    @Update("UPDATE mistake_record SET mastered = TRUE, next_review_date = CURDATE(), " +
+    @Update("UPDATE mistake_record SET mastered = TRUE, last_review_date = CURDATE(), next_review_date = DATE_ADD(CURDATE(), INTERVAL 7 DAY), " +
             "updated_at = NOW() WHERE id = #{id}")
-    int markAsMastered(@Param("id") Integer id);
+    int markAsMastered(@Param("id") Long id);
 
     /**
      * 标记错题为未掌握
      */
     @Update("UPDATE mistake_record SET mastered = FALSE, updated_at = NOW() WHERE id = #{id}")
-    int markAsUnmastered(@Param("id") Integer id);
+    int markAsUnmastered(@Param("id") Long id);
 
     /**
      * 增加复习次数
      */
-    @Update("UPDATE mistake_record SET review_count = review_count + 1, " +
-            "next_review_date = CURDATE(), updated_at = NOW() WHERE id = #{id}")
-    int incrementReviewCount(@Param("id") Integer id);
+    @Update("UPDATE mistake_record SET review_count = review_count + 1, last_review_date = CURDATE(), " +
+            "next_review_date = DATE_ADD(CURDATE(), INTERVAL 1 DAY), updated_at = NOW() WHERE id = #{id}")
+    int incrementReviewCount(@Param("id") Long id);
 }

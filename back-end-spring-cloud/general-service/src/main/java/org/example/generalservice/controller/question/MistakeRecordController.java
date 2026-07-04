@@ -70,7 +70,7 @@ public class MistakeRecordController {
      * 标记错题为已掌握
      */
     @PutMapping("/master/{id}")
-    public RestBean<String> markAsMastered(@PathVariable Integer id) {
+    public RestBean<String> markAsMastered(@PathVariable Long id) {
         log.info("标记错题已掌握: id={}", id);
         if (mistakeRecordService.markAsMastered(id)) {
             return RestBean.success("标记成功");
@@ -82,7 +82,7 @@ public class MistakeRecordController {
      * 标记错题为未掌握
      */
     @PutMapping("/unmaster/{id}")
-    public RestBean<String> markAsUnmastered(@PathVariable Integer id) {
+    public RestBean<String> markAsUnmastered(@PathVariable Long id) {
         log.info("标记错题未掌握: id={}", id);
         if (mistakeRecordService.markAsUnmastered(id)) {
             return RestBean.success("标记成功");
@@ -94,7 +94,7 @@ public class MistakeRecordController {
      * 复习错题
      */
     @PutMapping("/review/{id}")
-    public RestBean<String> reviewMistake(@PathVariable Integer id) {
+    public RestBean<String> reviewMistake(@PathVariable Long id) {
         log.info("复习错题: id={}", id);
         if (mistakeRecordService.reviewMistake(id)) {
             return RestBean.success("复习记录已更新");
@@ -116,7 +116,7 @@ public class MistakeRecordController {
      * 删除错题
      */
     @DeleteMapping("/delete/{id}")
-    public RestBean<String> deleteMistake(@PathVariable Integer id) {
+    public RestBean<String> deleteMistake(@PathVariable Long id) {
         log.info("删除错题: id={}", id);
         if (mistakeRecordService.removeById(id)) {
             return RestBean.success("删除成功");

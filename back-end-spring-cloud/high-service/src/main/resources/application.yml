@@ -22,3 +22,16 @@ mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true
+
+# 高中模块 AI 分析配置
+# 优先使用环境变量 HIGH_AI_API_KEY，避免把真实密钥提交到代码仓库。
+high:
+  ai:
+    enabled: true
+    provider: openai-compatible
+    base-url: ${HIGH_AI_BASE_URL:https://api.openai.com/v1}
+    model: ${HIGH_AI_MODEL:gpt-4o-mini}
+    api-key: ${HIGH_AI_API_KEY:}
+    timeout-seconds: ${HIGH_AI_TIMEOUT_SECONDS:30}
+    max-tokens: ${HIGH_AI_MAX_TOKENS:1200}
+    temperature: ${HIGH_AI_TEMPERATURE:0.2}

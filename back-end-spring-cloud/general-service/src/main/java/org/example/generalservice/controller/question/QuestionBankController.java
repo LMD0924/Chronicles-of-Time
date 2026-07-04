@@ -6,8 +6,15 @@ package org.example.generalservice.controller.question;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.commondb.utils.RestBean;
+import org.example.generalservice.dto.question.ExamStartRequest;
+import org.example.generalservice.dto.question.ExamSubmitRequest;
 import org.example.generalservice.entity.QuestionBank;
+import org.example.generalservice.service.question.OnlineExamService;
 import org.example.generalservice.service.question.QuestionBankService;
+import org.example.generalservice.vo.question.ExamDetailVO;
+import org.example.generalservice.vo.question.ExamHistoryVO;
+import org.example.generalservice.vo.question.ExamStartVO;
+import org.example.generalservice.vo.question.ExamSubmitVO;
 import org.example.generalservice.vo.question.KnowledgeGraph;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +36,7 @@ import java.util.Map;
 public class QuestionBankController {
 
     private final QuestionBankService questionBankService;
+    private final OnlineExamService onlineExamService;
 
     /**
      * 添加题目
@@ -37,7 +45,7 @@ public class QuestionBankController {
     public RestBean<String> addQuestion(@RequestBody QuestionBank questionBank) {
         log.info("========== 添加题目 ==========");
         if (questionBankService.addQuestion(questionBank)) {
-            return RestBean.success("添加成功");
+            return RestBean.success("添加成功，等待管理员审核");
         }
         return RestBean.fail("添加失败");
     }
@@ -47,12 +55,18 @@ public class QuestionBankController {
      */
     @GetMapping("/random")
     public RestBean<List<QuestionBank>> getRandomQuestions(
+            @RequestParam(required = false) Long userId,
             @RequestParam String categoryLevel,
             @RequestParam(required = false) String subjectName,
             @RequestParam(required = false) String questionType,
+            @RequestParam(required = false) String difficultyLevel,
+            @RequestParam(required = false) String knowledgePoint,
             @RequestParam(defaultValue = "15") Integer limit) {
-        log.info("随机获取题目: categoryLevel={}, subjectName={}, questionType={}, limit={}", categoryLevel, subjectName, questionType, limit);
-        List<QuestionBank> questions = questionBankService.getRandomQuestions(categoryLevel, subjectName, questionType, limit);
+        log.info("随机获取题目: userId={}, categoryLevel={}, subjectName={}, questionType={}, difficultyLevel={}, knowledgePoint={}, limit={}",
+                userId, categoryLevel, subjectName, questionType, difficultyLevel, knowledgePoint, limit);
+        List<QuestionBank> questions = userId == null
+                ? questionBankService.getRandomQuestions(categoryLevel, subjectName, questionType, limit)
+                : questionBankService.getRandomQuestions(userId, categoryLevel, subjectName, questionType, difficultyLevel, knowledgePoint, limit);
         return RestBean.success(questions);
     }
 
@@ -61,18 +75,18 @@ public class QuestionBankController {
      */
     @GetMapping("/list")
     public RestBean<List<QuestionBank>> getQuestionList(
+            @RequestParam(required = false) Long userId,
             @RequestParam(required = false) String categoryLevel,
             @RequestParam(required = false) String subjectName,
             @RequestParam(required = false) String questionType,
-            @RequestParam(required = false) String knowledgePoint) {
-        log.info("查询题目列表: categoryLevel={}, subjectName={}, questionType={}, knowledgePoint={}", categoryLevel, subjectName, questionType, knowledgePoint);
-        List<QuestionBank> list = questionBankService.lambdaQuery()
-                .eq(categoryLevel != null, QuestionBank::getCategoryLevel, categoryLevel)
-                .eq(subjectName != null, QuestionBank::getSubjectName, subjectName)
-                .eq(questionType != null, QuestionBank::getQuestionType, questionType)
-                .eq(knowledgePoint != null, QuestionBank::getKnowledgePoint, knowledgePoint)
-                .orderByDesc(QuestionBank::getCreatedAt)
-                .list();
+            @RequestParam(required = false) String knowledgePoint,
+            @RequestParam(required = false) String difficultyLevel,
+            @RequestParam(required = false) String auditStatus) {
+        log.info("查询题目列表: userId={}, categoryLevel={}, subjectName={}, questionType={}, knowledgePoint={}, difficultyLevel={}, auditStatus={}",
+                userId, categoryLevel, subjectName, questionType, knowledgePoint, difficultyLevel, auditStatus);
+        List<QuestionBank> list = userId == null
+                ? questionBankService.getAuditQuestionList(auditStatus, null, categoryLevel, subjectName, null)
+                : questionBankService.getUserQuestionList(userId, categoryLevel, subjectName, questionType, knowledgePoint, difficultyLevel, auditStatus);
         return RestBean.success(list);
     }
 
@@ -92,7 +106,7 @@ public class QuestionBankController {
      */
     @PostMapping("/record")
     public RestBean<String> recordAnswer(@RequestBody Map<String, Object> requestBody) {
-        Integer questionId = (Integer) requestBody.get("questionId");
+        Long questionId = Long.valueOf(String.valueOf(requestBody.get("questionId")));
         Boolean isCorrect = (Boolean) requestBody.get("isCorrect");
         log.info("记录答题结果: questionId={}, isCorrect={}", questionId, isCorrect);
         questionBankService.recordQuestionUse(questionId);
@@ -106,7 +120,7 @@ public class QuestionBankController {
      * 获取题目详情
      */
     @GetMapping("/detail/{id}")
-    public RestBean<QuestionBank> getQuestionDetail(@PathVariable Integer id) {
+    public RestBean<QuestionBank> getQuestionDetail(@PathVariable Long id) {
         log.info("获取题目详情: id={}", id);
         QuestionBank question = questionBankService.getById(id);
         return RestBean.success(question);
@@ -116,7 +130,7 @@ public class QuestionBankController {
      * 删除题目
      */
     @DeleteMapping("/delete/{id}")
-    public RestBean<String> deleteQuestion(@PathVariable Integer id) {
+    public RestBean<String> deleteQuestion(@PathVariable Long id) {
         log.info("删除题目: id={}", id);
         if (questionBankService.removeById(id)) {
             return RestBean.success("删除成功");
@@ -132,6 +146,85 @@ public class QuestionBankController {
         log.info("获取筛选条件");
         Map<String, Object> filters = questionBankService.getFilters();
         return RestBean.success(filters);
+    }
+
+    @GetMapping("/filters/{userId}")
+    public RestBean<Map<String, Object>> getUserFilters(@PathVariable Long userId) {
+        log.info("获取用户筛选条件: userId={}", userId);
+        return RestBean.success(questionBankService.getFilters(userId));
+    }
+
+    /**
+     * 后台审核列表
+     */
+    @GetMapping("/admin/audit-list")
+    public RestBean<List<QuestionBank>> getAuditList(
+            @RequestParam(required = false, defaultValue = "pending") String auditStatus,
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) String categoryLevel,
+            @RequestParam(required = false) String subjectName,
+            @RequestParam(required = false) String keyword) {
+        return RestBean.success(questionBankService.getAuditQuestionList(auditStatus, userId, categoryLevel, subjectName, keyword));
+    }
+
+    /**
+     * 后台审核题目
+     */
+    @PutMapping("/admin/audit/{id}")
+    public RestBean<String> auditQuestion(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        String auditStatus = String.valueOf(body.getOrDefault("auditStatus", "approved"));
+        String auditRemark = body.get("auditRemark") == null ? null : String.valueOf(body.get("auditRemark"));
+        Long auditorId = body.get("auditorId") == null ? null : Long.valueOf(String.valueOf(body.get("auditorId")));
+        if (questionBankService.auditQuestion(id, auditStatus, auditRemark, auditorId)) {
+            return RestBean.success("审核成功");
+        }
+        return RestBean.fail("题目不存在");
+    }
+
+    /**
+     * 开始考试或错题练习
+     */
+    @PostMapping("/exam/start")
+    public RestBean<ExamStartVO> startExam(@RequestBody ExamStartRequest request) {
+        try {
+            return RestBean.success(onlineExamService.startExam(request));
+        } catch (IllegalArgumentException e) {
+            return RestBean.fail(400, e.getMessage());
+        }
+    }
+
+    /**
+     * 提交考试或错题练习
+     */
+    @PostMapping("/exam/submit")
+    public RestBean<ExamSubmitVO> submitExam(@RequestBody ExamSubmitRequest request) {
+        try {
+            return RestBean.success(onlineExamService.submitExam(request));
+        } catch (IllegalArgumentException e) {
+            return RestBean.fail(400, e.getMessage());
+        }
+    }
+
+    /**
+     * 考试历史
+     */
+    @GetMapping("/exam/history/{userId}")
+    public RestBean<List<ExamHistoryVO>> getExamHistory(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String mode) {
+        return RestBean.success(onlineExamService.getHistory(userId, mode));
+    }
+
+    /**
+     * 考试详情
+     */
+    @GetMapping("/exam/detail/{userId}/{sessionId}")
+    public RestBean<ExamDetailVO> getExamDetail(@PathVariable Long userId, @PathVariable Long sessionId) {
+        try {
+            return RestBean.success(onlineExamService.getDetail(userId, sessionId));
+        } catch (IllegalArgumentException e) {
+            return RestBean.fail(400, e.getMessage());
+        }
     }
 
     /**

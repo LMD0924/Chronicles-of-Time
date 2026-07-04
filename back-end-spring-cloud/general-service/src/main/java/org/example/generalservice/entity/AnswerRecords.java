@@ -3,10 +3,14 @@
  */
 package org.example.generalservice.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 答题记录表实体类
@@ -19,11 +23,17 @@ import java.util.Date;
 public class AnswerRecords {
 
     @TableId(type = IdType.ASSIGN_ID)
-    private Integer id;
+    private Long id;
 
     private Long userId;
 
-    private Integer questionId;
+    private Long sessionId;
+
+    private Long questionId;
+
+    private Long subjectId;
+
+    private Long knowledgePointId;
 
     private String subjectName;
 
@@ -42,15 +52,15 @@ public class AnswerRecords {
 
     private Integer score;
 
-    private Integer answerTime;
+    private Integer answerTimeSeconds;
 
     @TableField("mistake_added")
     private Integer mistakeAdded;
 
     private String examSession;
 
-    private Date answerDate;
+    private LocalDateTime answerAt;
 
     @TableField(value = "created_at", fill = FieldFill.INSERT)
-    private Date createdAt;
+    private LocalDateTime createdAt;
 }

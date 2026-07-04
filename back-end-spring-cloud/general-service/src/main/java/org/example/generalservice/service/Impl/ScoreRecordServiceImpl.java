@@ -10,8 +10,10 @@ import org.example.generalservice.entity.ScoreRecord;
 import org.example.generalservice.mapper.ScoreRecordMapper;
 import org.example.generalservice.service.ScoreRecordService;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +36,18 @@ public class ScoreRecordServiceImpl extends ServiceImpl<ScoreRecordMapper, Score
     public Boolean addScore(ScoreRecord scoreRecord) {
         log.info("添加成绩记录: userId={}, subjectName={}, score={}",
                 scoreRecord.getUserId(), scoreRecord.getSubjectName(), scoreRecord.getScore());
+        if (!StringUtils.hasText(scoreRecord.getExamName())) {
+            scoreRecord.setExamName("在线考试");
+        }
+        if (!StringUtils.hasText(scoreRecord.getExamType())) {
+            scoreRecord.setExamType("practice");
+        }
+        if (scoreRecord.getExamDate() == null) {
+            scoreRecord.setExamDate(LocalDate.now());
+        }
+        if (scoreRecord.getFullScore() == null) {
+            scoreRecord.setFullScore(BigDecimal.valueOf(100));
+        }
         return save(scoreRecord);
     }
 

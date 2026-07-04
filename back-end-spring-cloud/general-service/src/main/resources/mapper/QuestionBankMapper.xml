@@ -9,11 +9,37 @@
     <select id="getRandomQuestions" resultType="org.example.generalservice.entity.QuestionBank">
         SELECT * FROM question
         WHERE category_level = #{categoryLevel}
+        AND COALESCE(audit_status, 'approved') = 'approved'
+        AND COALESCE(status, 1) = 1
         <if test="subjectName != null and subjectName != ''">
             AND subject_name = #{subjectName}
         </if>
         <if test="questionType != null and questionType != ''">
             AND question_type = #{questionType}
+        </if>
+        ORDER BY RAND()
+        LIMIT #{limit}
+    </select>
+
+    <select id="getRandomQuestionsForUser" resultType="org.example.generalservice.entity.QuestionBank">
+        SELECT * FROM question
+        WHERE created_by = #{userId}
+        AND COALESCE(audit_status, 'approved') = 'approved'
+        AND COALESCE(status, 1) = 1
+        <if test="categoryLevel != null and categoryLevel != ''">
+            AND category_level = #{categoryLevel}
+        </if>
+        <if test="subjectName != null and subjectName != ''">
+            AND subject_name = #{subjectName}
+        </if>
+        <if test="questionType != null and questionType != ''">
+            AND question_type = #{questionType}
+        </if>
+        <if test="difficultyLevel != null and difficultyLevel != ''">
+            AND difficulty_level = #{difficultyLevel}
+        </if>
+        <if test="knowledgePoint != null and knowledgePoint != ''">
+            AND knowledge_point LIKE CONCAT('%', #{knowledgePoint}, '%')
         </if>
         ORDER BY RAND()
         LIMIT #{limit}
@@ -46,6 +72,7 @@
     <select id="getDistinctSubjects" resultType="java.lang.String">
         SELECT DISTINCT subject_name
         FROM question
+        WHERE subject_name IS NOT NULL AND subject_name != ''
         ORDER BY subject_name
     </select>
 
@@ -53,6 +80,7 @@
     <select id="getDistinctQuestionTypes" resultType="java.lang.String">
         SELECT DISTINCT question_type
         FROM question
+        WHERE question_type IS NOT NULL AND question_type != ''
         ORDER BY question_type
     </select>
 
@@ -64,17 +92,26 @@
         ORDER BY knowledge_point
     </select>
 
+    <select id="getDistinctKnowledgePointsByUser" resultType="java.lang.String">
+        SELECT DISTINCT knowledge_point
+        FROM question
+        WHERE created_by = #{userId}
+          AND knowledge_point IS NOT NULL
+          AND knowledge_point != ''
+        ORDER BY knowledge_point
+    </select>
+
     <!-- 批量插入答题记录 -->
     <insert id="batchInsertAnswerRecords">
         INSERT INTO answer_record (
         user_id, question_id, subject_name, question_type,
-        category_level, user_answer, correct_answer,
+        category_level, knowledge_point, user_answer, correct_answer,
         is_correct, score, answer_time_seconds, mistake_added, exam_session, answer_at
         ) VALUES
         <foreach collection="records" item="record" separator=",">
             (
             #{record.userId}, #{record.questionId}, #{record.subjectName}, #{record.questionType},
-            #{record.categoryLevel}, #{record.userAnswer}, #{record.correctAnswer},
+            #{record.categoryLevel}, #{record.knowledgePoint}, #{record.userAnswer}, #{record.correctAnswer},
             #{record.isCorrect}, #{record.score}, #{record.answerTime}, #{record.mistakeAdded},
             #{record.examSession}, #{record.answerDate}
             )

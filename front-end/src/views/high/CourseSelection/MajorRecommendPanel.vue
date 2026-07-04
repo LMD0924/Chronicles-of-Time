@@ -2,8 +2,9 @@
   文件说明：拾光记前台应用高中阶段页面组件，承载高中阶段场景的界面展示、交互操作和数据承接。
 -->
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import request from '@/utils/request'
+import AiInsightPanel from '@/views/high/components/AiInsightPanel.vue'
 
 const props = defineProps({
   isDark: Boolean,
@@ -16,6 +17,29 @@ const recommendedMajors = ref([])
 const searchKeyword = ref('')
 const searchResults = ref([])
 const hotMajors = ref([])
+
+const aiPayload = computed(() => ({
+  userId: props.studentId,
+  profile: {
+    firstSubjectName: currentSelection.value?.firstSubjectName || '',
+    secondSubject1Name: currentSelection.value?.secondSubject1Name || '',
+    secondSubject2Name: currentSelection.value?.secondSubject2Name || '',
+    combinationName: currentSelection.value?.combinationName || '',
+    futurePlan: currentSelection.value?.futurePlan || '',
+    searchKeyword: searchKeyword.value
+  },
+  candidates: [
+    ...recommendedMajors.value.map(item => ({ ...item, source: '推荐专业' })),
+    ...searchResults.value.map(item => ({ ...item, source: '搜索结果' })),
+    ...hotMajors.value.slice(0, 5).map(item => ({
+      majorName: item.majorName || item.major_name,
+      category: item.category,
+      count: item.count,
+      source: '热门专业'
+    }))
+  ],
+  question: '请基于当前选科组合和候选专业，分析适合优先了解的专业方向、潜在限制和下一步调研重点。'
+}))
 
 // 获取当前选课
 const fetchCurrentSelection = async () => {
@@ -130,6 +154,16 @@ watch(() => props.studentId, (val) => {
         组合名称：{{ currentSelection.combinationName }}
       </p>
     </div>
+
+    <AiInsightPanel
+      scenario="major"
+      title="AI 专业方向分析"
+      description="基于当前选科、推荐专业、搜索结果和热门专业，分析专业适配度与调研优先级。"
+      button-text="分析专业方向"
+      :is-dark="isDark"
+      :payload="aiPayload"
+      :disabled="!currentSelection"
+    />
 
     <!-- 推荐专业 -->
     <div>

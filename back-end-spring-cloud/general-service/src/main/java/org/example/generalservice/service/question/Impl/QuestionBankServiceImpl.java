@@ -18,6 +18,7 @@ import org.example.generalservice.vo.question.KnowledgeNode;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 /*
@@ -43,6 +44,9 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
         questionBank.setUseCount(0);
         questionBank.setMistakeCount(0);
         questionBank.setMistakeRate(java.math.BigDecimal.ZERO);
+        questionBank.setScoreValue(questionBank.getScoreValue() == null ? 2 : questionBank.getScoreValue());
+        questionBank.setStatus(questionBank.getStatus() == null ? 1 : questionBank.getStatus());
+        questionBank.setAuditStatus(StringUtils.hasText(questionBank.getAuditStatus()) ? questionBank.getAuditStatus() : "pending");
         return save(questionBank);
     }
 
@@ -53,19 +57,26 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
     }
 
     @Override
+    public List<QuestionBank> getRandomQuestions(Long userId, String categoryLevel, String subjectName, String questionType, String difficultyLevel, String knowledgePoint, Integer limit) {
+        log.info("按用户随机获取题目: userId={}, categoryLevel={}, subjectName={}, questionType={}, difficultyLevel={}, knowledgePoint={}, limit={}",
+                userId, categoryLevel, subjectName, questionType, difficultyLevel, knowledgePoint, limit);
+        return questionBankMapper.getRandomQuestionsForUser(userId, categoryLevel, subjectName, questionType, difficultyLevel, knowledgePoint, limit);
+    }
+
+    @Override
     public List<QuestionBank> getHighMistakeRateQuestions(Integer limit) {
         log.info("获取高频错题: limit={}", limit);
         return questionBankMapper.getHighMistakeRateQuestions(limit);
     }
 
     @Override
-    public Boolean recordQuestionUse(Integer questionId) {
+    public Boolean recordQuestionUse(Long questionId) {
         log.info("记录题目使用: questionId={}", questionId);
         return questionBankMapper.incrementUseCount(questionId) > 0;
     }
 
     @Override
-    public Boolean recordQuestionMistake(Integer questionId) {
+    public Boolean recordQuestionMistake(Long questionId) {
         log.info("记录题目答错: questionId={}", questionId);
         return questionBankMapper.incrementMistakeCount(questionId) > 0;
     }
@@ -95,6 +106,74 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
         result.put("knowledgePoints", knowledgePoints);
         
         return result;
+    }
+
+    @Override
+    public Map<String, Object> getFilters(Long userId) {
+        log.info("获取用户筛选条件: userId={}", userId);
+        List<QuestionBank> questions = lambdaQuery()
+                .eq(userId != null, QuestionBank::getCreatedBy, userId)
+                .eq(QuestionBank::getStatus, 1)
+                .list();
+        Map<String, Object> result = new HashMap<>();
+        result.put("categories", distinct(questions, QuestionBank::getCategoryLevel));
+        result.put("subjects", distinct(questions, QuestionBank::getSubjectName));
+        result.put("questionTypes", distinct(questions, QuestionBank::getQuestionType));
+        result.put("difficultyLevels", distinct(questions, QuestionBank::getDifficultyLevel));
+        result.put("knowledgePoints", splitDistinctKnowledgePoints(questions));
+        return result;
+    }
+
+    @Override
+    public List<QuestionBank> getUserQuestionList(Long userId, String categoryLevel, String subjectName, String questionType, String knowledgePoint, String difficultyLevel, String auditStatus) {
+        log.info("查询用户题目: userId={}, categoryLevel={}, subjectName={}, questionType={}, knowledgePoint={}, difficultyLevel={}, auditStatus={}",
+                userId, categoryLevel, subjectName, questionType, knowledgePoint, difficultyLevel, auditStatus);
+        LambdaQueryWrapper<QuestionBank> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(QuestionBank::getCreatedBy, userId)
+                .eq(QuestionBank::getStatus, 1)
+                .eq(StringUtils.hasText(categoryLevel), QuestionBank::getCategoryLevel, categoryLevel)
+                .eq(StringUtils.hasText(subjectName), QuestionBank::getSubjectName, subjectName)
+                .eq(StringUtils.hasText(questionType), QuestionBank::getQuestionType, questionType)
+                .eq(StringUtils.hasText(difficultyLevel), QuestionBank::getDifficultyLevel, difficultyLevel)
+                .eq(StringUtils.hasText(auditStatus), QuestionBank::getAuditStatus, auditStatus)
+                .like(StringUtils.hasText(knowledgePoint), QuestionBank::getKnowledgePoint, knowledgePoint)
+                .orderByDesc(QuestionBank::getCreatedAt);
+        return list(wrapper);
+    }
+
+    @Override
+    public List<QuestionBank> getAuditQuestionList(String auditStatus, Long userId, String categoryLevel, String subjectName, String keyword) {
+        log.info("后台查询题目审核列表: auditStatus={}, userId={}, categoryLevel={}, subjectName={}, keyword={}",
+                auditStatus, userId, categoryLevel, subjectName, keyword);
+        LambdaQueryWrapper<QuestionBank> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(QuestionBank::getStatus, 1)
+                .eq(StringUtils.hasText(auditStatus), QuestionBank::getAuditStatus, auditStatus)
+                .eq(userId != null, QuestionBank::getCreatedBy, userId)
+                .eq(StringUtils.hasText(categoryLevel), QuestionBank::getCategoryLevel, categoryLevel)
+                .eq(StringUtils.hasText(subjectName), QuestionBank::getSubjectName, subjectName)
+                .and(StringUtils.hasText(keyword), w -> w.like(QuestionBank::getQuestionTitle, keyword)
+                        .or()
+                        .like(QuestionBank::getKnowledgePoint, keyword))
+                .orderByAsc(QuestionBank::getAuditStatus)
+                .orderByDesc(QuestionBank::getCreatedAt);
+        return list(wrapper);
+    }
+
+    @Override
+    public Boolean auditQuestion(Long id, String auditStatus, String auditRemark, Long auditorId) {
+        if (!"approved".equals(auditStatus) && !"rejected".equals(auditStatus) && !"pending".equals(auditStatus)) {
+            throw new IllegalArgumentException("审核状态不合法");
+        }
+        QuestionBank question = getById(id);
+        if (question == null) {
+            return false;
+        }
+        question.setAuditStatus(auditStatus);
+        question.setAuditRemark(auditRemark);
+        question.setAuditedBy(auditorId);
+        question.setAuditedAt(LocalDateTime.now());
+        question.setUpdatedAt(LocalDateTime.now());
+        return updateById(question);
     }
 
     @Override
@@ -244,7 +323,7 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
                 put("total", 0);
                 put("correct", 0);
                 put("wrong", 0);
-                put("lastAnswerDate", record.getAnswerDate());
+                put("lastAnswerDate", record.getAnswerAt());
             }});
 
             Map<String, Object> stats = knowledgeStats.get(key);
@@ -291,7 +370,7 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
         if (StringUtils.hasText(subjectName)) {
             wrapper.eq(AnswerRecords::getSubjectName, subjectName);
         }
-        wrapper.orderByAsc(AnswerRecords::getAnswerDate);
+        wrapper.orderByAsc(AnswerRecords::getAnswerAt);
 
         List<AnswerRecords> records = answerRecordsMapper.selectList(wrapper);
 
@@ -299,7 +378,7 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
         Map<String, Map<String, Object>> dailyStats = new LinkedHashMap<>();
 
         for (AnswerRecords record : records) {
-            String date = record.getAnswerDate().toString();
+            String date = record.getAnswerAt() == null ? "" : record.getAnswerAt().toLocalDate().toString();
             dailyStats.putIfAbsent(date, new HashMap<String, Object>() {{
                 put("date", date);
                 put("total", 0);
@@ -670,5 +749,31 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
         graph.setStatistics(statistics);
 
         return graph;
+    }
+
+    private List<String> distinct(List<QuestionBank> questions, java.util.function.Function<QuestionBank, String> getter) {
+        return questions.stream()
+                .map(getter)
+                .filter(StringUtils::hasText)
+                .distinct()
+                .sorted()
+                .toList();
+    }
+
+    private List<String> splitDistinctKnowledgePoints(List<QuestionBank> questions) {
+        Set<String> result = new TreeSet<>();
+        for (QuestionBank question : questions) {
+            if (!StringUtils.hasText(question.getKnowledgePoint())) {
+                continue;
+            }
+            String normalized = question.getKnowledgePoint().replace("，", ",").replace("、", ",").replace(";", ",");
+            for (String item : normalized.split(",")) {
+                String value = item.trim();
+                if (StringUtils.hasText(value)) {
+                    result.add(value);
+                }
+            }
+        }
+        return new ArrayList<>(result);
     }
 }

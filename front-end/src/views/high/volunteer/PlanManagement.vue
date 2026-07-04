@@ -175,6 +175,17 @@
       </div>
 
       <div class="p-8">
+        <AiInsightPanel
+          class="mb-6"
+          scenario="volunteer"
+          title="AI 志愿方案分析"
+          description="基于当前方案和志愿明细，检查梯度、保底、选科匹配和专业风险。"
+          button-text="分析当前方案"
+          :is-dark="isDark"
+          :payload="planAiPayload"
+          :disabled="!selectedPlan"
+        />
+
         <div class="space-y-4">
           <div v-for="detail in volunteerDetails" :key="detail.id" class="volunteer-item group">
             <div class="volunteer-priority">
@@ -322,6 +333,7 @@
 import { ref, computed, onMounted, watch, inject } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
+import AiInsightPanel from '@/views/high/components/AiInsightPanel.vue'
 
 const isDark = inject('isDark', ref(false))
 
@@ -357,6 +369,22 @@ const editingDetailId = ref(null)
 
 const showBatchModal = ref(false)
 const batchDetails = ref([{ universityId: null, majorId: null, priority: 1, isMajorAdjusted: false }])
+
+const planAiPayload = computed(() => ({
+  userId: props.userId,
+  profile: {
+    ...(selectedPlan.value || {}),
+    volunteerCount: volunteerDetails.value.length,
+    selectedSubjects: selectedPlan.value?.selectedSubjects || ''
+  },
+  candidates: volunteerDetails.value.map(detail => ({
+    ...detail,
+    strategy: detail.strategy || '',
+    scoreDiff: detail.scoreDiff,
+    matchingCheck: detail.matchingCheck
+  })),
+  question: '请分析当前志愿方案的梯度、选科匹配、专业风险、保底充分性和下一步修改建议。'
+}))
 
 const formatDate = (dateStr) => {
   if (!dateStr) return ''

@@ -1,386 +1,236 @@
 <!--
-  文件说明：拾光记前台应用数据驾驶舱页面组件，承载数据驾驶舱场景的界面展示、交互操作和数据承接。
+  文件说明：在线练习、正式考试和错题练习页面。
 -->
 <template>
-  <div class="space-y-6 space-y-6">
-    <!-- 练习头部 - 考试信息栏 -->
-    <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-2xl shadow-brand-500/10">
-      <div class="flex flex-wrap justify-between items-center gap-4">
-        <div class="flex items-center gap-4">
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-brand-500/30">
-            <span class="text-white text-2xl">📝</span>
-          </div>
-          <div>
-            <h2 class="text-2xl font-bold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">实战练习</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">✨ 精选题目，智能组卷</p>
-          </div>
+  <div class="space-y-6">
+    <section class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">在线练习</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">按分类、知识点和难度随机组卷，考试完成后自动生成历史记录和错题本。</p>
         </div>
-
-        <div class="flex gap-3 flex-wrap">
-          <select v-model="examType" class="px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-dark-surface backdrop-blur-sm text-sm font-medium shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-brand-400/50">
-            <option value="高中">🏫 高中题库</option>
-            <option value="大学">🎓 大学题库</option>
-            <option value="考公">📋 公务员考试</option>
-            <option value="考研">📖 研究生考试</option>
-          </select>
-          <select v-model="subjectFilter" class="px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-dark-surface backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-brand-400/50">
-            <option value="">全部科目</option>
-            <option v-for="subject in filterSubjects" :key="subject" :value="subject">{{ subject }}</option>
-          </select>
-          <select v-model="questionTypeFilter" class="px-5 py-2.5 rounded-2xl border-0 bg-white/60 dark:bg-dark-surface backdrop-blur-sm text-sm shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-brand-400/50">
-            <option value="">全部题型</option>
-            <option v-for="type in filterQuestionTypes" :key="type" :value="type">{{ type }}</option>
-          </select>
-          <button
-            @click="startExam"
-            :disabled="loading"
-            class="px-7 py-2.5 rounded-2xl bg-gradient-to-r from-brand-500 via-purple-500 to-pink-500 text-white text-sm font-medium shadow-lg shadow-brand-500/30 hover:shadow-xl hover:shadow-brand-500/40 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-          >
-            {{ loading ? '✨ 加载中...' : '🚀 开始练习' }}
-          </button>
+        <div class="flex items-center gap-3">
+          <span v-if="activeSession.sessionId" class="px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-sm text-gray-600 dark:text-gray-300">
+            用时 {{ formatTime(elapsedSeconds) }}
+          </span>
+          <span v-if="activeSession.antiCheatEnabled" class="px-3 py-1 rounded-lg bg-red-50 text-red-600 text-sm">
+            防作弊 {{ suspiciousCount }} 次
+          </span>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- 考试进度条 -->
-    <div v-if="questions.length > 0" class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-brand-500/5">
-      <div class="flex justify-between items-center mb-4">
-        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">📊 答题进度</span>
-        <span class="text-base font-bold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">{{ answeredCount }}/{{ questions.length }}</span>
-      </div>
-      <div class="h-3 bg-gray-100 dark:bg-dark-surface rounded-full overflow-hidden shadow-inner">
-        <div class="h-full bg-gradient-to-r from-brand-500 via-purple-500 to-pink-500 rounded-full transition-all duration-500 ease-out shadow-lg shadow-brand-500/30" :style="{ width: (answeredCount / questions.length * 100) + '%' }"></div>
-      </div>
-    </div>
-
-    <!-- 主内容区：左右布局 宽度加大 -->
-    <div v-if="questions.length > 0" class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-      <!-- 左侧：题号导航区 (占1份，宽度稍小) -->
-      <div class="lg:col-span-1">
-        <div class="app-card-surface border border-white/20 dark:border-gray-700/30 sticky top-24 shadow-2xl shadow-brand-500/5">
-          <div class="p-5 border-b border-gray-200/30 dark:border-gray-700/30 bg-gradient-to-r from-brand-50/50 to-purple-50/50 dark:from-transparent dark:to-transparent">
-            <div class="flex justify-between items-center">
-              <h3 class="font-bold text-gray-800 dark:text-gray-200">🧭 题目导航</h3>
-              <div class="flex gap-3 text-xs">
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500 shadow-sm"></span>已答</span>
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-300 dark:bg-dark-surface"></span>未答</span>
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-500"></span>标记</span>
+    <div class="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)] gap-6">
+      <aside class="space-y-6">
+        <section class="bg-white dark:bg-dark-surface rounded-2xl p-5 border border-gray-200/50 dark:border-gray-700/50">
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-4">组卷条件</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="form-label">模式</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button v-for="item in modes" :key="item.value" @click="form.mode = item.value" class="seg-btn" :class="form.mode === item.value ? 'seg-btn-active' : ''">
+                  {{ item.label }}
+                </button>
               </div>
             </div>
-          </div>
-          <div class="p-4">
-            <div class="grid grid-cols-5 gap-2">
-              <button
-                v-for="(question, idx) in questions"
-                :key="question.id"
-                @click="currentIndex = idx"
-                :class="[
-                  'w-10 h-10 rounded-xl text-sm font-medium transition-all duration-200',
-                  currentIndex === idx ? 'ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-gray-800' : '',
-                  isAnswered(question.id) ? 'bg-green-500 text-white hover:bg-green-600' : '',
-                  !isAnswered(question.id) && !isMarked(question.id) ? 'bg-gray-100 dark:bg-dark-surface text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-black' : '',
-                  isMarked(question.id) && !isAnswered(question.id) ? 'bg-yellow-500 text-white hover:bg-yellow-600' : ''
-                ]"
-              >
-                {{ idx + 1 }}
-              </button>
+            <div>
+              <label class="form-label">第一层分类</label>
+              <select v-model="form.categoryLevel" class="form-control">
+                <option value="">全部分类</option>
+                <option v-for="item in categoryOptions" :key="item" :value="item">{{ item }}</option>
+              </select>
             </div>
-          </div>
-          <div class="p-4 border-t border-gray-200/50 dark:border-gray-700/50 flex flex-col gap-2">
-            <div class="flex gap-2">
-              <button
-                @click="submitAllAnswers"
-                :disabled="isAllSubmitted"
-                class="flex-1 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-medium hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
-                {{ isAllSubmitted ? '已提交' : '提交全部' }}
-              </button>
-              <button
-                @click="submitAllMistakes"
-                :disabled="isAllSubmitted"
-                class="flex-1 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
-                提交错题
-              </button>
-              <button
-                @click="clearAnswers"
-                :disabled="isAllSubmitted"
-                class="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                清空
-              </button>
+            <div>
+              <label class="form-label">科目 / 专业方向</label>
+              <input v-model="form.subjectName" class="form-control" placeholder="如 数学、公务员行测、Java 面试">
             </div>
-            <button @click="showAnswerDetails = !showAnswerDetails" class="w-full py-2 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white text-sm font-medium hover:shadow-lg transition">
-              {{ showAnswerDetails ? '隐藏答题详情' : '查看答题详情' }}
+            <div>
+              <label class="form-label">知识点</label>
+              <div class="flex flex-wrap gap-2 mb-2">
+                <button
+                  v-for="point in filterOptions.knowledgePoints"
+                  :key="point"
+                  @click="toggleKnowledge(point)"
+                  class="tag-btn"
+                  :class="form.knowledgePoints.includes(point) ? 'tag-btn-active' : ''"
+                >
+                  {{ point }}
+                </button>
+              </div>
+              <input v-model="manualKnowledge" class="form-control" placeholder="自定义知识点，多个用逗号分隔">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="form-label">题型</label>
+                <select v-model="form.questionType" class="form-control">
+                  <option value="">全部题型</option>
+                  <option v-for="item in questionTypes" :key="item" :value="item">{{ item }}</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">难度</label>
+                <select v-model="form.difficultyLevel" class="form-control">
+                  <option value="">全部难度</option>
+                  <option value="简单">简单</option>
+                  <option value="中等">中等</option>
+                  <option value="困难">困难</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="form-label">题量</label>
+                <input v-model.number="form.questionCount" type="number" min="1" max="100" class="form-control">
+              </div>
+              <div>
+                <label class="form-label">限时(分钟)</label>
+                <input v-model.number="durationMinutes" type="number" min="0" max="300" class="form-control">
+              </div>
+            </div>
+            <button @click="startExam" :disabled="loading || !userId" class="w-full py-3 rounded-xl bg-brand-500 text-white font-medium disabled:opacity-50">
+              {{ loading ? '组卷中...' : form.mode === 'mistake' ? '开始错题练习' : '开始考试' }}
+            </button>
+          </div>
+        </section>
+
+        <section class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-200/50 dark:border-gray-700/50 flex items-center justify-between">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100">历史考试</h3>
+            <button @click="fetchHistory" class="text-sm text-brand-600">刷新</button>
+          </div>
+          <div class="max-h-[460px] overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
+            <button
+              v-for="item in historyList"
+              :key="item.sessionId"
+              @click="loadHistoryDetail(item.sessionId)"
+              class="w-full text-left px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+            >
+              <div class="flex items-center justify-between gap-3">
+                <span class="font-medium text-gray-800 dark:text-gray-200">{{ item.title }}</span>
+                <span class="text-sm" :class="item.scorePercent >= 60 ? 'text-emerald-600' : 'text-red-600'">{{ item.scorePercent }}分</span>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">
+                {{ modeText(item.mode) }} · {{ item.totalQuestions }}题 · {{ formatDateTime(item.finishedAt) }}
+              </p>
+            </button>
+            <div v-if="historyList.length === 0" class="px-5 py-8 text-center text-sm text-gray-500">暂无考试历史</div>
+          </div>
+        </section>
+      </aside>
+
+      <main class="space-y-6">
+        <section v-if="questions.length > 0 && !resultData" class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200/50 dark:border-gray-700/50 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 class="font-semibold text-gray-900 dark:text-gray-100">{{ activeSession.title }}</h3>
+              <p class="text-sm text-gray-500 mt-1">已答 {{ answeredCount }}/{{ questions.length }}</p>
+            </div>
+            <button @click="submitExam" :disabled="submitting" class="px-5 py-2 rounded-xl bg-emerald-500 text-white disabled:opacity-50">
+              {{ submitting ? '提交中...' : '提交试卷' }}
             </button>
           </div>
 
-          <!-- 答题详情 -->
-          <div v-if="showAnswerDetails" class="p-4 border-t border-gray-200/50 dark:border-gray-700/50">
-            <h4 class="font-semibold text-gray-800 dark:text-gray-200 mb-3">答题情况</h4>
-            <div class="space-y-2 text-sm">
-              <div class="flex justify-between">
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500"></span>已答</span>
-                <span>{{ answeredCount }} 题</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-300 dark:bg-dark-surface"></span>未答</span>
-                <span>{{ questions.length - answeredCount }} 题</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-500"></span>标记</span>
-                <span>{{ markedQuestions.length }} 题</span>
-              </div>
-            </div>
-            <div class="mt-4 space-y-1 max-h-64 overflow-y-auto">
-              <div v-for="(question, idx) in questions" :key="question.id" class="flex items-center gap-2 py-1">
-                <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium" :class="[
-                  isAnswered(question.id) ? 'bg-green-500 text-white' : 'bg-gray-300 dark:bg-dark-surface text-gray-700 dark:text-gray-300',
-                  markedQuestions.includes(question.id) ? 'ring-2 ring-yellow-500' : ''
-                ]">
-                  {{ idx + 1 }}
-                </span>
-                <span class="text-xs truncate flex-1">{{ question.questionTitle?.substring(0, 35) || '' }}{{ question.questionTitle?.length > 35 ? '...' : '' }}</span>
-                <span class="text-xs" :class="isAnswered(question.id) ? 'text-green-600 dark:text-green-400' : 'text-gray-500'">
-                  {{ isAnswered(question.id) ? '已答' : '未答' }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 右侧：答题区 (占4份，更宽敞) -->
-      <div class="lg:col-span-4">
-        <div class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
-          <!-- 题目头部 -->
-          <div class="p-6 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-brand-50/30 to-purple-50/30 dark:from-transparent dark:to-transparent">
-            <div class="flex justify-between items-center flex-wrap gap-3">
-              <div class="flex items-center gap-3">
-                <span class="w-10 h-10 rounded-full bg-brand-100 dark:bg-dark-surface text-brand-600 dark:text-brand-400 flex items-center justify-center text-lg font-bold">
-                  {{ currentIndex + 1 }}
-                </span>
-                <div>
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <span class="px-2 py-1 rounded-lg text-xs font-medium" :class="getTypeClass(currentQuestion.questionType)">
-                      {{ currentQuestion.questionType }}
-                    </span>
-                    <span class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-dark-surface text-gray-600 dark:text-gray-400 text-xs">
-                      {{ currentQuestion.categoryLevel }}
-                    </span>
-                    <span v-if="currentQuestion.knowledgePoint || currentQuestion.knowledge_point" class="px-2 py-1 rounded-lg bg-blue-100 dark:bg-dark-surface text-blue-600 dark:text-blue-400 text-xs">
-                      📌 {{ currentQuestion.knowledgePoint || currentQuestion.knowledge_point }}
-                    </span>
-                    <span class="text-sm text-gray-500">{{ currentQuestion.difficultyLevel }}</span>
-                  </div>
-                </div>
-              </div>
-              <div class="flex gap-2">
+          <div class="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)]">
+            <div class="p-5 border-r border-gray-200/50 dark:border-gray-700/50">
+              <div class="grid grid-cols-5 gap-2">
                 <button
-                  @click="toggleScratchPaper"
-                  class="px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 dark:bg-dark-surface dark:text-blue-400 text-sm font-medium transition hover:bg-blue-200"
-                >
-                  📝 草稿纸
-                </button>
-                <button
-                  @click="toggleMark(currentQuestion.id)"
+                  v-for="(question, index) in questions"
+                  :key="question.id"
+                  @click="currentIndex = index"
+                  class="question-nav"
                   :class="[
-                    'px-3 py-1.5 rounded-lg text-sm font-medium transition',
-                    isMarked(currentQuestion.id)
-                      ? 'bg-yellow-100 text-yellow-700 dark:bg-dark-surface dark:text-yellow-400'
-                      : 'bg-gray-100 text-gray-600 dark:bg-dark-surface dark:text-gray-400 hover:bg-gray-200'
+                    currentIndex === index ? 'question-nav-current' : '',
+                    isAnswered(question.id) ? 'question-nav-done' : ''
                   ]"
                 >
-                  {{ isMarked(currentQuestion.id) ? '⭐ 已标记' : '☆ 标记此题' }}
+                  {{ index + 1 }}
                 </button>
-                <button
-                  @click="reportQuestion(currentQuestion.id)"
-                  class="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 dark:bg-dark-surface dark:text-gray-400 text-sm hover:bg-gray-200 transition"
+              </div>
+            </div>
+
+            <div class="p-6">
+              <div class="flex flex-wrap items-center gap-2 mb-4">
+                <span class="badge">{{ currentQuestion.questionType }}</span>
+                <span class="badge">{{ currentQuestion.categoryLevel || '未分类' }}</span>
+                <span class="badge">{{ currentQuestion.difficultyLevel || '未标难度' }}</span>
+                <span v-if="currentQuestion.knowledgePoint" class="badge">{{ currentQuestion.knowledgePoint }}</span>
+                <span class="text-sm text-gray-500">{{ scoreOf(currentQuestion) }} 分</span>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 leading-relaxed mb-6">{{ currentQuestion.questionTitle }}</h3>
+
+              <div v-if="isChoiceQuestion(currentQuestion)" class="space-y-3">
+                <label
+                  v-for="option in parseOptions(currentQuestion.options)"
+                  :key="option"
+                  class="option-item"
+                  :class="isSelected(currentQuestion, option) ? 'option-item-active' : ''"
                 >
-                  📢 反馈
-                </button>
+                  <input class="sr-only" :type="currentQuestion.questionType === '多选' ? 'checkbox' : 'radio'" :checked="isSelected(currentQuestion, option)" @change="selectAnswer(currentQuestion, option)">
+                  <span>{{ option }}</span>
+                </label>
               </div>
-            </div>
-          </div>
 
-          <!-- 题目内容 -->
-          <div class="p-8">
-            <div class="mb-8">
-              <p class="text-lg text-gray-800 dark:text-gray-200 leading-relaxed">{{ currentQuestion.questionTitle }}</p>
-            </div>
-
-            <!-- 选项区域 (更宽敞的选项按钮) -->
-            <div v-if="currentQuestion.questionType !== '解答' && currentQuestion.questionType !== '填空'" class="space-y-4 mb-8">
-              <div
-                v-for="(option, optIndex) in parseOptions(currentQuestion.options)"
-                :key="optIndex"
-                @click="selectAnswer(currentQuestion.id, getOptionValue(option), currentQuestion.questionType)"
-                class="flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all"
-                :class="[
-                  (currentQuestion.questionType === '多选' ? userAnswers[currentQuestion.id]?.includes(getOptionValue(option)) : userAnswers[currentQuestion.id] === getOptionValue(option))
-                    ? 'bg-brand-50 dark:bg-dark-surface border-2 border-brand-300 dark:border-brand-700'
-                    : 'bg-gray-50 dark:bg-dark-surface border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-800'
-                ]"
-              >
-                <div :class="[
-                  'w-6 h-6 border-2 flex items-center justify-center transition-all',
-                  currentQuestion.questionType === '多选' ? 'rounded' : 'rounded-full',
-                  (currentQuestion.questionType === '多选' ? userAnswers[currentQuestion.id]?.includes(getOptionValue(option)) : userAnswers[currentQuestion.id] === getOptionValue(option))
-                    ? 'border-brand-500 bg-brand-500'
-                    : 'border-gray-300 dark:border-gray-600'
-                ]">
-                  <span v-if="currentQuestion.questionType === '多选' ? userAnswers[currentQuestion.id]?.includes(getOptionValue(option)) : userAnswers[currentQuestion.id] === getOptionValue(option)" class="text-white text-sm">✓</span>
-                </div>
-                <span class="text-base text-gray-700 dark:text-gray-300">{{ option }}</span>
-              </div>
-            </div>
-
-            <!-- 填空题/解答题 (更宽敞的输入框) -->
-            <div v-else class="mb-8">
               <textarea
-                v-model="userAnswers[currentQuestion.id]"
-                :placeholder="currentQuestion.questionType === '填空' ? '请输入答案（多个空用逗号分隔）' : '请输入解答过程...'"
-                rows="6"
-                class="w-full px-5 py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-surface text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-brand-500 focus:border-transparent text-base"
+                v-else
+                v-model="answers[currentQuestion.id]"
+                rows="8"
+                class="form-control"
+                placeholder="请输入答案"
               ></textarea>
-            </div>
 
-            <!-- 解析区域（提交后显示） -->
-            <div v-if="submittedQuestions[currentQuestion.id]" class="mt-8 p-5 rounded-xl" :class="isAnswerCorrect(currentQuestion) ? 'bg-green-50 dark:bg-dark-surface' : 'bg-red-50 dark:bg-dark-surface'">
-              <div class="flex items-start gap-3">
-                <span class="text-2xl">{{ isAnswerCorrect(currentQuestion) ? '✅' : '❌' }}</span>
-                <div class="flex-1">
-                  <p class="font-medium text-base" :class="isAnswerCorrect(currentQuestion) ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'">
-                    {{ isAnswerCorrect(currentQuestion) ? '回答正确！' : '回答错误' }}
-                  </p>
-                  <p class="text-gray-600 dark:text-gray-400 text-sm mt-2">
-                    <span class="font-medium">正确答案：</span>{{ currentQuestion.correctAnswer }}
-                  </p>
-                  <p v-if="currentQuestion.answerAnalysis" class="text-gray-500 dark:text-gray-400 text-sm mt-2">
-                    📝 {{ currentQuestion.answerAnalysis }}
-                  </p>
-                  <!-- 错题加入按钮 -->
-                  <button
-                    v-if="!isAnswerCorrect(currentQuestion) && !addedToMistake[currentQuestion.id]"
-                    @click="addToMistake(currentQuestion)"
-                    class="mt-3 px-3 py-1.5 rounded-lg bg-amber-500 text-white text-sm hover:bg-amber-600 transition"
-                  >
-                    + 加入错题本
-                  </button>
-                  <span v-else-if="addedToMistake[currentQuestion.id]" class="inline-block mt-3 text-sm text-green-600">
-                    ✓ 已加入错题本
-                  </span>
-                </div>
+              <div class="flex justify-between mt-8">
+                <button @click="currentIndex--" :disabled="currentIndex === 0" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 disabled:opacity-50">上一题</button>
+                <button @click="currentIndex++" :disabled="currentIndex === questions.length - 1" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 disabled:opacity-50">下一题</button>
               </div>
             </div>
           </div>
+        </section>
 
-          <!-- 底部导航按钮 -->
-          <div class="p-6 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-dark-surface flex justify-between">
-            <button
-              @click="prevQuestion"
-              :disabled="currentIndex === 0"
-              class="px-6 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-            >
-              ← 上一题
-            </button>
-            <button
-              @click="submitCurrentAnswer"
-              class="px-6 py-2.5 rounded-xl bg-brand-500 text-white hover:bg-brand-600 transition"
-            >
-              提交本题
-            </button>
-            <button
-              @click="nextQuestion"
-              :disabled="currentIndex === questions.length - 1"
-              class="px-6 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-            >
-              下一题 →
-            </button>
+        <section v-else-if="resultData" class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+          <div class="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">考试结果</h3>
+                <p class="text-sm text-gray-500 mt-1">得分 {{ resultData.scoreObtained }}/{{ resultData.scoreTotal }}，正确 {{ resultData.correctCount }} 题，错误 {{ resultData.wrongCount }} 题，未答 {{ resultData.unansweredCount }} 题</p>
+              </div>
+              <div class="text-4xl font-bold" :class="resultData.scorePercent >= 60 ? 'text-emerald-600' : 'text-red-600'">{{ resultData.scorePercent }}</div>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
+          <div class="divide-y divide-gray-100 dark:divide-gray-800">
+            <article v-for="(item, index) in resultData.details" :key="item.questionId" class="p-6">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="flex flex-wrap items-center gap-2 mb-2">
+                    <span class="badge">第 {{ index + 1 }} 题</span>
+                    <span class="badge">{{ item.questionType }}</span>
+                    <span :class="item.correct ? 'text-emerald-600' : 'text-red-600'" class="text-sm font-medium">{{ item.correct ? '正确' : '错误' }}</span>
+                  </div>
+                  <p class="font-medium text-gray-900 dark:text-gray-100">{{ item.questionTitle }}</p>
+                </div>
+                <span class="text-sm text-gray-500">{{ item.score }} 分</span>
+              </div>
+              <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div class="p-3 rounded-xl bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300">你的答案：{{ item.userAnswer || '未作答' }}</div>
+                <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-300">正确答案：{{ item.correctAnswer }}</div>
+              </div>
+              <p v-if="item.answerAnalysis" class="mt-3 text-sm text-gray-600 dark:text-gray-300">解析：{{ item.answerAnalysis }}</p>
+            </article>
+          </div>
+        </section>
 
-    <!-- 加载状态 -->
-    <div v-else-if="loading" class="flex justify-center py-20">
-      <div class="text-center">
-        <div class="w-12 h-12 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin mx-auto"></div>
-        <p class="text-gray-500 mt-4">加载题目中...</p>
-      </div>
-    </div>
-
-    <!-- 空状态 -->
-    <div v-else class="text-center py-20 bg-white dark:bg-dark-surface rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-      <span class="text-6xl opacity-50">📚</span>
-      <p class="text-gray-500 mt-4">点击"开始练习"按钮开始答题</p>
-    </div>
-
-    <!-- 提交结果弹窗 -->
-    <div v-if="showResultModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.self="showResultModal = false">
-      <div class="bg-white dark:bg-dark-surface rounded-2xl w-full max-w-md p-6">
-        <div class="text-center">
-          <span class="text-5xl">{{ resultData.score >= 60 ? '🎉' : '📚' }}</span>
-          <h3 class="text-xl font-bold mt-3">练习完成</h3>
-          <div class="mt-4 p-4 bg-gray-100 dark:bg-dark-surface rounded-xl">
-            <div class="text-3xl font-bold text-brand-600">{{ resultData.score }}分</div>
-            <div class="text-sm text-gray-500 mt-1">正确率 {{ resultData.accuracy }}%</div>
-          </div>
-          <div class="mt-4 space-y-2 text-left">
-            <p>✅ 正确：{{ resultData.correctCount }} 题</p>
-            <p>❌ 错误：{{ resultData.wrongCount }} 题</p>
-            <p>📝 未答：{{ resultData.unansweredCount }} 题</p>
-          </div>
-          <div class="flex gap-3 mt-6">
-            <button @click="showResultModal = false" class="flex-1 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">关闭</button>
-            <button @click="goToAnswerRecords" class="flex-1 py-2 rounded-xl bg-brand-500 text-white">查看答题记录</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 草稿纸弹窗 (尺寸调大) -->
-    <div v-if="showScratchPaper" class="fixed inset-0 z-50" @click.self="toggleScratchPaper">
-      <div
-        class="bg-white dark:bg-dark-surface rounded-2xl shadow-2xl overflow-hidden absolute"
-        :style="{
-          width: scratchPaperSize.width + 'px',
-          height: scratchPaperSize.height + 'px',
-          left: scratchPaperPosition.x + 'px',
-          top: scratchPaperPosition.y + 'px'
-        }"
-      >
-        <!-- 标题栏（可拖动） -->
-        <div
-          class="px-5 py-4 bg-gradient-to-r from-brand-500 to-brand-600 flex justify-between items-center cursor-move select-none"
-          @mousedown="startScratchPaperDrag"
-          @touchstart="startScratchPaperDrag"
-        >
-          <span class="text-white font-medium">📝 草稿纸</span>
-          <div class="flex items-center gap-3">
-            <button @click.stop="clearScratchPaper" class="text-white/80 hover:text-white text-sm">清空</button>
-            <button @click.stop="toggleScratchPaper" class="text-white/80 hover:text-white text-xl">&times;</button>
-          </div>
-        </div>
-        <!-- 画布区域 -->
-        <div class="relative" style="height: calc(100% - 56px);">
-          <canvas
-            ref="scratchCanvas"
-            class="w-full h-full cursor-crosshair"
-            @mousedown="startDrawing"
-            @mousemove="draw"
-            @mouseup="stopDrawing"
-            @mouseleave="stopDrawing"
-            @touchstart="startDrawing"
-            @touchmove="draw"
-            @touchend="stopDrawing"
-          ></canvas>
-        </div>
-      </div>
+        <section v-else class="bg-white dark:bg-dark-surface rounded-2xl p-12 border border-gray-200/50 dark:border-gray-700/50 text-center">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">请选择条件开始练习</h3>
+          <p class="text-sm text-gray-500 mt-2">新增题目审核通过后，会进入你的私有题库参与抽题。</p>
+        </section>
+      </main>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/utils/request.js'
 
 const props = defineProps({
@@ -388,552 +238,412 @@ const props = defineProps({
   studentId: [String, Number]
 })
 
-const emit = defineEmits(['switchToAnswerRecords'])
+const modes = [
+  { label: '考试', value: 'exam' },
+  { label: '练习', value: 'practice' },
+  { label: '错题', value: 'mistake' }
+]
 
-// 状态变量
-const loading = ref(false)
-const questions = ref([])
-const userAnswers = ref({})           // 用户答案
-const submittedQuestions = ref({})     // 已提交的题目
-const markedQuestions = ref([])        // 标记的题目（存储题目ID）
-const addedToMistake = ref({})         // 已加入错题本
-const currentIndex = ref(0)
-const examType = ref('高中')
-const isAllSubmitted = ref(false)       // 是否已全部提交
+const categoryOptions = ['高中', '大学', '考公', '考研', '考证', '专业面试']
+const questionTypes = ['单选', '多选', '判断', '填空', '解答']
+
 const userId = ref('')
+const route = useRoute()
+const loading = ref(false)
+const submitting = ref(false)
+const durationMinutes = ref(30)
+const manualKnowledge = ref('')
+const questions = ref([])
+const answers = ref({})
+const currentIndex = ref(0)
+const historyList = ref([])
+const resultData = ref(null)
+const elapsedSeconds = ref(0)
+const suspiciousCount = ref(0)
+let timer = null
 
-// 草稿纸相关
-const showScratchPaper = ref(false)
-const scratchCanvas = ref(null)
-const isDrawing = ref(false)
-const scratchPaperSize = reactive({ width: 900, height: 650 })
-const scratchPaperPosition = reactive({ x: 100, y: 100 })
-const isDragging = ref(false)
-const dragOffset = reactive({ x: 0, y: 0 })
-let ctx = null
-let lastX = 0
-let lastY = 0
-const subjectFilter = ref('')
-const questionTypeFilter = ref('')
-const showResultModal = ref(false)
-const showAnswerDetails = ref(false)   // 显示答题详情
-const resultData = ref({
-  score: 0,
-  accuracy: 0,
-  correctCount: 0,
-  wrongCount: 0,
-  unansweredCount: 0
+const activeSession = reactive({
+  sessionId: '',
+  title: '',
+  mode: '',
+  antiCheatEnabled: false,
+  startedAt: 0
 })
 
-// 筛选条件
-const filterSubjects = ref([])
-const filterQuestionTypes = ref([])
+const form = reactive({
+  mode: 'exam',
+  categoryLevel: '高中',
+  subjectName: '',
+  questionType: '',
+  knowledgePoints: [],
+  difficultyLevel: '',
+  questionCount: 10
+})
 
-// 计算属性
+const filterOptions = reactive({
+  subjects: [],
+  questionTypes: [],
+  knowledgePoints: []
+})
+
 const currentQuestion = computed(() => questions.value[currentIndex.value] || {})
-const answeredCount = computed(() => {
-  return Object.keys(userAnswers.value).filter(id => {
-    const answer = userAnswers.value[id]
-    return answer && (Array.isArray(answer) ? answer.length > 0 : answer.trim() !== '')
-  }).length
-})
+const answeredCount = computed(() => questions.value.filter(q => isAnswered(q.id)).length)
 
-// 判断是否已答
-const isAnswered = (questionId) => {
-  const answer = userAnswers.value[questionId]
-  return answer && (Array.isArray(answer) ? answer.length > 0 : answer.trim() !== '')
-}
-
-// 判断是否已标记
-const isMarked = (questionId) => {
-  return markedQuestions.value.includes(questionId)
-}
-
-// 判断答案是否正确
-const isAnswerCorrect = (question) => {
-  const userAnswer = userAnswers.value[question.id]
-  if (!userAnswer) return false
-  if (Array.isArray(userAnswer)) {
-    return userAnswer.sort().join(',') === question.correctAnswer
-  }
-  return userAnswer.trim() === question.correctAnswer
-}
-
-// 解析选项
-const parseOptions = (options) => {
-  if (!options) return []
+const getUserInfo = async () => {
   try {
-    return JSON.parse(options)
+    const res = await request.get('/user/getUserById')
+    const data = res.data || res
+    userId.value = data?.id || props.studentId || 1
+    await Promise.all([fetchFilters(), fetchHistory()])
   } catch {
-    return options.split(',').map(o => o.trim())
+    userId.value = props.studentId || 1
+    await Promise.all([fetchFilters(), fetchHistory()])
   }
 }
 
-// 获取选项值（A、B、C、D）
-const getOptionValue = (option) => {
-  const match = option.match(/^([A-D])[\.、]/)
-  return match ? match[1] : option.charAt(0)
-}
-
-// 获取题型样式
-const getTypeClass = (type) => {
-  const map = {
-    '单选': 'bg-blue-100 text-blue-600 dark:bg-dark-surface dark:text-blue-400',
-    '多选': 'bg-purple-100 text-purple-600 dark:bg-dark-surface dark:text-purple-400',
-    '判断': 'bg-emerald-100 text-emerald-600 dark:bg-dark-surface dark:text-emerald-400',
-    '填空': 'bg-amber-100 text-amber-600 dark:bg-dark-surface dark:text-amber-400',
-    '解答': 'bg-rose-100 text-rose-600 dark:bg-dark-surface dark:text-rose-400'
-  }
-  return map[type] || 'bg-gray-100 text-gray-600'
-}
-
-// 选择答案
-const selectAnswer = (questionId, value, questionType) => {
-  if (questionType === '多选') {
-    if (!userAnswers.value[questionId]) {
-      userAnswers.value[questionId] = []
-    }
-    const index = userAnswers.value[questionId].indexOf(value)
-    if (index > -1) {
-      userAnswers.value[questionId].splice(index, 1)
-    } else {
-      userAnswers.value[questionId].push(value)
-    }
-  } else if (questionType === '判断') {
-    userAnswers.value[questionId] = value === 'A' ? '正确' : '错误'
-  } else {
-    userAnswers.value[questionId] = value
-  }
-}
-
-// 标记题目
-const toggleMark = (questionId) => {
-  const index = markedQuestions.value.indexOf(questionId)
-  if (index > -1) {
-    markedQuestions.value.splice(index, 1)
-    ElMessage.info('已取消标记')
-  } else {
-    markedQuestions.value.push(questionId)
-    ElMessage.success('已标记，可在导航区查看')
-  }
-}
-
-// 提交当前答案
-const submitCurrentAnswer = async () => {
-  const question = currentQuestion.value
-  const answer = userAnswers.value[question.id]
-
-  if (!answer || (Array.isArray(answer) ? answer.length === 0 : answer.trim() === '')) {
-    ElMessage.warning('请先填写答案')
-    return
-  }
-
-  let isCorrect = false
-  let userAnswerStr = answer
-  if (Array.isArray(answer)) {
-    userAnswerStr = answer.sort().join(',')
-    isCorrect = userAnswerStr === question.correctAnswer
-  } else {
-    isCorrect = answer.trim() === question.correctAnswer
-  }
-
-  try {
-    await request.post('/question/record', {
-      questionId: question.id,
-      isCorrect,
-      userAnswer: userAnswerStr
-    })
-  } catch (error) {
-    console.error('记录失败', error)
-  }
-
-  submittedQuestions.value[question.id] = true
-
-  if (isCorrect) {
-    ElMessage.success('回答正确！')
-  } else {
-    ElMessage.error('回答错误')
-  }
-
-  if (currentIndex.value < questions.value.length - 1) {
-    setTimeout(() => {
-      currentIndex.value++
-    }, 800)
-  }
-}
-
-// 提交全部答案
-const submitAllAnswers = async () => {
-  if (isAllSubmitted.value) {
-    ElMessage.warning('您已提交过了！')
-    return
-  }
-
-  let correctCount = 0
-  let wrongCount = 0
-  let unansweredCount = 0
-  const answerRecords = []
-  const examSession = Date.now().toString()
-  const answerDate = new Date().toISOString().split('T')[0]
-
-  for (const question of questions.value) {
-    const answer = userAnswers.value[question.id]
-    if (!answer || (typeof answer === 'string' && answer.trim() === '') || (Array.isArray(answer) && answer.length === 0)) {
-      unansweredCount++
-      continue
-    }
-
-    let userAnswerStr = answer
-    if (Array.isArray(answer)) {
-      userAnswerStr = answer.sort().join(',')
-    }
-
-    const isCorrect = userAnswerStr === question.correctAnswer
-    if (isCorrect) {
-      correctCount++
-    } else {
-      wrongCount++
-    }
-
-    const record = {
-      userId: userId.value || 1,
-      questionId: question.id,
-      subjectName: question.subjectName,
-      questionType: question.questionType,
-      categoryLevel: question.categoryLevel,
-      knowledgePoint: question.knowledgePoint || '',
-      userAnswer: userAnswerStr,
-      correctAnswer: question.correctAnswer,
-      isCorrect: isCorrect ? 1 : 0,
-      score: isCorrect ? 2 : 0,
-      answerTime: 0,
-      mistakeAdded: 0,
-      examSession: examSession,
-      answerDate: answerDate
-    }
-    answerRecords.push(record)
-
-    submittedQuestions.value[question.id] = true
-  }
-
-  if (answerRecords.length > 0) {
-    try {
-      await request.post('/question/record-batch', answerRecords)
-    } catch (error) {
-      console.error('批量记录失败', error)
-    }
-  }
-
-  const total = questions.value.length
-  const score = Math.round((correctCount / total) * 100)
-
-  resultData.value = {
-    score,
-    accuracy: Math.round((correctCount / total) * 100),
-    correctCount,
-    wrongCount,
-    unansweredCount
-  }
-
-  isAllSubmitted.value = true
-  showResultModal.value = true
-}
-
-// 跳转到答题记录页面
-const goToAnswerRecords = () => {
-  showResultModal.value = false
-  emit('switchToAnswerRecords')
-}
-
-// 提交所有错题
-const submitAllMistakes = async () => {
-  let addedCount = 0
-  let errorCount = 0
-
-  for (const question of questions.value) {
-    const answer = userAnswers.value[question.id]
-    if (!answer || (Array.isArray(answer) ? answer.length === 0 : answer.trim() === '')) continue
-
-    let isCorrect = false
-    if (Array.isArray(answer)) {
-      isCorrect = answer.sort().join(',') === question.correctAnswer
-    } else {
-      isCorrect = answer.trim() === question.correctAnswer
-    }
-    if (isCorrect) continue
-
-    if (addedToMistake.value[question.id]) continue
-
-    try {
-      const mistakeData = {
-        userId: userId.value || 1,
-        subjectName: question.subjectName,
-        mistakeName: question.questionTitle?.substring(0, 100) || '',
-        mistakeType: question.questionType,
-        wrongAnswer: answer,
-        correctAnswer: question.correctAnswer,
-        answerAnalysis: question.answerAnalysis,
-        mistakeDate: new Date().toISOString().split('T')[0]
-      }
-
-      const res = await request.post('/mistake/add', mistakeData)
-      if (res.code === 200) {
-        addedToMistake.value[question.id] = true
-        addedCount++
-      }
-    } catch (error) {
-      console.error('加入错题本失败', error)
-      errorCount++
-    }
-  }
-
-  if (addedCount > 0) {
-    ElMessage.success(`成功添加 ${addedCount} 道错题到错题本`)
-  } else if (errorCount === 0) {
-    ElMessage.info('没有需要添加的错题')
-  } else {
-    ElMessage.error('添加错题失败')
-  }
-}
-
-// 清空答案
-const clearAnswers = () => {
-  if (confirm('确定清空所有答案吗？')) {
-    userAnswers.value = {}
-    submittedQuestions.value = {}
-    ElMessage.success('已清空')
-  }
-}
-
-// 上一题
-const prevQuestion = () => {
-  if (currentIndex.value > 0) {
-    currentIndex.value--
-  }
-}
-
-// 下一题
-const nextQuestion = () => {
-  if (currentIndex.value < questions.value.length - 1) {
-    currentIndex.value++
-  }
-}
-
-// 加入错题本
-const addToMistake = async (question) => {
-  try {
-    let userAnswer = userAnswers.value[question.id] || ''
-    if (Array.isArray(userAnswer)) {
-      userAnswer = userAnswer.sort().join(',')
-    }
-    const mistakeData = {
-      userId: userId.value || 1,
-      subjectName: question.subjectName,
-      mistakeName: question.questionTitle?.substring(0, 100) || '',
-      mistakeType: question.questionType,
-      wrongAnswer: userAnswer,
-      correctAnswer: question.correctAnswer,
-      answerAnalysis: question.answerAnalysis,
-      mistakeDate: new Date().toISOString().split('T')[0]
-    }
-
-    const res = await request.post('/mistake/add', mistakeData)
-    if (res.code === 200) {
-      addedToMistake.value[question.id] = true
-      ElMessage.success('已加入错题本')
-    }
-  } catch (error) {
-    console.error('加入错题本失败', error)
-    ElMessage.error('加入失败')
-  }
-}
-
-// 反馈题目
-const reportQuestion = (questionId) => {
-  ElMessage.info('反馈功能开发中...')
-}
-
-// 草稿纸功能
-const toggleScratchPaper = () => {
-  showScratchPaper.value = !showScratchPaper.value
-  if (showScratchPaper.value) {
-    setTimeout(() => {
-      initScratchCanvas()
-    }, 100)
-  }
-}
-
-// 初始化草稿纸画布
-const initScratchCanvas = () => {
-  const canvas = scratchCanvas.value
-  if (!canvas) return
-
-  canvas.width = scratchPaperSize.width
-  canvas.height = scratchPaperSize.height - 56
-
-  ctx = canvas.getContext('2d')
-  ctx.strokeStyle = props.isDark ? '#ffffff' : '#000000'
-  ctx.lineWidth = 2
-  ctx.lineCap = 'round'
-  ctx.lineJoin = 'round'
-
-  ctx.fillStyle = props.isDark ? '#1f2937' : '#ffffff'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-}
-
-// 开始绘画
-const startDrawing = (e) => {
-  isDrawing.value = true
-  const canvas = scratchCanvas.value
-  const rect = canvas.getBoundingClientRect()
-  const clientX = e.clientX || (e.touches && e.touches[0].clientX)
-  const clientY = e.clientY || (e.touches && e.touches[0].clientY)
-  lastX = clientX - rect.left
-  lastY = clientY - rect.top
-}
-
-// 绘画
-const draw = (e) => {
-  if (!isDrawing.value || !ctx) return
-
-  const canvas = scratchCanvas.value
-  const rect = canvas.getBoundingClientRect()
-  const clientX = e.clientX || (e.touches && e.touches[0].clientX)
-  const clientY = e.clientY || (e.touches && e.touches[0].clientY)
-  const currentX = clientX - rect.left
-  const currentY = clientY - rect.top
-
-  ctx.beginPath()
-  ctx.moveTo(lastX, lastY)
-  ctx.lineTo(currentX, currentY)
-  ctx.stroke()
-
-  lastX = currentX
-  lastY = currentY
-}
-
-// 停止绘画
-const stopDrawing = () => {
-  isDrawing.value = false
-}
-
-// 清空草稿纸
-const clearScratchPaper = () => {
-  const canvas = scratchCanvas.value
-  if (!canvas || !ctx) {
-    initScratchCanvas()
-    if (!ctx) return
-  }
-  ctx.fillStyle = props.isDark ? '#1f2937' : '#ffffff'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-  ElMessage.success('草稿纸已清空')
-}
-
-// 开始拖动草稿纸
-const startScratchPaperDrag = (e) => {
-  isDragging.value = true
-  const clientX = e.clientX || (e.touches && e.touches[0].clientX)
-  const clientY = e.clientY || (e.touches && e.touches[0].clientY)
-  dragOffset.x = clientX - scratchPaperPosition.x
-  dragOffset.y = clientY - scratchPaperPosition.y
-
-  document.addEventListener('mousemove', onScratchPaperDrag)
-  document.addEventListener('mouseup', stopScratchPaperDrag)
-  document.addEventListener('touchmove', onScratchPaperDrag)
-  document.addEventListener('touchend', stopScratchPaperDrag)
-}
-
-// 拖动草稿纸
-const onScratchPaperDrag = (e) => {
-  if (!isDragging.value) return
-  const clientX = e.clientX || (e.touches && e.touches[0].clientX)
-  const clientY = e.clientY || (e.touches && e.touches[0].clientY)
-  scratchPaperPosition.x = clientX - dragOffset.x
-  scratchPaperPosition.y = clientY - dragOffset.y
-}
-
-// 停止拖动草稿纸
-const stopScratchPaperDrag = () => {
-  isDragging.value = false
-  document.removeEventListener('mousemove', onScratchPaperDrag)
-  document.removeEventListener('mouseup', stopScratchPaperDrag)
-  document.removeEventListener('touchmove', onScratchPaperDrag)
-  document.removeEventListener('touchend', stopScratchPaperDrag)
-}
-
-// 获取筛选条件
 const fetchFilters = async () => {
+  if (!userId.value) return
   try {
-    const res = await request.get('/question/filters')
+    const res = await request.get(`/question/filters/${userId.value}`)
     if (res.code === 200 && res.data) {
-      filterSubjects.value = res.data.subjects || []
-      filterQuestionTypes.value = res.data.questionTypes || []
+      filterOptions.subjects = res.data.subjects || []
+      filterOptions.questionTypes = res.data.questionTypes || []
+      filterOptions.knowledgePoints = res.data.knowledgePoints || []
     }
   } catch (error) {
     console.error('获取筛选条件失败', error)
   }
 }
 
-// 获取用户信息
-const getUserInfo = () => {
-  request.get('/user/getUserById', {}, (message, data) => {
-    if (data && data.id) {
-      userId.value = data.id
-    }
-  })
+const fetchHistory = async () => {
+  if (!userId.value) return
+  try {
+    const res = await request.get(`/question/exam/history/${userId.value}`)
+    if (res.code === 200) historyList.value = res.data || []
+  } catch (error) {
+    console.error('获取历史失败', error)
+  }
 }
 
-// 开始考试
 const startExam = async () => {
   loading.value = true
-
+  resultData.value = null
   try {
-    const params = {
-      categoryLevel: examType.value,
-      limit: 15
-    }
-    if (subjectFilter.value) {
-      params.subjectName = subjectFilter.value
-    }
-    if (questionTypeFilter.value) {
-      params.questionType = questionTypeFilter.value
-    }
-
-    const res = await request.get('/question/random', params)
-
-    if (res.code === 200 && res.data && res.data.length > 0) {
-      questions.value = res.data
-      userAnswers.value = {}
-      submittedQuestions.value = {}
-      markedQuestions.value = []
-      addedToMistake.value = {}
+    const knowledgePoints = [
+      ...form.knowledgePoints,
+      ...manualKnowledge.value.split(/[,，、;]/).map(item => item.trim()).filter(Boolean)
+    ]
+    const res = await request.post('/question/exam/start', {
+      userId: userId.value,
+      mode: form.mode,
+      title: form.mode === 'mistake' ? '错题练习' : '在线考试',
+      categoryLevel: form.categoryLevel,
+      subjectName: form.subjectName,
+      questionType: form.questionType,
+      knowledgePoints: [...new Set(knowledgePoints)],
+      difficultyLevel: form.difficultyLevel,
+      questionCount: form.questionCount,
+      durationSeconds: durationMinutes.value ? durationMinutes.value * 60 : null,
+      antiCheatEnabled: form.mode === 'exam'
+    })
+    if (res.code === 200 && res.data) {
+      questions.value = res.data.questions || []
+      answers.value = {}
       currentIndex.value = 0
-      isAllSubmitted.value = false
-      ElMessage.success(`已加载 ${res.data.length} 道题目`)
-    } else {
-      ElMessage.warning('暂无题目，请先添加题库')
-      questions.value = []
+      suspiciousCount.value = 0
+      elapsedSeconds.value = 0
+      Object.assign(activeSession, {
+        sessionId: res.data.sessionId,
+        title: form.mode === 'mistake' ? '错题练习' : '在线考试',
+        mode: res.data.mode,
+        antiCheatEnabled: !!res.data.antiCheatEnabled,
+        startedAt: Date.now()
+      })
+      startTimer()
+      ElMessage.success(`已抽取 ${questions.value.length} 道题`)
     }
   } catch (error) {
-    console.error('获取题目失败', error)
-    ElMessage.error('加载失败，请检查网络')
+    ElMessage.error(error.msg || error.message || '组卷失败')
   } finally {
     loading.value = false
   }
 }
 
+const submitExam = async () => {
+  if (!activeSession.sessionId) return
+  const confirmText = answeredCount.value < questions.value.length
+    ? `还有 ${questions.value.length - answeredCount.value} 题未答，确定提交吗？`
+    : '确定提交试卷吗？'
+  try {
+    await ElMessageBox.confirm(confirmText, '提交确认', { type: 'warning' })
+  } catch {
+    return
+  }
+  submitting.value = true
+  try {
+    const payload = questions.value.map(q => ({
+      questionId: q.id,
+      userAnswer: normalizeUserAnswer(answers.value[q.id]),
+      answerTimeSeconds: null
+    }))
+    const res = await request.post('/question/exam/submit', {
+      userId: userId.value,
+      sessionId: activeSession.sessionId,
+      durationSeconds: elapsedSeconds.value,
+      suspiciousCount: suspiciousCount.value,
+      answers: payload
+    })
+    if (res.code === 200) {
+      resultData.value = res.data
+      stopTimer()
+      await fetchHistory()
+      ElMessage.success('提交成功')
+    }
+  } catch (error) {
+    ElMessage.error(error.msg || error.message || '提交失败')
+  } finally {
+    submitting.value = false
+  }
+}
+
+const loadHistoryDetail = async (sessionId) => {
+  try {
+    const res = await request.get(`/question/exam/detail/${userId.value}/${sessionId}`)
+    if (res.code === 200 && res.data) {
+      resultData.value = {
+        ...res.data.session,
+        sessionId: res.data.session.sessionId,
+        scorePercent: res.data.session.scorePercent,
+        scoreObtained: res.data.session.scoreObtained,
+        scoreTotal: res.data.session.scoreTotal,
+        correctCount: res.data.session.correctCount,
+        wrongCount: res.data.session.wrongCount,
+        unansweredCount: Math.max(0, (res.data.session.totalQuestions || 0) - (res.data.session.correctCount || 0) - (res.data.session.wrongCount || 0)),
+        details: res.data.details || []
+      }
+      questions.value = []
+      stopTimer()
+    }
+  } catch (error) {
+    ElMessage.error('历史详情加载失败')
+  }
+}
+
+const toggleKnowledge = (point) => {
+  const index = form.knowledgePoints.indexOf(point)
+  if (index >= 0) form.knowledgePoints.splice(index, 1)
+  else form.knowledgePoints.push(point)
+}
+
+const isChoiceQuestion = (question) => ['单选', '多选', '判断', 'single', 'multiple', 'judge'].includes(question.questionType)
+
+const parseOptions = (options) => {
+  if (!options) return []
+  try {
+    const parsed = JSON.parse(options)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return String(options).split(/[,，]/).map(item => item.trim()).filter(Boolean)
+  }
+}
+
+const optionValue = (option) => {
+  const match = String(option).match(/^([A-Z])[\.\、\s]/)
+  return match ? match[1] : String(option)
+}
+
+const selectAnswer = (question, option) => {
+  const value = optionValue(option)
+  if (question.questionType === '多选' || question.questionType === 'multiple') {
+    const current = Array.isArray(answers.value[question.id]) ? answers.value[question.id] : []
+    const index = current.indexOf(value)
+    if (index >= 0) current.splice(index, 1)
+    else current.push(value)
+    answers.value[question.id] = [...current].sort()
+  } else if (question.questionType === '判断' || question.questionType === 'judge') {
+    answers.value[question.id] = value === 'A' ? '正确' : value === 'B' ? '错误' : value
+  } else {
+    answers.value[question.id] = value
+  }
+}
+
+const isSelected = (question, option) => {
+  const value = optionValue(option)
+  const current = answers.value[question.id]
+  if (Array.isArray(current)) return current.includes(value)
+  if (question.questionType === '判断' || question.questionType === 'judge') {
+    return (current === '正确' && value === 'A') || (current === '错误' && value === 'B') || current === value
+  }
+  return current === value
+}
+
+const isAnswered = (questionId) => {
+  const answer = answers.value[questionId]
+  return Array.isArray(answer) ? answer.length > 0 : !!String(answer || '').trim()
+}
+
+const normalizeUserAnswer = (answer) => Array.isArray(answer) ? answer.join(',') : String(answer || '').trim()
+
+const scoreOf = (question) => question.scoreValue || 2
+
+const startTimer = () => {
+  stopTimer()
+  timer = window.setInterval(() => {
+    elapsedSeconds.value += 1
+    if (durationMinutes.value && elapsedSeconds.value >= durationMinutes.value * 60) {
+      stopTimer()
+      submitExam()
+    }
+  }, 1000)
+}
+
+const stopTimer = () => {
+  if (timer) {
+    window.clearInterval(timer)
+    timer = null
+  }
+}
+
+const handleVisibilityChange = () => {
+  if (activeSession.antiCheatEnabled && document.hidden && questions.value.length > 0 && !resultData.value) {
+    suspiciousCount.value += 1
+  }
+}
+
+const formatTime = (seconds) => {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0')
+  const s = Math.floor(seconds % 60).toString().padStart(2, '0')
+  return `${m}:${s}`
+}
+
+const formatDateTime = (value) => value ? String(value).replace('T', ' ').slice(0, 16) : '--'
+
+const modeText = (mode) => ({ exam: '考试', practice: '练习', mistake: '错题' }[mode] || mode)
+
+watch(() => form.mode, (mode) => {
+  if (mode === 'mistake') durationMinutes.value = 0
+  else if (!durationMinutes.value) durationMinutes.value = 30
+})
+
+watch(() => route.query.mode, (mode) => {
+  if (mode === 'mistake') {
+    form.mode = 'mistake'
+    durationMinutes.value = 0
+  }
+}, { immediate: true })
+
 onMounted(() => {
-  fetchFilters()
   getUserInfo()
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+})
+
+onBeforeUnmount(() => {
+  stopTimer()
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>
 
 <style scoped>
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: rgb(75 85 99);
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.animate-spin {
-  animation: spin 0.8s linear infinite;
+.form-control {
+  width: 100%;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 12px;
+  background: white;
+  padding: 10px 12px;
+  color: rgb(31 41 55);
+  font-size: 14px;
+  outline: none;
+}
+
+.form-control:focus {
+  border-color: rgb(99 102 241);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.seg-btn,
+.tag-btn {
+  border: 1px solid rgb(229 231 235);
+  border-radius: 10px;
+  background: white;
+  padding: 8px 10px;
+  color: rgb(75 85 99);
+  font-size: 13px;
+}
+
+.seg-btn-active,
+.tag-btn-active {
+  border-color: rgb(99 102 241);
+  background: rgb(238 242 255);
+  color: rgb(79 70 229);
+  font-weight: 700;
+}
+
+.question-nav {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgb(243 244 246);
+  color: rgb(75 85 99);
+  font-size: 13px;
+}
+
+.question-nav-current {
+  outline: 2px solid rgb(99 102 241);
+  outline-offset: 2px;
+}
+
+.question-nav-done {
+  background: rgb(16 185 129);
+  color: white;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgb(243 244 246);
+  padding: 4px 10px;
+  color: rgb(75 85 99);
+  font-size: 12px;
+}
+
+.option-item {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: rgb(55 65 81);
+}
+
+.option-item-active {
+  border-color: rgb(99 102 241);
+  background: rgb(238 242 255);
+  color: rgb(67 56 202);
+  font-weight: 700;
+}
+
+:global(.dark) .form-control,
+:global(.dark) .seg-btn,
+:global(.dark) .tag-btn,
+:global(.dark) .option-item {
+  border-color: rgb(55 65 81);
+  background: rgb(31 41 55);
+  color: rgb(229 231 235);
+}
+
+:global(.dark) .badge,
+:global(.dark) .question-nav {
+  background: rgb(31 41 55);
+  color: rgb(209 213 219);
 }
 </style>

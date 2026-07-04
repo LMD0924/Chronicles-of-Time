@@ -33,15 +33,23 @@ public interface QuestionBankMapper extends BaseMapper<QuestionBank> {
                                           @Param("questionType") String questionType,
                                           @Param("limit") Integer limit);
 
+    List<QuestionBank> getRandomQuestionsForUser(@Param("userId") Long userId,
+                                                 @Param("categoryLevel") String categoryLevel,
+                                                 @Param("subjectName") String subjectName,
+                                                 @Param("questionType") String questionType,
+                                                 @Param("difficultyLevel") String difficultyLevel,
+                                                 @Param("knowledgePoint") String knowledgePoint,
+                                                 @Param("limit") Integer limit);
+
     /**
      * 更新题目使用统计
      */
-    int incrementUseCount(@Param("id") Integer id);
+    int incrementUseCount(@Param("id") Long id);
 
     /**
      * 更新错题统计
      */
-    int incrementMistakeCount(@Param("id") Integer id);
+    int incrementMistakeCount(@Param("id") Long id);
 
     /**
      * 获取高频错题（错误率最高的题目）
@@ -62,6 +70,8 @@ public interface QuestionBankMapper extends BaseMapper<QuestionBank> {
      * 获取所有知识点列表
      */
     List<String> getDistinctKnowledgePoints();
+
+    List<String> getDistinctKnowledgePointsByUser(@Param("userId") Long userId);
 
     /**
      * 批量插入答题记录

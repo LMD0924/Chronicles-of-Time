@@ -135,6 +135,17 @@
           </div>
         </div>
       </div>
+
+      <AiInsightPanel
+        v-if="recommendByMajorResults.length > 0"
+        class="mt-6"
+        scenario="volunteer"
+        title="AI 按专业志愿分析"
+        description="围绕目标专业，分析候选院校的梯度、风险和保底配置。"
+        button-text="分析专业志愿"
+        :is-dark="isDark"
+        :payload="majorAiPayload"
+      />
     </div>
 
     <!-- 推荐结果 -->
@@ -148,6 +159,15 @@
           <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm">基于您的分数和选科，为您推荐以下院校</p>
         </div>
       </div>
+
+      <AiInsightPanel
+        scenario="volunteer"
+        title="AI 志愿推荐分析"
+        description="根据分数、位次、选科和推荐结果，检查冲稳保结构并给出调整建议。"
+        button-text="分析推荐结果"
+        :is-dark="isDark"
+        :payload="volunteerAiPayload"
+      />
 
       <!-- 冲刺志愿 -->
       <div v-if="groupedRecommendations.冲刺?.length" :class="[isDark ? 'bg-orange-500/10 border-orange-500/30' : 'bg-orange-50 border-orange-200', 'rounded-2xl p-5 border']">
@@ -269,6 +289,7 @@ import { ref, computed, inject, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { MagicStick, School } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import AiInsightPanel from '@/views/high/components/AiInsightPanel.vue'
 
 const isDark = inject('isDark', ref(false))
 
@@ -287,6 +308,32 @@ const recommendations = ref([])
 const recommendParams = ref({ userId: props.userId, year: 2025, province: '浙江', score: null, rank: null, subjects: [] })
 const recommendByMajorParams = ref({ userId: props.userId, majorCode: '', score: null, province: '浙江' })
 const recommendByMajorResults = ref([])
+
+const volunteerAiPayload = computed(() => ({
+  userId: props.userId,
+  profile: {
+    ...recommendParams.value,
+    recommendationCount: recommendations.value.length,
+    strategyCount: {
+      冲刺: groupedRecommendations.value.冲刺.length,
+      稳妥: groupedRecommendations.value.稳妥.length,
+      保底: groupedRecommendations.value.保底.length,
+      梦想: groupedRecommendations.value.梦想.length
+    }
+  },
+  candidates: recommendations.value,
+  question: '请分析推荐结果的冲稳保梯度、录取风险、选科匹配和志愿方案调整建议。'
+}))
+
+const majorAiPayload = computed(() => ({
+  userId: props.userId,
+  profile: {
+    ...recommendByMajorParams.value,
+    resultCount: recommendByMajorResults.value.length
+  },
+  candidates: recommendByMajorResults.value,
+  question: '请分析按专业推荐结果中哪些院校更适合作为冲刺、稳妥和保底选择。'
+}))
 
 const groupedRecommendations = computed(() => ({
   '冲刺': recommendations.value.filter(r => r.strategy === '冲刺'),

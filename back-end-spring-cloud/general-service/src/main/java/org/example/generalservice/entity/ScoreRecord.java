@@ -29,10 +29,18 @@ import java.time.LocalDateTime;
 public class ScoreRecord {
 
     @TableId(type = IdType.ASSIGN_ID)
-    private Integer id;                 // 主键ID
-    private Long userId;             // 用户ID
+    private Long id;                    // 主键ID
+    private Long userId;                // 用户ID
+    private Long subjectId;             // 科目ID
     private String subjectName;         // 科目名称
+    private String examName;            // 考试名称
+    private String examType;            // 考试类型
     private BigDecimal score;           // 分数
+    private BigDecimal fullScore;       // 满分
+    private Integer classRank;          // 班级排名
+    private Integer gradeRank;          // 年级排名
+    private String notes;               // 备注
     private LocalDate examDate;         // 考试日期
     private LocalDateTime createdAt;    // 创建时间
+    private LocalDateTime updatedAt;    // 更新时间
 }

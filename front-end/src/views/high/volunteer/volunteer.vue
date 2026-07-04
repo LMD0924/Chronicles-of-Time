@@ -19,6 +19,7 @@ const router = useRouter()
 
 // 主题
 const isDark = ref(getStoredTheme() === ThemeType.DARK)
+provide('isDark', isDark)
 
 // 用户信息
 const userId = ref(1)

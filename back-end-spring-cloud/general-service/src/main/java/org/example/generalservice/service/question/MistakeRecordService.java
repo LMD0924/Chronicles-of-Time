@@ -33,17 +33,17 @@ public interface MistakeRecordService extends IService<MistakeRecord> {
     /**
      * 标记错题为已掌握
      */
-    Boolean markAsMastered(Integer id);
+    Boolean markAsMastered(Long id);
 
     /**
      * 标记错题为未掌握
      */
-    Boolean markAsUnmastered(Integer id);
+    Boolean markAsUnmastered(Long id);
 
     /**
      * 复习错题（增加复习次数）
      */
-    Boolean reviewMistake(Integer id);
+    Boolean reviewMistake(Long id);
 
     /**
      * 按科目统计错题

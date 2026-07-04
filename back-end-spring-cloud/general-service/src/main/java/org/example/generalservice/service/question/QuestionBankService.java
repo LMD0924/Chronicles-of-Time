@@ -30,6 +30,8 @@ public interface QuestionBankService extends IService<QuestionBank> {
      */
     List<QuestionBank> getRandomQuestions(String categoryLevel, String subjectName, String questionType, Integer limit);
 
+    List<QuestionBank> getRandomQuestions(Long userId, String categoryLevel, String subjectName, String questionType, String difficultyLevel, String knowledgePoint, Integer limit);
+
     /**
      * 获取高频错题
      */
@@ -38,12 +40,12 @@ public interface QuestionBankService extends IService<QuestionBank> {
     /**
      * 记录题目使用（增加使用次数）
      */
-    Boolean recordQuestionUse(Integer questionId);
+    Boolean recordQuestionUse(Long questionId);
 
     /**
      * 记录题目答错
      */
-    Boolean recordQuestionMistake(Integer questionId);
+    Boolean recordQuestionMistake(Long questionId);
 
     /**
      * 按分类获取题目统计
@@ -54,6 +56,14 @@ public interface QuestionBankService extends IService<QuestionBank> {
      * 获取筛选条件（科目列表、题型列表）
      */
     Map<String, Object> getFilters();
+
+    Map<String, Object> getFilters(Long userId);
+
+    List<QuestionBank> getUserQuestionList(Long userId, String categoryLevel, String subjectName, String questionType, String knowledgePoint, String difficultyLevel, String auditStatus);
+
+    List<QuestionBank> getAuditQuestionList(String auditStatus, Long userId, String categoryLevel, String subjectName, String keyword);
+
+    Boolean auditQuestion(Long id, String auditStatus, String auditRemark, Long auditorId);
 
     /**
      * 批量记录答题结果

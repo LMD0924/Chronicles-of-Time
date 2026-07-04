@@ -1,229 +1,161 @@
 <!--
-  文件说明：拾光记前台应用数据驾驶舱页面组件，承载数据驾驶舱场景的界面展示、交互操作和数据承接。
+  文件说明：用户私有题库管理页面。
 -->
 <template>
-  <div class="space-y-6 space-y-6">
-    <!-- 头部 -->
-    <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-2xl shadow-purple-500/10">
-      <div class="flex flex-wrap justify-between items-center gap-4">
-        <div class="flex items-center gap-4">
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 via-brand-500 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-            <span class="text-white text-2xl">📚</span>
-          </div>
-          <div>
-            <h2 class="text-2xl font-bold bg-gradient-to-r from-purple-600 via-brand-600 to-blue-600 bg-clip-text text-transparent">题库管理</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">✨ 共 {{ totalQuestions }} 道题目</p>
-          </div>
+  <div class="space-y-6">
+    <section class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">我的题库</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">题目只属于当前用户，审核通过后才会进入在线考试和错题练习。</p>
         </div>
-        <button @click="showAddModal = true" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-purple-500 via-brand-500 to-blue-500 text-white text-sm font-medium shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transform hover:-translate-y-0.5 transition-all">
-          ➕ 添加题目
-        </button>
+        <button @click="openCreate" class="px-5 py-2.5 rounded-xl bg-brand-500 text-white font-medium">添加题目</button>
       </div>
-    </div>
+    </section>
 
-    <!-- 筛选栏 -->
-    <div class="bg-white dark:bg-dark-surface rounded-2xl p-4 border border-gray-200/50 dark:border-gray-700/50">
-      <div class="flex flex-wrap gap-3">
-        <select v-model="filters.categoryLevel" class="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-surface text-sm">
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div v-for="item in stats" :key="item.label" class="bg-white dark:bg-dark-surface rounded-2xl p-5 border border-gray-200/50 dark:border-gray-700/50">
+        <p class="text-sm text-gray-500">{{ item.label }}</p>
+        <p class="text-3xl font-bold mt-2" :class="item.class">{{ item.value }}</p>
+      </div>
+    </section>
+
+    <section class="bg-white dark:bg-dark-surface rounded-2xl p-4 border border-gray-200/50 dark:border-gray-700/50">
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
+        <select v-model="filters.categoryLevel" class="form-control">
           <option value="">全部分类</option>
-          <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
+          <option v-for="item in categories" :key="item" :value="item">{{ item }}</option>
         </select>
-        <select v-model="filters.subjectName" class="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
-          <option value="">全部科目</option>
-          <option v-for="subject in subjects" :key="subject" :value="subject">{{ subject }}</option>
-        </select>
-        <select v-model="filters.questionType" class="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
+        <input v-model="filters.subjectName" class="form-control" placeholder="科目 / 专业">
+        <select v-model="filters.questionType" class="form-control">
           <option value="">全部题型</option>
-          <option v-for="type in questionTypes" :key="type" :value="type">{{ type }}</option>
+          <option v-for="item in questionTypes" :key="item" :value="item">{{ item }}</option>
         </select>
-        <select v-model="filters.knowledgePoint" class="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
-          <option value="">全部知识点</option>
-          <option v-for="kp in knowledgePoints" :key="kp" :value="kp">{{ kp }}</option>
+        <select v-model="filters.difficultyLevel" class="form-control">
+          <option value="">全部难度</option>
+          <option value="简单">简单</option>
+          <option value="中等">中等</option>
+          <option value="困难">困难</option>
         </select>
-        <button @click="fetchQuestions" class="px-4 py-2 rounded-xl bg-brand-500 text-white text-sm">筛选</button>
-        <button @click="resetFilters" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm">重置</button>
-      </div>
-    </div>
-
-    <!-- 题目列表 -->
-    <div class="space-y-4">
-      <div v-for="(question, index) in questions" :key="question.id" class="bg-white dark:bg-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
-        <div class="p-6">
-          <div class="flex items-start justify-between">
-            <div class="flex-1">
-              <div class="flex items-center gap-3 mb-3 flex-wrap">
-                <span class="text-gray-500 text-sm">#{{ question.id }}</span>
-                <span class="px-2 py-0.5 rounded-full text-xs" :class="getTypeClass(question.questionType)">
-                  {{ question.questionType }}
-                </span>
-                <span class="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-dark-surface text-gray-600 text-xs">
-                  {{ question.subjectName }}
-                </span>
-                <span v-if="question.knowledgePoint || question.knowledge_point" class="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs">
-                  📌 {{ question.knowledgePoint || question.knowledge_point }}
-                </span>
-                <span class="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-dark-surface text-gray-600 text-xs">
-                  {{ question.categoryLevel }}
-                </span>
-                <span class="text-sm text-gray-500">{{ question.difficultyLevel }}</span>
-              </div>
-              <p class="text-gray-800 dark:text-gray-200 mb-3">{{ question.questionTitle }}</p>
-              <div v-if="question.options" class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                <div v-for="(opt, idx) in parseOptions(question.options)" :key="idx">{{ opt }}</div>
-              </div>
-              <div class="mt-3 space-y-2">
-                <div class="p-3 rounded-xl bg-green-50 dark:bg-dark-surface">
-                  <p class="text-sm"><span class="font-medium">正确答案：</span>{{ question.correctAnswer }}</p>
-                </div>
-                <div v-if="question.answerAnalysis" class="p-3 rounded-xl bg-brand-50 dark:bg-brand-950/20">
-                  <p class="text-sm"><span class="font-medium">答案解析：</span>{{ question.answerAnalysis }}</p>
-                </div>
-                <div class="flex gap-4 text-xs text-gray-500">
-                  <span>使用次数：{{ question.useCount }}</span>
-                  <span>错误次数：{{ question.mistakeCount }}</span>
-                  <span>错误率：{{ question.mistakeRate }}%</span>
-                </div>
-              </div>
-            </div>
-            <div class="flex gap-2 ml-4">
-              <button @click="editQuestion(question)" class="p-2 rounded-lg text-blue-500 hover:bg-blue-50 transition">✏️</button>
-              <button @click="deleteQuestion(question.id)" class="p-2 rounded-lg text-red-500 hover:bg-red-50 transition">🗑️</button>
-            </div>
-          </div>
+        <select v-model="filters.auditStatus" class="form-control">
+          <option value="">全部状态</option>
+          <option value="pending">待审核</option>
+          <option value="approved">已通过</option>
+          <option value="rejected">已驳回</option>
+        </select>
+        <div class="flex gap-2">
+          <button @click="fetchQuestions" class="flex-1 rounded-xl bg-gray-900 text-white text-sm">查询</button>
+          <button @click="resetFilters" class="px-4 rounded-xl border border-gray-200 text-sm">重置</button>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- 添加题目弹窗 -->
-    <div v-if="showAddModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.self="showAddModal = false">
-      <div class="bg-white dark:bg-dark-surface rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div class="p-6">
-          <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">添加题目</h3>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium mb-1">科目</label>
-              <input
-                v-model="newQuestion.subjectName"
-                class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                placeholder="请输入科目，如：数学、语文、英语"
-              >
+    <section class="space-y-4">
+      <article v-for="question in questions" :key="question.id" class="bg-white dark:bg-dark-surface rounded-2xl border border-gray-200/50 dark:border-gray-700/50 p-5">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+              <span class="badge">#{{ question.id }}</span>
+              <span class="badge">{{ question.categoryLevel || '未分类' }}</span>
+              <span class="badge">{{ question.subjectName || '未填科目' }}</span>
+              <span class="badge">{{ question.questionType }}</span>
+              <span class="badge">{{ question.difficultyLevel || '未标难度' }}</span>
+              <span :class="auditClass(question.auditStatus)" class="px-2 py-1 rounded-full text-xs font-medium">{{ auditText(question.auditStatus) }}</span>
             </div>
-            <div>
-              <label class="block text-sm font-medium mb-1">知识点</label>
-              <input
-                v-model="newQuestion.knowledgePoint"
-                class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                placeholder="请输入知识点，如：函数、三角函数"
-              >
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 leading-relaxed">{{ question.questionTitle }}</h3>
+            <div v-if="question.knowledgePoint" class="mt-2 flex flex-wrap gap-2">
+              <span v-for="point in splitKnowledge(question.knowledgePoint)" :key="point" class="px-2 py-1 rounded-lg bg-blue-50 text-blue-600 text-xs">{{ point }}</span>
             </div>
+            <div v-if="question.options" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-300">
+              <div v-for="option in parseOptions(question.options)" :key="option" class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800">{{ option }}</div>
+            </div>
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-300">答案：{{ question.correctAnswer }}</div>
+              <div class="p-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">分值：{{ question.scoreValue || 2 }}</div>
+            </div>
+            <p v-if="question.answerAnalysis" class="mt-3 text-sm text-gray-600 dark:text-gray-300">解析：{{ question.answerAnalysis }}</p>
+            <p v-if="question.auditRemark" class="mt-3 text-sm text-red-600">审核意见：{{ question.auditRemark }}</p>
+          </div>
+          <button @click="deleteQuestion(question.id)" class="px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-sm">删除</button>
+        </div>
+      </article>
+      <div v-if="questions.length === 0" class="bg-white dark:bg-dark-surface rounded-2xl p-12 text-center text-gray-500">暂无题目</div>
+    </section>
+
+    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click.self="showModal = false">
+      <div class="bg-white dark:bg-dark-surface rounded-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto">
+        <div class="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">添加题目</h3>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium mb-1">题型</label>
-              <select v-model="newQuestion.questionType" class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                <option v-for="type in questionTypes" :key="type" :value="type">{{ type }}</option>
+              <label class="form-label">第一层分类</label>
+              <select v-model="form.categoryLevel" class="form-control">
+                <option v-for="item in categories" :key="item" :value="item">{{ item }}</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1">分类</label>
-              <select v-model="newQuestion.categoryLevel" class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
+              <label class="form-label">科目 / 专业方向</label>
+              <input v-model="form.subjectName" class="form-control" placeholder="如 数学、公务员行测、Java 面试">
+            </div>
+            <div>
+              <label class="form-label">题型</label>
+              <select v-model="form.questionType" class="form-control">
+                <option v-for="item in questionTypes" :key="item" :value="item">{{ item }}</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1">题目内容</label>
-              <textarea v-model="newQuestion.questionTitle" rows="3" class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"></textarea>
-            </div>
-            <div v-if="newQuestion.questionType !== '填空' && newQuestion.questionType !== '解答'">
-              <label class="block text-sm font-medium mb-1">选项（点击选择正确答案）</label>
-
-              <!-- 判断题专用 -->
-              <div v-if="newQuestion.questionType === '判断'" class="space-y-2">
-                <div
-                  v-for="(label, index) in optionLabels.slice(0, 2)"
-                  :key="index"
-                  @click="selectCorrectAnswer(label)"
-                  class="flex gap-2 p-2 rounded-xl cursor-pointer transition-all"
-                  :class="newQuestion.correctAnswer === label
-                    ? 'bg-green-50 dark:bg-green-900/30 border-2 border-green-500'
-                    : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border-2 border-transparent'"
-                >
-                  <span class="flex items-center justify-center w-8 h-8 rounded-xl text-sm font-medium"
-                    :class="newQuestion.correctAnswer === label
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700'">
-                    {{ label }}
-                  </span>
-                  <input
-                    v-model="newQuestion.optionInputs[index]"
-                    class="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                    :placeholder="index === 0 ? '正确' : '错误'"
-                    @click.stop
-                  >
-                  <span v-if="newQuestion.correctAnswer === label" class="flex items-center text-green-500 text-xl">✓</span>
-                </div>
-              </div>
-
-              <!-- 选择题专用 -->
-              <div v-else class="space-y-2">
-                <div
-                  v-for="(label, index) in optionLabels.slice(0, 4)"
-                  :key="index"
-                  @click="selectCorrectAnswer(label)"
-                  class="flex gap-2 p-2 rounded-xl cursor-pointer transition-all"
-                  :class="isAnswerSelected(label)
-                    ? 'bg-green-50 dark:bg-green-900/30 border-2 border-green-500'
-                    : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border-2 border-transparent'"
-                >
-                  <span class="flex items-center justify-center w-8 h-8 rounded-xl text-sm font-medium"
-                    :class="isAnswerSelected(label)
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700'">
-                    {{ label }}
-                  </span>
-                  <input
-                    v-model="newQuestion.optionInputs[index]"
-                    class="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                    :placeholder="`请输入选项 ${label} 的内容`"
-                    @click.stop
-                  >
-                  <span v-if="isAnswerSelected(label)" class="flex items-center text-green-500 text-xl">✓</span>
-                </div>
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1">正确答案</label>
-
-              <!-- 填空题和解答题：文本输入 -->
-              <input
-                v-if="newQuestion.questionType === '填空' || newQuestion.questionType === '解答'"
-                v-model="newQuestion.correctAnswer"
-                class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                placeholder="请输入正确答案"
-              >
-
-              <!-- 选择题：显示已选答案 -->
-              <div v-else class="px-4 py-2 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700">
-                <span class="text-gray-500 dark:text-gray-400">
-                  {{ newQuestion.correctAnswer || '请点击上方选项选择正确答案' }}
-                </span>
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1">答案解析</label>
-              <textarea v-model="newQuestion.answerAnalysis" rows="2" class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1">难度</label>
-              <select v-model="newQuestion.difficultyLevel" class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <label class="form-label">难度</label>
+              <select v-model="form.difficultyLevel" class="form-control">
                 <option value="简单">简单</option>
                 <option value="中等">中等</option>
                 <option value="困难">困难</option>
               </select>
             </div>
           </div>
-          <div class="flex gap-3 mt-6">
-            <button @click="showAddModal = false" class="flex-1 px-4 py-2 rounded-xl border border-gray-200">取消</button>
-            <button @click="addQuestion" class="flex-1 px-4 py-2 rounded-xl bg-brand-500 text-white">确认添加</button>
+          <div>
+            <label class="form-label">知识点</label>
+            <input v-model="form.knowledgePoint" class="form-control" placeholder="多个知识点用逗号分隔，例如 函数,导数,极值">
           </div>
+          <div>
+            <label class="form-label">题干</label>
+            <textarea v-model="form.questionTitle" rows="4" class="form-control" placeholder="请输入题目内容"></textarea>
+          </div>
+
+          <div v-if="isChoiceType" class="space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="form-label mb-0">选项</label>
+              <button @click="addOption" class="text-sm text-brand-600">增加选项</button>
+            </div>
+            <div v-for="(option, index) in form.optionInputs" :key="index" class="grid grid-cols-[44px_minmax(0,1fr)_64px] gap-2">
+              <span class="flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 font-semibold">{{ optionLabels[index] }}</span>
+              <input v-model="form.optionInputs[index]" class="form-control" :placeholder="`选项 ${optionLabels[index]}`">
+              <button @click="toggleCorrect(optionLabels[index])" class="rounded-xl border text-sm" :class="isCorrect(optionLabels[index]) ? 'border-emerald-400 text-emerald-600 bg-emerald-50' : 'border-gray-200 text-gray-500'">
+                答案
+              </button>
+            </div>
+          </div>
+
+          <div v-else>
+            <label class="form-label">正确答案</label>
+            <input v-model="form.correctAnswer" class="form-control" placeholder="请输入正确答案">
+          </div>
+
+          <div>
+            <label class="form-label">答案解析</label>
+            <textarea v-model="form.answerAnalysis" rows="3" class="form-control" placeholder="可填写解析，帮助复盘"></textarea>
+          </div>
+          <div>
+            <label class="form-label">分值</label>
+            <input v-model.number="form.scoreValue" type="number" min="1" max="100" class="form-control">
+          </div>
+        </div>
+        <div class="p-6 border-t border-gray-200/50 dark:border-gray-700/50 flex gap-3">
+          <button @click="showModal = false" class="flex-1 py-2 rounded-xl border border-gray-200 text-gray-600">取消</button>
+          <button @click="saveQuestion" :disabled="saving" class="flex-1 py-2 rounded-xl bg-brand-500 text-white disabled:opacity-50">
+            {{ saving ? '提交中...' : '提交审核' }}
+          </button>
         </div>
       </div>
     </div>
@@ -231,7 +163,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import request from '@/utils/request.js'
 
 const props = defineProps({
@@ -239,169 +172,214 @@ const props = defineProps({
   studentId: [String, Number]
 })
 
-const questions = ref([])
-const showAddModal = ref(false)
-const filters = reactive({ categoryLevel: '', subjectName: '', questionType: '', knowledgePoint: '' })
-const categories = ref(['高中', '大学', '考公', '考研', '考证'])
-const subjects = ref([])
-const questionTypes = ref([])
-const knowledgePoints = ref([])
-
+const categories = ['高中', '大学', '考公', '考研', '考证', '专业面试']
+const questionTypes = ['单选', '多选', '判断', '填空', '解答']
 const optionLabels = ['A', 'B', 'C', 'D', 'E', 'F']
 
-const newQuestion = ref({
+const userId = ref('')
+const questions = ref([])
+const showModal = ref(false)
+const saving = ref(false)
+
+const filters = reactive({
+  categoryLevel: '',
+  subjectName: '',
+  questionType: '',
+  difficultyLevel: '',
+  auditStatus: ''
+})
+
+const defaultForm = () => ({
   subjectName: '',
   knowledgePoint: '',
   questionType: '单选',
   categoryLevel: '高中',
   questionTitle: '',
-  options: '',
-  optionInputs: ['', '', '', ''], // 用于输入A、B、C、D
+  optionInputs: ['', '', '', ''],
   correctAnswer: '',
   answerAnalysis: '',
-  difficultyLevel: '中等'
+  difficultyLevel: '中等',
+  scoreValue: 2
 })
 
-const totalQuestions = computed(() => questions.value.length)
+const form = reactive(defaultForm())
 
-const fetchFilters = async () => {
+const stats = computed(() => [
+  { label: '全部题目', value: questions.value.length, class: 'text-gray-900 dark:text-gray-100' },
+  { label: '待审核', value: questions.value.filter(q => q.auditStatus === 'pending').length, class: 'text-amber-600' },
+  { label: '已通过', value: questions.value.filter(q => q.auditStatus === 'approved').length, class: 'text-emerald-600' },
+  { label: '已驳回', value: questions.value.filter(q => q.auditStatus === 'rejected').length, class: 'text-red-600' }
+])
+
+const isChoiceType = computed(() => ['单选', '多选', '判断'].includes(form.questionType))
+
+const getUserInfo = async () => {
   try {
-    const res = await request.get('/question/filters')
-    if (res.code === 200 && res.data) {
-      subjects.value = res.data.subjects || []
-      questionTypes.value = res.data.questionTypes || []
-      knowledgePoints.value = res.data.knowledgePoints || []
-    }
-  } catch (error) {
-    console.error('获取筛选条件失败', error)
+    const res = await request.get('/user/getUserById')
+    const data = res.data || res
+    userId.value = data?.id || props.studentId || 1
+  } catch {
+    userId.value = props.studentId || 1
   }
+  await fetchQuestions()
 }
 
 const fetchQuestions = async () => {
+  if (!userId.value) return
   try {
-    const res = await request.get('/question/list', { params: filters })
+    const params = { userId: userId.value }
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) params[key] = value
+    })
+    const res = await request.get('/question/list', params)
     if (res.code === 200) questions.value = res.data || []
   } catch (error) {
     console.error('获取题目失败', error)
+    ElMessage.error('题目加载失败')
   }
 }
 
 const resetFilters = () => {
-  filters.categoryLevel = ''
-  filters.subjectName = ''
-  filters.questionType = ''
-  filters.knowledgePoint = ''
+  Object.assign(filters, {
+    categoryLevel: '',
+    subjectName: '',
+    questionType: '',
+    difficultyLevel: '',
+    auditStatus: ''
+  })
   fetchQuestions()
+}
+
+const openCreate = () => {
+  Object.assign(form, defaultForm())
+  showModal.value = true
+}
+
+const addOption = () => {
+  if (form.optionInputs.length < optionLabels.length) form.optionInputs.push('')
+}
+
+const toggleCorrect = (label) => {
+  if (form.questionType === '多选') {
+    const selected = form.correctAnswer ? form.correctAnswer.split(',') : []
+    const index = selected.indexOf(label)
+    if (index >= 0) selected.splice(index, 1)
+    else selected.push(label)
+    form.correctAnswer = selected.sort().join(',')
+  } else {
+    form.correctAnswer = label
+  }
+}
+
+const isCorrect = (label) => form.correctAnswer.split(',').filter(Boolean).includes(label)
+
+const saveQuestion = async () => {
+  if (!form.subjectName || !form.questionTitle || !form.correctAnswer) {
+    ElMessage.warning('请填写科目、题干和正确答案')
+    return
+  }
+  saving.value = true
+  try {
+    const options = isChoiceType.value
+      ? form.optionInputs.map((item, index) => item.trim() ? `${optionLabels[index]}. ${item.trim()}` : '').filter(Boolean)
+      : []
+    const res = await request.post('/question/add', {
+      ...form,
+      userId: userId.value,
+      createdBy: userId.value,
+      options: options.length ? JSON.stringify(options) : null,
+      auditStatus: 'pending'
+    })
+    if (res.code === 200) {
+      ElMessage.success('已提交，等待管理员审核')
+      showModal.value = false
+      await fetchQuestions()
+    }
+  } catch (error) {
+    ElMessage.error(error.msg || '提交失败')
+  } finally {
+    saving.value = false
+  }
+}
+
+const deleteQuestion = async (id) => {
+  if (!confirm('确定删除这道题吗？')) return
+  try {
+    const res = await request.delete(`/question/delete/${id}`)
+    if (res.code === 200) {
+      ElMessage.success('删除成功')
+      await fetchQuestions()
+    }
+  } catch {
+    ElMessage.error('删除失败')
+  }
 }
 
 const parseOptions = (options) => {
   if (!options) return []
   try {
-    return JSON.parse(options)
+    const parsed = JSON.parse(options)
+    return Array.isArray(parsed) ? parsed : []
   } catch {
-    return options.split(',').map(o => o.trim())
+    return String(options).split(/[,，]/).map(item => item.trim()).filter(Boolean)
   }
 }
 
-const getTypeClass = (type) => {
-  const map = {
-    '单选': 'bg-blue-100 text-blue-600',
-    '多选': 'bg-purple-100 text-purple-600',
-    '判断': 'bg-emerald-100 text-emerald-600',
-    '填空': 'bg-amber-100 text-amber-600',
-    '解答': 'bg-rose-100 text-rose-600'
-  }
-  return map[type] || 'bg-gray-100 text-gray-600'
-}
+const splitKnowledge = (value) => String(value || '').split(/[,，、;]/).map(item => item.trim()).filter(Boolean)
 
-// 格式化选项为 ["A. xxx", "B. xxx"] 格式
-const formatOptions = () => {
-  const formatted = []
-  for (let i = 0; i < newQuestion.value.optionInputs.length; i++) {
-    const input = newQuestion.value.optionInputs[i].trim()
-    if (input) {
-      formatted.push(`${optionLabels[i]}. ${input}`)
-    }
-  }
-  newQuestion.value.options = JSON.stringify(formatted)
-}
+const auditText = (status) => ({ pending: '待审核', approved: '已通过', rejected: '已驳回' }[status] || '待审核')
+const auditClass = (status) => ({
+  pending: 'bg-amber-50 text-amber-600',
+  approved: 'bg-emerald-50 text-emerald-600',
+  rejected: 'bg-red-50 text-red-600'
+}[status] || 'bg-gray-100 text-gray-600')
 
-// 重置选项输入
-const resetOptionInputs = () => {
-  newQuestion.value.optionInputs = ['', '', '', '']
-}
-
-// 选择正确答案
-const selectCorrectAnswer = (label) => {
-  if (newQuestion.value.questionType === '多选') {
-    // 多选题：支持多选
-    let answers = newQuestion.value.correctAnswer ? newQuestion.value.correctAnswer.split(',') : []
-    const index = answers.indexOf(label)
-    if (index > -1) {
-      answers.splice(index, 1)
-    } else {
-      answers.push(label)
-    }
-    newQuestion.value.correctAnswer = answers.sort().join(',')
-  } else {
-    // 单选题和判断题：单选
-    newQuestion.value.correctAnswer = label
-  }
-}
-
-// 检查某个选项是否被选中为正确答案
-const isAnswerSelected = (label) => {
-  if (newQuestion.value.questionType === '多选') {
-    const answers = newQuestion.value.correctAnswer ? newQuestion.value.correctAnswer.split(',') : []
-    return answers.includes(label)
-  } else {
-    return newQuestion.value.correctAnswer === label
-  }
-}
-
-const addQuestion = async () => {
-  try {
-    // 如果是选择题，先格式化选项
-    if (newQuestion.value.questionType !== '填空' && newQuestion.value.questionType !== '解答') {
-      formatOptions()
-    }
-
-    const res = await request.post('/question/add', newQuestion.value)
-    if (res.code === 200) {
-      showAddModal.value = false
-      fetchQuestions()
-      newQuestion.value = {
-        subjectName: '',
-        knowledgePoint: '',
-        questionType: '单选',
-        categoryLevel: '高中',
-        questionTitle: '',
-        options: '',
-        optionInputs: ['', '', '', ''],
-        correctAnswer: '',
-        answerAnalysis: '',
-        difficultyLevel: '中等'
-      }
-    }
-  } catch (error) {
-    console.error('添加失败', error)
-  }
-}
-
-const deleteQuestion = async (id) => {
-  if (confirm('确定删除这道题吗？')) {
-    await request.delete(`/question/delete/${id}`)
-    fetchQuestions()
-  }
-}
-
-const editQuestion = (question) => {
-  // 编辑逻辑
-  console.log('编辑', question)
-}
-
-onMounted(() => {
-  fetchFilters()
-  fetchQuestions()
-})
+onMounted(getUserInfo)
 </script>
+
+<style scoped>
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: rgb(75 85 99);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.form-control {
+  width: 100%;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 12px;
+  background: white;
+  padding: 10px 12px;
+  color: rgb(31 41 55);
+  font-size: 14px;
+  outline: none;
+}
+
+.form-control:focus {
+  border-color: rgb(99 102 241);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgb(243 244 246);
+  padding: 4px 10px;
+  color: rgb(75 85 99);
+  font-size: 12px;
+}
+
+:global(.dark) .form-control {
+  border-color: rgb(55 65 81);
+  background: rgb(31 41 55);
+  color: rgb(229 231 235);
+}
+
+:global(.dark) .badge {
+  background: rgb(31 41 55);
+  color: rgb(209 213 219);
+}
+</style>
