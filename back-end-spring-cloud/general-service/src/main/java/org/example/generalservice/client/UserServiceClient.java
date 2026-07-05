@@ -8,6 +8,9 @@ import org.example.generalservice.vo.UserVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 /*
  * @Author:总会落叶
@@ -22,4 +25,8 @@ public interface UserServiceClient {
 
     @GetMapping("/api/user/public/{id}")
     RestBean<UserVO> getAuthorInfo(@PathVariable("id") Long id);
+
+    @GetMapping("/api/user/public/search")
+    RestBean<List<UserVO>> searchPublicUsers(@RequestParam("keyword") String keyword,
+                                             @RequestParam("limit") Integer limit);
 }

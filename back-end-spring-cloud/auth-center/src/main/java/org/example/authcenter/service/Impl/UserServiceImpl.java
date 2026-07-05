@@ -4,12 +4,15 @@
 package org.example.authcenter.service.Impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.example.authcenter.entity.User;
 import org.example.authcenter.mapper.UserMapper;
 import org.example.authcenter.service.UserService;
-import org.example.authcenter.vo.UserVO;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 /*
  * @Author:总会落叶
@@ -50,5 +53,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public boolean updateUserInfo(User user){
         if(user.getId()==null) return false;
         return userMapper.updateById(user) > 0;
+    }
+
+    @Override
+    public List<User> searchPublicUsers(String keyword, int limit) {
+        int safeLimit = Math.max(1, Math.min(limit, 20));
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getStatus, 1);
+        if (StringUtils.hasText(keyword)) {
+            String text = keyword.trim();
+            wrapper.and(q -> q.like(User::getUsername, text)
+                    .or()
+                    .like(User::getName, text)
+                    .or()
+                    .like(User::getEmail, text)
+                    .or()
+                    .like(User::getPhone, text));
+        }
+        wrapper.orderByDesc(User::getLastLoginTime)
+                .last("LIMIT " + safeLimit);
+        return userMapper.selectList(wrapper);
     }
 }

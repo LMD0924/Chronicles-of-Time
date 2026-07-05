@@ -97,6 +97,8 @@ const sectionContents = {
       { icon: '✍️', name: '心情随笔', description: '日常感悟', link: '/Publish' },
       { icon: '📝', name: '取其精华', description: '进步与反思', link: '/List' },
       { icon: '💡', name: '灵感笔记', description: '创意与想法', link: '/Publish' },
+      { icon: '✅', name: '每日打卡', description: '记录登录天数和在线时长', link: '/DailyCheckin' },
+      { icon: '💬', name: '在线聊天', description: '好友私聊与群聊', link: '/Chat' },
     ],
     stats: [
       { label: '日记总数', value: '156篇' },

@@ -30,6 +30,7 @@ import {
   Reading,
   School,
   Setting,
+  ChatDotRound,
   Star,
   Tickets,
   TrendCharts,
@@ -69,6 +70,7 @@ export const iconMap = {
   Reading,
   School,
   Setting,
+  ChatDotRound,
   Star,
   Tickets,
   TrendCharts,
@@ -130,6 +132,12 @@ export const adminMenus = [
       { path: '/content/articles', name: 'ArticleManage', title: '文章内容管理', icon: 'Document', component: 'content/ArticleManage' },
       { path: '/content/comments', name: 'CommentManage', title: '评论管理', icon: 'Memo', component: 'content/CommentManage' },
       { path: '/content/content-graph', name: 'ContentGraphManage', title: '内容知识图谱管理', icon: 'Connection', component: 'content/ContentGraphManage' },
+    ],
+  },
+  {
+    path: '/community', title: '社区互动管理', icon: 'ChatDotRound', children: [
+      { path: '/community/activity-medals', name: 'ActivityMedalManage', title: '打卡勋章管理', icon: 'Trophy', component: 'community/ActivityMedalManage' },
+      { path: '/community/chat', name: 'ChatManage', title: '在线聊天管理', icon: 'ChatDotRound', component: 'community/ChatManage' },
     ],
   },
   {

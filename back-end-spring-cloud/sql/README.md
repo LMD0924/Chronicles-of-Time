@@ -12,6 +12,7 @@ This folder contains the database redesign for the whole project.
 - `02_database_design_document.md`: design notes for business boundaries and table relationships.
 - `03_sharding_and_migration_guide.md`: sharding and migration guidance.
 - `04_ops_redis_indexing.md`: indexing, Redis key, cache, and operations guidance.
+- `05_activity_chat_upgrade.sql`: incremental script for check-in, online duration, medals, friends, groups, messages, and read receipts.
 
 ## Database Boundaries
 
@@ -29,6 +30,7 @@ Run in MySQL 8.0+:
 
 ```sql
 source 01_cot_enterprise_schema.sql;
+source 05_activity_chat_upgrade.sql;
 ```
 
 The design intentionally avoids physical foreign keys across service databases. Cross-service relations are enforced through logical IDs, unique indexes, service-level validation, and scheduled consistency checks.

@@ -15,7 +15,9 @@ import org.example.commondb.utils.RestBean;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /*
  * @Author:总会落叶
@@ -64,6 +66,23 @@ public class UserController {
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(userInfo, userVO);
         return RestBean.success(userVO);
+    }
+
+    /**
+     * 按账号、昵称、邮箱或手机号搜索公开用户资料，用于好友添加。
+     */
+    @GetMapping("/public/search")
+    public RestBean<List<UserVO>> searchPublicUsers(@RequestParam(required = false) String keyword,
+                                                    @RequestParam(defaultValue = "10") Integer limit) {
+        List<UserVO> users = userService.searchPublicUsers(keyword, limit == null ? 10 : limit)
+                .stream()
+                .map(user -> {
+                    UserVO userVO = new UserVO();
+                    BeanUtils.copyProperties(user, userVO);
+                    return userVO;
+                })
+                .collect(Collectors.toList());
+        return RestBean.success(users);
     }
 
 

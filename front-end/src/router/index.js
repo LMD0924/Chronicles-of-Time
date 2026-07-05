@@ -48,6 +48,16 @@ const router = createRouter({
       component: () => import('@/views/Records.vue')
     },
     {
+      path:'/DailyCheckin',
+      name:'每日打卡',
+      component: () => import('@/views/social/DailyCheckin.vue')
+    },
+    {
+      path:'/Chat',
+      name:'在线聊天',
+      component: () => import('@/views/social/ChatCenter.vue')
+    },
+    {
       path:'/CourseSelection',
       name:'选科',
       component: () => import('@/views/high/CourseSelection/CourseSelection.vue')

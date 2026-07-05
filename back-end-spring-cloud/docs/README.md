@@ -28,6 +28,7 @@
 | `high-service` | [high-service.md](high-service.md) | 服务 | 高中选科、赋分、志愿、AI 分析 |
 | `university-service` | [university-service.md](university-service.md) | 服务 | 专业、课程、学业进度、论文 |
 | `general-service` | [general-service.md](general-service.md) | 服务 | 成长记录、学习题库、错题、成绩、内容 |
+| `general-service` | [activity-chat.md](activity-chat.md) | 服务 | 每日打卡、在线时长、勋章发放、好友聊天和群聊 |
 | `workplace-service` | [workplace-service.md](workplace-service.md) | 服务 | 职场档案、目标、任务、面试、复盘 |
 | `advanced-service` | [advanced-service.md](advanced-service.md) | 服务 | 成长路线、里程碑、技能和导师会话 |
 
@@ -41,7 +42,7 @@
 | `user-center` | `8081` | `/api/userInfo/**`、`/api/resume/**` |
 | `high-service` | `8082` | `/api/selection/**`、`/api/volunteer/**`、`/api/high/ai/**` 等 |
 | `university-service` | `8083` | `/api/university/**`、`/api/course/**`、`/api/paper/**` 等 |
-| `general-service` | `8084` | `/api/growth/**`、`/api/question/**`、`/api/content/**` 等 |
+| `general-service` | `8084` | `/api/growth/**`、`/api/activity/**`、`/api/chat/**`、`/api/question/**`、`/api/content/**` 等 |
 | `workplace-service` | `8085` | `/api/workplace/**` |
 | `advanced-service` | `8086` | `/api/advanced/**` |
 
@@ -128,6 +129,8 @@ Authorization: Bearer <token>
 ## 当前重点能力
 
 - 高中 AI 分析接口：`POST /api/high/ai/analyze`
+- 打卡勋章：`/api/activity/checkin`、`/api/activity/heartbeat`、`/api/activity/summary`
+- 在线聊天：`/api/chat/friends`、`/api/chat/groups`、`/api/chat/messages`
 - 题库在线考试：`/api/question/exam/start`、`/api/question/exam/submit`、历史和详情接口
 - 后台题库审核：`/api/question/admin/audit-list`、`/api/question/admin/audit/{id}`
 - 文件上传：`/api/upload/file`、`/api/upload/image`、`/api/upload/files`

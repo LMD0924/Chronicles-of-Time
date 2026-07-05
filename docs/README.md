@@ -11,6 +11,8 @@
 | 高中阶段 | `/CourseSelection`、`/Volunteer`、`/HighSchoolHub` | 升学规划管理 | `high-service` | 新高考选科、赋分、志愿方案、录取模拟、AI 分析 |
 | 学习中心 | `/StudyDashboard` | 学习中心管理 | `general-service` | 题库、在线练习、考试、错题、成绩、知识图谱 |
 | 内容社区 | `/Publish`、`/List`、`/View/:id` | 用户内容管理 | `general-service` | 内容发布、评论、点赞、收藏、内容知识图谱 |
+| 打卡勋章 | `/DailyCheckin` | 社区互动管理 / 打卡勋章管理 | `general-service` | 记录登录天数、在线时长和自动勋章发放 |
+| 在线聊天 | `/Chat` | 社区互动管理 / 在线聊天管理 | `general-service` | 好友搜索添加、群号入群、单聊、群聊和已读 |
 | 大学阶段 | `/PrePare`、`/Paper`、`/CourseTree` | 大学学业管理 | `university-service` | 专业、课程树、课程成绩、毕业差距、GPA、论文建议 |
 | 文件资源 | 多处上传入口 | 文件资源管理 | `file-upload` | 图片、文档和通用文件上传，本地静态访问 |
 | 职场阶段 | 职场记录页面 | 人生阶段管理 | `workplace-service` | 职业档案、目标、任务、面试、复盘 |
@@ -25,6 +27,7 @@
 | 后台管理端说明 | [../cot-admin-web/README.md](../cot-admin-web/README.md) |
 | 后端服务总览 | [../back-end-spring-cloud/docs/README.md](../back-end-spring-cloud/docs/README.md) |
 | 高中 AI 配置 | [high-ai-config.md](high-ai-config.md) |
+| 打卡勋章与在线聊天 | [../back-end-spring-cloud/docs/activity-chat.md](../back-end-spring-cloud/docs/activity-chat.md) |
 | 数据库总览 | [../back-end-spring-cloud/sql/README.md](../back-end-spring-cloud/sql/README.md) |
 
 ## 本地联调要点

@@ -5,7 +5,8 @@ package org.example.authcenter.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.example.authcenter.entity.User;
-import org.example.authcenter.vo.UserVO;
+
+import java.util.List;
 
 /*
  * @Author:总会落叶
@@ -31,4 +32,9 @@ public interface UserService extends IService<User> {
      * 修改用户信息
      */
     boolean updateUserInfo(User user);
+
+    /**
+     * 按账号、昵称、邮箱或手机号搜索启用用户。
+     */
+    List<User> searchPublicUsers(String keyword, int limit);
 }
