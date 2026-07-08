@@ -280,7 +280,7 @@ const handleLogin = () => {
   })
 }
 
-const handleRegister = () => {
+const handleRegister = async () => {
   // 表单验证
   if (!registerForm.value.name) {
     messageApi.warning('请输入姓名');
@@ -295,12 +295,30 @@ const handleRegister = () => {
     return;
   }
 
-  console.log('注册:', registerForm.value)
-  // 这里添加注册逻辑
-  messageApi.success('注册成功，请登录');
-  togglePanel(); // 注册成功后切换到登录面板
-}
+  const payload = {
+    username: registerForm.value.username.trim(),
+    password: registerForm.value.password
+  }
 
+  console.log('注册:', payload)
+
+  try {
+    await request.post('auth/register', payload, (msg) => {
+      messageApi.success(msg || '注册成功，请登录')
+    })
+
+    loginForm.value.username = payload.username
+    loginForm.value.password = ''
+    registerForm.value = {
+      name: '',
+      username: '',
+      password: ''
+    }
+    togglePanel() // 注册成功后切换到登录面板
+  } catch (error) {
+    console.error('注册失败:', error)
+  }
+}
 // 带过渡效果的导航
 const navigateWithTransition = (path) => {
   if (transitionRef.value) {
