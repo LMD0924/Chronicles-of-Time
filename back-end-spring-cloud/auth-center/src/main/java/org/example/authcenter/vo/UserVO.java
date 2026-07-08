@@ -29,7 +29,9 @@ public class UserVO implements Serializable {
     private List<String> permissions;
     private String avatar;
     private String introduction;
+    private Integer userType;
     private Integer status;
+    private String registerChannel;
     private LocalDateTime createTime;
     private LocalDateTime lastLoginTime;
 }

@@ -27,6 +27,16 @@ public class AuthDTO {
     @NotEmpty(message = "密码不能为空")
     private String password;
 
+    // Optional display name collected by the register page.
+    private String name;
+
+    // Backward-compatible alias for clients that submit displayName.
+    private String displayName;
+
+    private String email;
+
+    private String phone;
+
     // 可选：验证码字段
     private String captcha;
 

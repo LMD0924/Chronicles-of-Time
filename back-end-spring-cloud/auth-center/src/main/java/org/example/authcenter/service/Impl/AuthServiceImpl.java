@@ -93,15 +93,20 @@ public class AuthServiceImpl extends ServiceImpl<AuthMapper, User> implements Au
         if (authDTO == null || StringUtils.isBlank(authDTO.getUsername()) || StringUtils.isBlank(authDTO.getPassword())) {
             throw new RuntimeException("用户名或密码不能为空");
         }
-        long count = lambdaQuery().eq(User::getUsername, authDTO.getUsername()).count();
+        String username = authDTO.getUsername().trim();
+        long count = lambdaQuery().eq(User::getUsername, username).count();
         if (count > 0) {
             throw new RuntimeException("用户已存在");
         }
 
         User user = new User();
-        user.setUsername(authDTO.getUsername());
+        user.setUsername(username);
         user.setPassword(passwordEncoder.encode(authDTO.getPassword()));
-        user.setName(authDTO.getUsername());
+        user.setName(resolveDisplayName(authDTO, username));
+        user.setEmail(StringUtils.isBlank(authDTO.getEmail()) ? null : authDTO.getEmail().trim());
+        user.setPhone(StringUtils.isBlank(authDTO.getPhone()) ? null : authDTO.getPhone().trim());
+        user.setUserType(1);
+        user.setRegisterChannel("web");
         user.setStatus(1);
         int inserted = authMapper.insert(user);
         if (inserted > 0) {
@@ -209,5 +214,15 @@ public class AuthServiceImpl extends ServiceImpl<AuthMapper, User> implements Au
         userVO.setPermissions(permissions);
         userVO.setRole(roles == null || roles.isEmpty() ? RoleCodes.USER : roles.get(0));
         return userVO;
+    }
+
+    private String resolveDisplayName(AuthDTO authDTO, String username) {
+        if (StringUtils.isNotBlank(authDTO.getName())) {
+            return authDTO.getName().trim();
+        }
+        if (StringUtils.isNotBlank(authDTO.getDisplayName())) {
+            return authDTO.getDisplayName().trim();
+        }
+        return username;
     }
 }

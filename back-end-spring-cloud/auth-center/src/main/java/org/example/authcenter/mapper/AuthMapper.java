@@ -4,6 +4,7 @@
 package org.example.authcenter.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -29,4 +30,7 @@ public interface AuthMapper extends BaseMapper<User> {
 
     @Insert("INSERT IGNORE INTO iam_user_role (id, user_id, role_id, tenant_id) VALUES (#{id}, #{userId}, #{roleId}, 0)")
     int insertUserRole(@Param("id") Long id, @Param("userId") Long userId, @Param("roleId") Long roleId);
+
+    @Delete("DELETE FROM iam_user_role WHERE user_id = #{userId}")
+    int deleteUserRoles(@Param("userId") Long userId);
 }

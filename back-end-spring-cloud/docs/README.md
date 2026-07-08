@@ -22,6 +22,7 @@
 | `common-core` | [common-core.md](common-core.md) | 公共库 | JWT、Jackson、Bean 工具等基础能力 |
 | `common-db` | [common-db.md](common-db.md) | 公共库 | 统一响应、结果码、MyBatis-Plus 配置 |
 | `auth-center` | [auth-center.md](auth-center.md) | 服务 | 登录、注册、Token、基础账号资料 |
+| `auth-center` | [admin-users.md](admin-users.md) | 服务 | 后台个人用户管理、注册字段映射、角色绑定 |
 | `gateway` | [gateway.md](gateway.md) | 服务 | 统一入口、路由转发、JWT 鉴权 |
 | `file-upload` | [file-upload.md](file-upload.md) | 服务 | 文件、图片、文档上传和访问 |
 | `user-center` | [user-center.md](user-center.md) | 服务 | 用户扩展资料和简历 |

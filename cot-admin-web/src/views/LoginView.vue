@@ -13,7 +13,7 @@ const router = useRouter()
 const userStore = useUserStore()
 const formRef = ref(null)
 const loading = ref(false)
-const form = reactive({ username: 'admin', password: 'admin123', remember: true })
+const form = reactive({ username: '', password: '', remember: true })
 
 const rules = {
   username: [{ required: true, message: '请输入管理员账号', trigger: 'blur' }],
@@ -50,7 +50,7 @@ const submit = async () => {
         <div class="login-head">
           <span>Admin Portal</span>
           <h2>管理员登录</h2>
-          <p>演示账号：admin / admin123；普通账号 guest 会被权限系统拦截。</p>
+          <p>使用真实后台账号登录，仅 SUPER_ADMIN 或 ADMIN 角色可进入管理端。</p>
         </div>
         <el-form ref="formRef" :model="form" :rules="rules" size="large" @keyup.enter="submit">
           <el-form-item prop="username"><el-input v-model="form.username" :prefix-icon="User" placeholder="管理员账号" /></el-form-item>
@@ -168,4 +168,3 @@ const submit = async () => {
   .login-visual { display: none; }
 }
 </style>
-

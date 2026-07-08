@@ -4,7 +4,10 @@
 package org.example.authcenter.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.example.authcenter.dto.AdminUserDTO;
 import org.example.authcenter.entity.User;
+import org.example.authcenter.vo.PageVO;
+import org.example.authcenter.vo.UserVO;
 
 import java.util.List;
 
@@ -37,4 +40,15 @@ public interface UserService extends IService<User> {
      * 按账号、昵称、邮箱或手机号搜索启用用户。
      */
     List<User> searchPublicUsers(String keyword, int limit);
+    PageVO<UserVO> pageAdminUsers(String keyword, Integer status, Integer userType, long page, long pageSize);
+
+    UserVO createAdminUser(AdminUserDTO dto);
+
+    UserVO updateAdminUser(Long id, AdminUserDTO dto);
+
+    boolean updateAdminUserStatus(Long id, Integer status);
+
+    boolean deleteAdminUser(Long id);
+
+    boolean resetAdminUserPassword(Long id, String password);
 }

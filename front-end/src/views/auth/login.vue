@@ -296,6 +296,7 @@ const handleRegister = async () => {
   }
 
   const payload = {
+    name: registerForm.value.name.trim(),
     username: registerForm.value.username.trim(),
     password: registerForm.value.password
   }

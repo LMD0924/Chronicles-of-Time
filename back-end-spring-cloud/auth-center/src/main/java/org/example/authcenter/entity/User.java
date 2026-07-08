@@ -41,7 +41,11 @@ public class User {
     @TableField("avatar_url")
     private String avatar;          // 头像
     private String introduction;    // 简介
+    @TableField("user_type")
+    private Integer userType;       // 1-user, 2-admin, 3-teacher, 4-parent
     private Integer status;         // 状态：0-禁用，1-启用
+    @TableField("register_channel")
+    private String registerChannel;
     @TableField("created_at")
     private LocalDateTime createTime;
     @TableField("updated_at")

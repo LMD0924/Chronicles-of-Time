@@ -28,7 +28,7 @@ service.interceptors.response.use(
     const data = response.data
     if (data && typeof data === 'object' && 'code' in data) {
       if ([200, 0].includes(data.code)) return data.data ?? data
-      ElMessage.error(data.message || '请求处理失败')
+      ElMessage.error(data.msg || data.message || '请求处理失败')
       return Promise.reject(data)
     }
     return data

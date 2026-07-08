@@ -88,7 +88,7 @@ export const adminMenus = [
   { path: '/dashboard', name: 'Dashboard', title: '首页控制台', icon: 'House', component: 'dashboard/DashboardView', affix: true },
   {
     path: '/system', title: '系统管理', icon: 'Setting', children: [
-      { path: '/system/users', name: 'SystemUsers', title: '用户管理', icon: 'User', component: 'system/UserManage' },
+      { path: '/system/users', name: 'SystemUsers', title: '个人用户', icon: 'User', component: 'system/UserManage' },
       { path: '/system/roles', name: 'SystemRoles', title: '角色管理', icon: 'UserFilled', component: 'system/RoleManage' },
       { path: '/system/menus', name: 'SystemMenus', title: '菜单管理', icon: 'Menu', component: 'system/MenuManage' },
       { path: '/system/permissions', name: 'SystemPermissions', title: '权限管理', icon: 'Lock', component: 'system/PermissionManage' },

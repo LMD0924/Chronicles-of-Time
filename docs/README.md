@@ -28,6 +28,7 @@
 | 后端服务总览 | [../back-end-spring-cloud/docs/README.md](../back-end-spring-cloud/docs/README.md) |
 | 高中 AI 配置 | [high-ai-config.md](high-ai-config.md) |
 | 打卡勋章与在线聊天 | [../back-end-spring-cloud/docs/activity-chat.md](../back-end-spring-cloud/docs/activity-chat.md) |
+| 后台个人用户管理 | [../back-end-spring-cloud/docs/admin-users.md](../back-end-spring-cloud/docs/admin-users.md) |
 | 数据库总览 | [../back-end-spring-cloud/sql/README.md](../back-end-spring-cloud/sql/README.md) |
 
 ## 本地联调要点
