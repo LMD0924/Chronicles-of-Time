@@ -9,12 +9,12 @@
     <select id="searchMajors" resultType="org.example.highservice.entity.volunteer.Major">
         SELECT m.* FROM gaokao_major m
         <if test="universityId != null">
-            JOIN gaokao_major_requirement mr ON m.code = mr.major_code
+            JOIN gaokao_major_requirement mr ON m.major_code = mr.major_code
         </if>
         <where>
             <if test="keyword != null and keyword != ''">
-                AND (m.name LIKE CONCAT('%', #{keyword}, '%')
-                OR m.code LIKE CONCAT('%', #{keyword}, '%'))
+                AND (m.major_name LIKE CONCAT('%', #{keyword}, '%')
+                OR m.major_code LIKE CONCAT('%', #{keyword}, '%'))
             </if>
             <if test="category != null and category != ''">
                 AND m.category = #{category}

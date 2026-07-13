@@ -77,6 +77,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
 
         // 设置基本字段
         content.setTitle(dto.getTitle());
+        content.setSummary(dto.getSummary());
         content.setContent(dto.getContent());
         content.setContentType(dto.getContentType());
         content.setCoverImage(dto.getCoverImage());
@@ -84,8 +85,8 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         content.setWeather(dto.getWeather());
         content.setMood(dto.getMood());
         content.setCategory(dto.getCategory());
-        content.setIsPublic(dto.getIsPublic());
-        content.setStatus(dto.getStatus());
+        content.setIsPublic(dto.getIsPublic() != null ? dto.getIsPublic() : 2);
+        content.setStatus(dto.getStatus() != null ? dto.getStatus() : 1);
 
         // 处理图片列表（Spring自带Jackson，无报错）
         if (dto.getImages() != null && !dto.getImages().isEmpty()) {
@@ -201,12 +202,12 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
         LambdaQueryWrapper<Content> wrapper = new LambdaQueryWrapper<>();
 
         wrapper.eq(Content::getStatus, 1)
-                .eq(Content::getIsPublic, 1)
+                .eq(Content::getIsPublic, 2)
                 .orderByDesc(Content::getIsTop)
                 .orderByDesc(Content::getPublishTime);
 
         if (StrUtil.isNotBlank(category)) {
-            wrapper.eq(Content::getCategory, category);
+            wrapper.apply("category_id IN (SELECT id FROM content_category WHERE category_name = {0} OR category_code = {0})", category);
         }
         if (StrUtil.isNotBlank(contentType)) {
             wrapper.eq(Content::getContentType, contentType);
@@ -305,7 +306,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
                 .orderByDesc(Content::getUpdateTime);
 
         if (StrUtil.isNotBlank(category)) {
-            wrapper.eq(Content::getCategory, category);
+            wrapper.apply("category_id IN (SELECT id FROM content_category WHERE category_name = {0} OR category_code = {0})", category);
         }
         if (StrUtil.isNotBlank(contentType)) {
             wrapper.eq(Content::getContentType, contentType);
@@ -355,7 +356,7 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
 
         LambdaQueryWrapper<Content> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Content::getStatus, 1)
-                .eq(Content::getIsPublic, 1)
+                .eq(Content::getIsPublic, 2)
                 .and(w -> w.like(Content::getTitle, keyword)
                         .or()
                         .like(Content::getContent, keyword))

@@ -85,10 +85,10 @@ public class StudentCourseSelection {
 
     private String remark;
 
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(fill = FieldFill.INSERT,value="created_at")
     private LocalDateTime createTime;
 
-    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE,value="updated_at")
     private LocalDateTime updateTime;
 
     // 非数据库字段

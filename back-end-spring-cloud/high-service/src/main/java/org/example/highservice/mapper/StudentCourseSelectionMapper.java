@@ -58,15 +58,15 @@ public interface StudentCourseSelectionMapper extends BaseMapper<StudentCourseSe
     /**
      * 获取热门组合排名（基于实际选课数据）
      */
-    @Select("SELECT sc.id, sc.name, sc.code, sc.description, " +
+    @Select("SELECT sc.id, sc.combination_name AS name, sc.combination_code AS code, sc.description, " +
             "COUNT(scs.id) as selection_count, " +
             "ROUND(AVG(scs.total_score_weighted), 2) as avg_score " +
             "FROM hs_subject_combination sc " +
             "LEFT JOIN hs_student_selection scs ON sc.id = scs.combination_id " +
             "AND scs.is_confirmed = 1 AND scs.is_public = 1 " +
-            "WHERE sc.is_active = 1 " +
-            "GROUP BY sc.id, sc.name, sc.code, sc.description " +
-            "ORDER BY selection_count DESC, sc.popularity_rank ASC")
+            "WHERE sc.status = 1 " +
+            "GROUP BY sc.id, sc.combination_name, sc.combination_code, sc.description, sc.major_coverage_rate " +
+            "ORDER BY selection_count DESC, sc.major_coverage_rate DESC")
     List<Map<String, Object>> getHotCombinations();
 
     /**
@@ -144,7 +144,7 @@ public interface StudentCourseSelectionMapper extends BaseMapper<StudentCourseSe
     /**
      * 获取某组合的详细统计信息
      */
-    @Select("SELECT scs.*, s.name as subject_name " +
+    @Select("SELECT scs.*, s.subject_name as subject_name " +
             "FROM hs_student_selection scs " +
             "INNER JOIN hs_subject s ON scs.first_subject_id = s.id " +
             "WHERE scs.combination_id = #{combinationId} " +

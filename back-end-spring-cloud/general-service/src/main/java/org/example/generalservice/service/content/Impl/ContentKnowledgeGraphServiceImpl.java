@@ -98,22 +98,13 @@ public class ContentKnowledgeGraphServiceImpl implements IContentKnowledgeGraphS
 
         for (Map<String, Object> tag : tags) {
             String tagName = (String) tag.get("tag");
-            // ✅ 只查询当前用户关联的文章
-            List<Long> contentIds = contentMapper.selectUserContentIdsByTag(userId, tagName);
-            if (contentIds.isEmpty()) continue;
-
-            // 查询这些文章的分类
-            LambdaQueryWrapper<Content> wrapper = new LambdaQueryWrapper<>();
-            wrapper.in(Content::getId, contentIds)
-                    .eq(Content::getUserId, userId)
-                    .select(Content::getCategory)
-                    .groupBy(Content::getCategory);
-            List<Content> contents = contentMapper.selectList(wrapper);
-
-            for (Content content : contents) {
-                if (StrUtil.isBlank(content.getCategory())) continue;
-                String key = "tag_" + tagName + "->category_" + content.getCategory();
-                edgeWeights.put(key, edgeWeights.getOrDefault(key, 0) + 1);
+            List<Map<String, Object>> tagCategories = contentMapper.selectUserCategoriesByTag(userId, tagName);
+            for (Map<String, Object> category : tagCategories) {
+                String categoryName = (String) category.get("category");
+                if (categoryName == null || categoryName.isBlank()) continue;
+                Number count = (Number) category.get("count");
+                String key = "tag_" + tagName + "->category_" + categoryName;
+                edgeWeights.put(key, edgeWeights.getOrDefault(key, 0) + (count != null ? count.intValue() : 1));
             }
         }
 
@@ -346,62 +337,41 @@ public class ContentKnowledgeGraphServiceImpl implements IContentKnowledgeGraphS
             return empty;
         }
 
-        LambdaQueryWrapper<Content> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Content::getUserId, userId)
-                .eq(Content::getStatus, 1)
-                .isNotNull(Content::getTags)
-                .ne(Content::getTags, "");
+        List<Map<String, Object>> tagStats = contentMapper.selectUserTagsWithCount(userId, 10);
+        List<Map<String, Object>> categoryStats = contentMapper.selectUserCategoriesWithCount(userId);
 
-        List<Content> contents = contentMapper.selectList(wrapper);
-
-        Map<String, Integer> tagCount = new HashMap<>();
-        for (Content content : contents) {
-            if (StrUtil.isNotBlank(content.getTags())) {
-                String[] tags = content.getTags().split(",");
-                for (String tag : tags) {
-                    String trimmedTag = tag.trim();
-                    if (!trimmedTag.isEmpty()) {
-                        tagCount.put(trimmedTag, tagCount.getOrDefault(trimmedTag, 0) + 1);
-                    }
-                }
-            }
-        }
-
-        Map<String, Integer> categoryCount = new HashMap<>();
-        for (Content content : contents) {
-            if (StrUtil.isNotBlank(content.getCategory())) {
-                categoryCount.put(content.getCategory(),
-                        categoryCount.getOrDefault(content.getCategory(), 0) + 1);
-            }
-        }
-
-        List<Map<String, Object>> topTags = tagCount.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .limit(10)
-                .map(entry -> {
-                    Map<String, Object> item = new HashMap<>();
-                    item.put("name", entry.getKey());
-                    item.put("value", entry.getValue());
-                    return item;
+        List<Map<String, Object>> topTags = tagStats.stream()
+                .map(item -> {
+                    Map<String, Object> mapped = new HashMap<>();
+                    mapped.put("name", item.get("tag"));
+                    mapped.put("value", item.get("count"));
+                    return mapped;
                 })
                 .collect(Collectors.toList());
 
-        List<Map<String, Object>> topCategories = categoryCount.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .map(entry -> {
-                    Map<String, Object> item = new HashMap<>();
-                    item.put("name", entry.getKey());
-                    item.put("value", entry.getValue());
-                    return item;
+        List<Map<String, Object>> topCategories = categoryStats.stream()
+                .map(item -> {
+                    Map<String, Object> mapped = new HashMap<>();
+                    mapped.put("name", item.get("category"));
+                    mapped.put("value", item.get("count"));
+                    return mapped;
                 })
                 .collect(Collectors.toList());
+
+        Map<String, Object> tagDistribution = tagStats.stream()
+                .collect(Collectors.toMap(
+                        item -> Objects.toString(item.get("tag"), ""),
+                        item -> item.get("count"),
+                        (left, right) -> left,
+                        LinkedHashMap::new
+                ));
 
         Map<String, Object> result = new HashMap<>();
         result.put("userId", userId);
-        result.put("totalContents", contents.size());
+        result.put("totalContents", contentMapper.selectUserContentCount(userId));
         result.put("topTags", topTags);
         result.put("topCategories", topCategories);
-        result.put("tagDistribution", tagCount);
+        result.put("tagDistribution", tagDistribution);
 
         return result;
     }

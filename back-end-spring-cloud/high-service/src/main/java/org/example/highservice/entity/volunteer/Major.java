@@ -1,38 +1,31 @@
-/**
- * 文件说明：拾光记微服务后端高中服务业务服务源码，负责业务服务相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
- */
 package org.example.highservice.entity.volunteer;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+
 import java.math.BigDecimal;
 
-/*
- * @Author:总会落叶
- * @Date:2026/4/4
- * @Description: 专业表实体
- */
-/**
- * 类说明：当前类是业务服务模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
- */
 @Data
 @TableName("gaokao_major")
 public class Major {
-
     @TableId(type = IdType.ASSIGN_ID)
     private Integer id;
 
+    @TableField("major_code")
     private String code;
 
+    @TableField("major_name")
     private String name;
 
     private String category;
-
     private String subCategory;
 
+    @TableField("duration_years")
     private Integer duration;
 
     private BigDecimal tuitionFee;
-
     private String description;
 }

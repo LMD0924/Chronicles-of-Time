@@ -3,13 +3,14 @@
 -->
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { message } from 'ant-design-vue'
 import request from '@/utils/request.js'
 import { getStoredTheme, ThemeType } from '@/utils/theme.js'
 import AdvancedTypewriter from '@/components/Typewriter.vue'
 import Nav from '@/components/Nav.vue'
 
 // 主题
+const [messageApi, contextHolder] = message.useMessage()
 const isDark = ref(getStoredTheme() === ThemeType.DARK)
 const loading = ref(true)
 const saving = ref(false)
@@ -41,6 +42,14 @@ const dialogTitle = ref('')
 const isEdit = ref(false)
 const detailDialogVisible = ref(false)
 const currentDetailRecord = ref(null)
+const confirmDialog = ref({
+  visible: false,
+  title: '',
+  message: '',
+  confirmText: '确认删除',
+  loading: false,
+  onConfirm: null
+})
 
 // 完整表单数据 - 匹配所有数据库字段
 const formData = ref({
@@ -76,6 +85,13 @@ const formData = ref({
   careerInterest: '',
   dreamCollege: '',
   dreamMajor: '',
+  companyName: '',
+  jobTitle: '',
+  jobContent: '',
+  workSkills: '',
+  workAchievements: '',
+  workChallenges: '',
+  careerPlan: '',
   sleepHours: null,
   exerciseMinutes: null,
   screenTimeHours: null,
@@ -113,6 +129,18 @@ const queryParams = ref({
   pageSize: 100
 })
 
+const normalizeStage = (stage) => (stage || '').trim()
+
+const syncSelectedStage = (stage) => {
+  const nextStage = normalizeStage(stage)
+  if (!nextStage) return
+  selectedStage.value = nextStage
+  queryParams.value.stage = nextStage
+  if (!stages.value.includes(nextStage)) {
+    stages.value = [...stages.value, nextStage]
+  }
+}
+
 const fetchRecords = async () => {
   loading.value = true
   try {
@@ -121,7 +149,7 @@ const fetchRecords = async () => {
       records.value = res.data || []
     }
   } catch (e) {
-    ElMessage.error('加载失败')
+    messageApi.error('加载失败')
   } finally {
     loading.value = false
   }
@@ -132,61 +160,122 @@ const fetchStats = async () => {
   if (res.code === 200) stats.value = res.data
 }
 
-const fetchStages = async () => {
+const fetchStages = async (preferredStage = '') => {
+  const preferred = normalizeStage(preferredStage)
   const res = await request.get('/growth/countByStage')
   if (res.code === 200 && res.data) {
-    stages.value = res.data.map(item => item.stage)
-    if (stages.value.length > 0 && !selectedStage.value) {
+    const nextStages = res.data.map(item => normalizeStage(item.stage)).filter(Boolean)
+    if (preferred && !nextStages.includes(preferred)) nextStages.push(preferred)
+    stages.value = nextStages
+
+    if (preferred) {
+      syncSelectedStage(preferred)
+    } else if (stages.value.length > 0 && (!selectedStage.value || !stages.value.includes(selectedStage.value))) {
       selectedStage.value = stages.value[0]
       queryParams.value.stage = selectedStage.value
+    } else if (stages.value.length === 0) {
+      selectedStage.value = ''
+      queryParams.value.stage = ''
     }
   }
 }
 
+const refreshRecordsContext = async (preferredStage = '') => {
+  if (preferredStage) syncSelectedStage(preferredStage)
+  await fetchStages(preferredStage)
+  await fetchRecords()
+  await fetchStats()
+}
+
+const openDeleteConfirm = ({ title, message: content, confirmText, onConfirm }) => {
+  confirmDialog.value = {
+    visible: true,
+    title,
+    message: content,
+    confirmText,
+    loading: false,
+    onConfirm
+  }
+}
+
+const closeDeleteConfirm = () => {
+  if (confirmDialog.value.loading) return
+  confirmDialog.value.visible = false
+  confirmDialog.value.onConfirm = null
+}
+
+const submitDeleteConfirm = async () => {
+  const action = confirmDialog.value.onConfirm
+  if (!action) return
+  confirmDialog.value.loading = true
+  try {
+    await action()
+    confirmDialog.value.visible = false
+    confirmDialog.value.onConfirm = null
+  } catch (e) {
+    messageApi.error('删除失败')
+  } finally {
+    confirmDialog.value.loading = false
+  }
+}
+
 const deleteRecord = async (id) => {
-  ElMessageBox.confirm('确定删除该记录？', '提示', { type: 'warning' }).then(async () => {
-    const res = await request.post('/growth/delete', null, null, { params: { id } })
-    if (res.code === 200) {
-      ElMessage.success('删除成功')
-      fetchRecords()
-      fetchStats()
+  openDeleteConfirm({
+    title: '删除记录',
+    message: '确定删除该记录吗？删除后无法恢复。',
+    confirmText: '确认删除',
+    onConfirm: async () => {
+      const res = await request.post('/growth/delete', null, null, { params: { id } })
+      if (res.code === 200) {
+        messageApi.success('删除成功')
+        selectedRecords.value = selectedRecords.value.filter(recordId => recordId !== id)
+        await refreshRecordsContext()
+      }
     }
   })
 }
 
 const batchDelete = async () => {
-  if (selectedRecords.value.length === 0) return ElMessage.warning('请选择数据')
-  ElMessageBox.confirm('确定删除选中项？').then(async () => {
-    const res = await request.post('/growth/batchDelete', selectedRecords.value)
-    if (res.code === 200) {
-      ElMessage.success('删除成功')
-      selectedRecords.value = []
-      fetchRecords()
-      fetchStats()
+  if (selectedRecords.value.length === 0) return messageApi.warning('请选择数据')
+  openDeleteConfirm({
+    title: '批量删除记录',
+    message: `确定删除选中的 ${selectedRecords.value.length} 条记录吗？删除后无法恢复。`,
+    confirmText: '全部删除',
+    onConfirm: async () => {
+      const res = await request.post('/growth/batchDelete', selectedRecords.value)
+      if (res.code === 200) {
+        messageApi.success('删除成功')
+        selectedRecords.value = []
+        await refreshRecordsContext()
+      }
     }
   })
 }
 
+
+
 const saveRecord = async () => {
-  if (!formData.value.recordDate) return ElMessage.warning('请选择日期')
-  if (!formData.value.stage) return ElMessage.warning('请输入阶段')
+  if (!formData.value.recordDate) return messageApi.warning('请选择日期')
+  const savedStage = normalizeStage(formData.value.stage)
+  if (!savedStage) return messageApi.warning('请输入阶段')
+  formData.value.stage = savedStage
   saving.value = true
   try {
     const url = isEdit.value ? '/growth/update' : '/growth/add'
     const res = await request.post(url, formData.value)
     if (res.code === 200) {
-      ElMessage.success(isEdit.value ? '更新成功' : '添加成功')
+      messageApi.success(isEdit.value ? '修改成功' : '新增成功')
       dialogVisible.value = false
-      fetchStages()
-      fetchRecords()
-      fetchStats()
+      await refreshRecordsContext(savedStage)
     }
   } catch (e) {
-    ElMessage.error('保存失败')
+    messageApi.error('保存失败')
   } finally {
     saving.value = false
   }
 }
+
+
 
 const editRecord = (row) => {
   isEdit.value = true
@@ -231,6 +320,13 @@ const addRecord = () => {
     careerInterest: '',
     dreamCollege: '',
     dreamMajor: '',
+    companyName: '',
+    jobTitle: '',
+    jobContent: '',
+    workSkills: '',
+    workAchievements: '',
+    workChallenges: '',
+    careerPlan: '',
     sleepHours: null,
     exerciseMinutes: null,
     screenTimeHours: null,
@@ -280,14 +376,15 @@ const getHappinessLevelText = (level) => {
   return '非常快乐'
 }
 
-onMounted(() => {
-  fetchStages()
-  fetchRecords()
+onMounted(async () => {
+  await fetchStages()
+  await fetchRecords()
   fetchStats()
 })
 </script>
 
 <template>
+  <contextHolder />
   <div class="min-h-screen relative overflow-x-hidden" :class="isDark ? 'dark bg-dark-bg text-white' : 'app-page-bg text-slate-900'">
     <!-- 共用导航栏 -->
     <Nav :isDark="isDark" :menuItems="menuItems" />
@@ -425,6 +522,17 @@ onMounted(() => {
                 </div>
 
                 <!-- 心理情绪 -->
+                <div v-if="item.companyName || item.jobTitle || item.jobContent" class="mb-3 p-3 rounded-xl bg-sky-50/80 dark:bg-dark-surface">
+                  <div class="flex items-center gap-2 text-xs font-medium text-sky-600 dark:text-sky-400 mb-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    就业记录
+                  </div>
+                  <div class="space-y-1 text-xs text-slate-600 dark:text-slate-300">
+                    <div v-if="item.companyName || item.jobTitle" class="font-medium text-slate-700 dark:text-white truncate">{{ item.companyName || '未填写公司' }}<span v-if="item.jobTitle"> · {{ item.jobTitle }}</span></div>
+                    <div v-if="item.jobContent" class="truncate">{{ item.jobContent }}</div>
+                    <div v-if="item.workAchievements" class="text-emerald-600 dark:text-emerald-400 truncate">成果: {{ item.workAchievements }}</div>
+                  </div>
+                </div>
                 <div class="flex items-center gap-4 mb-3 text-xs dark:text-white">
                   <div class="flex items-center gap-1.5">
                     <span>😊 快乐</span>
@@ -474,6 +582,7 @@ onMounted(() => {
               <span class="font-mono text-sm">{{ formatDate(item.recordDate) }}</span>
               <span class="px-2 py-0.5 rounded-full text-xs bg-brand-100 dark:bg-dark-surface text-brand-600">{{ item.examName || '日常记录' }}</span>
               <span v-if="item.studyHours" class="text-sm">📚 {{ item.studyHours }}h/天</span>
+              <span v-if="item.companyName || item.jobTitle" class="text-sm text-sky-600 dark:text-sky-400 truncate max-w-xs">💼 {{ item.companyName || item.jobTitle }}<template v-if="item.companyName && item.jobTitle"> · {{ item.jobTitle }}</template></span>
               <span class="text-sm">😊 {{ item.happinessLevel || '-' }} / 😫 {{ item.stressLevel || '-' }}</span>
               <span v-if="item.achievementThisPeriod" class="text-sm text-brand-600 dark:text-brand-400 truncate max-w-md">{{ item.achievementThisPeriod }}</span>
             </div>
@@ -638,6 +747,40 @@ onMounted(() => {
             <div>
               <label class="block text-sm font-medium mb-1 dark:text-slate-300">理想专业</label>
               <input v-model="formData.dreamMajor" type="text" class="w-full px-3 py-2 rounded-lg border dark:border-slate-600 dark:bg-dark-surface dark:text-white">
+            </div>
+          </div>
+        </el-tab-pane>
+
+        <!-- 就业信息 -->
+        <el-tab-pane label="💼 就业" name="employment">
+          <div class="grid grid-cols-2 gap-4 p-2">
+            <div>
+              <label class="block text-sm font-medium mb-1 dark:text-slate-300">公司/组织</label>
+              <input v-model="formData.companyName" type="text" placeholder="如：某某科技有限公司" class="w-full px-3 py-2 rounded-lg border dark:border-slate-600 dark:bg-dark-surface dark:text-white">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1 dark:text-slate-300">岗位/职位</label>
+              <input v-model="formData.jobTitle" type="text" placeholder="如：后端开发实习生" class="w-full px-3 py-2 rounded-lg border dark:border-slate-600 dark:bg-dark-surface dark:text-white">
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium mb-1 dark:text-slate-300">工作内容</label>
+              <textarea v-model="formData.jobContent" rows="3" class="w-full px-3 py-2 rounded-lg border dark:border-slate-600 dark:bg-dark-surface dark:text-white" placeholder="记录主要负责的业务、项目、日常工作..."></textarea>
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium mb-1 dark:text-slate-300">用到/提升的技能</label>
+              <textarea v-model="formData.workSkills" rows="2" class="w-full px-3 py-2 rounded-lg border dark:border-slate-600 dark:bg-dark-surface dark:text-white"></textarea>
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium mb-1 dark:text-slate-300">工作成果</label>
+              <textarea v-model="formData.workAchievements" rows="2" class="w-full px-3 py-2 rounded-lg border dark:border-slate-600 dark:bg-dark-surface dark:text-white"></textarea>
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium mb-1 dark:text-slate-300">问题/挑战</label>
+              <textarea v-model="formData.workChallenges" rows="2" class="w-full px-3 py-2 rounded-lg border dark:border-slate-600 dark:bg-dark-surface dark:text-white"></textarea>
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium mb-1 dark:text-slate-300">下一步职业计划</label>
+              <textarea v-model="formData.careerPlan" rows="2" class="w-full px-3 py-2 rounded-lg border dark:border-slate-600 dark:bg-dark-surface dark:text-white"></textarea>
             </div>
           </div>
         </el-tab-pane>
@@ -883,6 +1026,41 @@ onMounted(() => {
           </div>
         </div>
 
+        <!-- 就业信息 -->
+        <div v-if="currentDetailRecord.companyName || currentDetailRecord.jobTitle || currentDetailRecord.jobContent" class="bg-gradient-to-r from-sky-50/50 to-cyan-50/50 dark:from-sky-950/30 dark:to-cyan-950/30 rounded-xl p-5">
+          <h3 class="font-semibold text-lg mb-3 flex items-center gap-2 dark:text-white">💼 就业信息</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div v-if="currentDetailRecord.companyName">
+              <p class="text-slate-500 dark:text-slate-400">公司/组织</p>
+              <p class="font-medium dark:text-white">{{ currentDetailRecord.companyName }}</p>
+            </div>
+            <div v-if="currentDetailRecord.jobTitle">
+              <p class="text-slate-500 dark:text-slate-400">岗位/职位</p>
+              <p class="font-medium dark:text-white">{{ currentDetailRecord.jobTitle }}</p>
+            </div>
+            <div v-if="currentDetailRecord.jobContent" class="md:col-span-2">
+              <p class="text-slate-500 dark:text-slate-400">工作内容</p>
+              <p class="mt-1 dark:text-slate-300 whitespace-pre-line">{{ currentDetailRecord.jobContent }}</p>
+            </div>
+            <div v-if="currentDetailRecord.workSkills" class="md:col-span-2">
+              <p class="text-slate-500 dark:text-slate-400">用到/提升的技能</p>
+              <p class="mt-1 dark:text-slate-300 whitespace-pre-line">{{ currentDetailRecord.workSkills }}</p>
+            </div>
+            <div v-if="currentDetailRecord.workAchievements" class="md:col-span-2">
+              <p class="text-slate-500 dark:text-slate-400">工作成果</p>
+              <p class="mt-1 text-emerald-600 dark:text-emerald-400 whitespace-pre-line">{{ currentDetailRecord.workAchievements }}</p>
+            </div>
+            <div v-if="currentDetailRecord.workChallenges" class="md:col-span-2">
+              <p class="text-slate-500 dark:text-slate-400">问题/挑战</p>
+              <p class="mt-1 dark:text-slate-300 whitespace-pre-line">{{ currentDetailRecord.workChallenges }}</p>
+            </div>
+            <div v-if="currentDetailRecord.careerPlan" class="md:col-span-2">
+              <p class="text-slate-500 dark:text-slate-400">下一步职业计划</p>
+              <p class="mt-1 dark:text-slate-300 whitespace-pre-line">{{ currentDetailRecord.careerPlan }}</p>
+            </div>
+          </div>
+        </div>
+
         <!-- 生活习惯 -->
         <div v-if="currentDetailRecord.sleepHours || currentDetailRecord.exerciseMinutes" class="bg-gradient-to-r from-teal-50/50 to-emerald-50/50 dark:from-teal-950/30 dark:to-emerald-950/30 rounded-xl p-5">
           <h3 class="font-semibold text-lg mb-3 flex items-center gap-2 dark:text-white">💪 生活习惯</h3>
@@ -937,9 +1115,57 @@ onMounted(() => {
         </div>
       </template>
     </el-dialog>
-  </div>
-</template>
 
+    <!-- 删除确认弹窗 -->
+    <div
+      v-if="confirmDialog.visible"
+      class="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/45 px-4 py-6 backdrop-blur-sm"
+      @click.self="closeDeleteConfirm"
+    >
+      <div
+        class="w-full max-w-md overflow-hidden rounded-2xl border shadow-2xl"
+        :class="isDark ? 'border-white/10 bg-slate-900/95 text-white shadow-black/40' : 'border-white/60 bg-white/95 text-slate-900 shadow-slate-300/40'"
+      >
+        <div class="relative p-6">
+          <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-500 via-pink-500 to-brand-500"></div>
+          <div class="flex items-start gap-4">
+            <div
+              class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl"
+              :class="isDark ? 'bg-rose-500/15 text-rose-300' : 'bg-rose-50 text-rose-600'"
+            >
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M4.93 19h14.14c1.54 0 2.5-1.67 1.73-3L13.73 3.77c-.77-1.33-2.69-1.33-3.46 0L3.2 16c-.77 1.33.19 3 1.73 3z" />
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <h3 class="text-lg font-semibold">{{ confirmDialog.title }}</h3>
+              <p class="mt-2 text-sm leading-6" :class="isDark ? 'text-slate-300' : 'text-slate-500'">
+                {{ confirmDialog.message }}
+              </p>
+            </div>
+          </div>
+          <div class="mt-7 flex justify-end gap-3">
+            <button
+              type="button"
+              class="rounded-xl border px-5 py-2.5 text-sm font-medium transition-all"
+              :class="isDark ? 'border-white/10 text-slate-200 hover:bg-white/10' : 'border-slate-200 text-slate-600 hover:bg-slate-50'"
+              @click="closeDeleteConfirm"
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              class="rounded-xl bg-gradient-to-r from-rose-600 to-pink-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-500/25 transition-all hover:shadow-rose-500/40 disabled:cursor-not-allowed disabled:opacity-60"
+              :disabled="confirmDialog.loading"
+              @click="submitDeleteConfirm"
+            >
+              {{ confirmDialog.loading ? '删除中...' : confirmDialog.confirmText }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>  </div>
+</template>
 <style scoped>
 :deep(.modern-dialog),
 :deep(.detail-dialog) {

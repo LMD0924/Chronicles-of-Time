@@ -20,6 +20,9 @@ export default defineConfig({
   optimizeDeps: {
     include: ['cesium']
   },
+  server:{
+    open:true
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

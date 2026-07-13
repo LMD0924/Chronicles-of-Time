@@ -22,7 +22,14 @@ public interface AuthMapper extends BaseMapper<User> {
     @Select("SELECT r.role_code FROM iam_user_role ur JOIN iam_role r ON ur.role_id = r.id WHERE ur.user_id = #{userId} AND r.status = 1 ORDER BY r.sort_order")
     List<String> selectRoleCodesByUserId(@Param("userId") Long userId);
 
-    @Select("SELECT DISTINCT p.permission_code FROM iam_user_role ur JOIN iam_role_permission rp ON ur.role_id = rp.role_id JOIN iam_permission p ON rp.permission_id = p.id WHERE ur.user_id = #{userId} AND p.status = 1 ORDER BY p.sort_order")
+    @Select("SELECT permission_code FROM (" +
+            "SELECT p.permission_code, MIN(p.sort_order) AS sort_order " +
+            "FROM iam_user_role ur " +
+            "JOIN iam_role_permission rp ON ur.role_id = rp.role_id " +
+            "JOIN iam_permission p ON rp.permission_id = p.id " +
+            "WHERE ur.user_id = #{userId} AND p.status = 1 " +
+            "GROUP BY p.permission_code" +
+            ") t ORDER BY t.sort_order, t.permission_code")
     List<String> selectPermissionCodesByUserId(@Param("userId") Long userId);
 
     @Select("SELECT id FROM iam_role WHERE role_code = #{roleCode} AND status = 1 LIMIT 1")

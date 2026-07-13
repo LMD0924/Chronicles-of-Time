@@ -53,6 +53,13 @@ public class GrowthDTO {
     private String careerInterest;
     private String dreamCollege;
     private String dreamMajor;
+    private String companyName;
+    private String jobTitle;
+    private String jobContent;
+    private String workSkills;
+    private String workAchievements;
+    private String workChallenges;
+    private String careerPlan;
     private BigDecimal sleepHours;
     private Integer exerciseMinutes;
     private BigDecimal screenTimeHours;

@@ -10,20 +10,20 @@
     <select id="getFullVolunteerDetail" resultType="java.util.HashMap">
         SELECT
             vd.*,
-            u.name as university_name,
-            u.level as university_level,
+            u.university_name as university_name,
+            u.level_tags as university_level,
             u.province as university_province,
-            m.name as major_name,
+            m.major_name as major_name,
             m.category as major_category,
             ap.min_score,
             ap.min_rank,
             ap.avg_score
         FROM user_volunteer_detail vd
-                 LEFT JOIN university u ON vd.university_id = u.id
+                 LEFT JOIN gaokao_university u ON vd.university_id = u.id
                  LEFT JOIN gaokao_major m ON vd.major_id = m.id
                  LEFT JOIN gaokao_admission_plan ap ON ap.major_id = m.id AND ap.university_id = u.id
-        WHERE vd.volunteer_id = #{volunteerId}
-        ORDER BY vd.priority
+        WHERE vd.volunteer_plan_id = #{volunteerId}
+        ORDER BY vd.priority_no
     </select>
 
     <!-- 获取志愿匹配度分析 -->
@@ -35,7 +35,7 @@
             msm.description as matching_description
         FROM user_volunteer_detail vd
                  LEFT JOIN hs_major_subject_match msm ON msm.major_code = (
-            SELECT code FROM gaokao_major WHERE id = vd.major_id
+            SELECT major_code FROM gaokao_major WHERE id = vd.major_id
         )
         WHERE vd.id = #{volunteerDetailId}
     </select>
@@ -43,7 +43,7 @@
     <!-- 批量插入志愿详情 -->
     <insert id="batchInsert" parameterType="java.util.List">
         INSERT INTO user_volunteer_detail (
-        volunteer_id, priority, university_id, major_id,
+        volunteer_plan_id, priority_no, university_id, major_id,
         is_major_adjusted, matching_check, matching_score,
         created_at, updated_at
         ) VALUES

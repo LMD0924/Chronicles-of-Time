@@ -115,6 +115,11 @@ const selectCareer = (value) => {
   formData.value.choose = value
 }
 
+const handleMajorInput = () => {
+  const selectedMajor = majors.value.find(m => m.name === formData.value.major)
+  formData.value.majorId = selectedMajor ? selectedMajor.id : null
+}
+
 // 获取职业图标
 const getCareerIcon = (value) => {
   const option = careerOptions.find(opt => opt.value === value)
@@ -426,20 +431,17 @@ onMounted(() => {
                     专业名称 <span class="text-red-500">*</span>
                   </label>
                   <div class="relative">
-                    <select
-                      v-model="formData.majorId"
-                      @change="() => {
-                        const selectedMajor = majors.find(m => m.id === formData.majorId)
-                        formData.major = selectedMajor ? selectedMajor.name : ''
-                      }"
-                      class="w-full px-4 py-3 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-brand-400"
-                      :class="isDark ? 'bg-gray-800 border-gray-700 text-white focus:border-brand-400' : 'bg-gray-50 border-gray-200 focus:border-brand-400'"
-                    >
-                      <option value="">请选择专业</option>
-                      <option v-for="major in majors" :key="major.id" :value="major.id">
-                        {{ major.name }}
-                      </option>
-                    </select>
+                    <input
+                      v-model="formData.major"
+                      list="major-options"
+                      type="text"
+                      placeholder="请输入或选择专业"
+                      class="w-full px-4 py-3 rounded-xl border bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white transition-all focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400"
+                      @input="handleMajorInput"
+                    />
+                    <datalist id="major-options">
+                      <option v-for="major in majors" :key="major.id" :value="major.name" />
+                    </datalist>
                   </div>
                 </div>
 

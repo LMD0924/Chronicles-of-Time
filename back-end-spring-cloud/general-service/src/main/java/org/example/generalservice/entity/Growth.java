@@ -86,6 +86,27 @@ public class Growth {
 
     private String dreamMajor;
 
+    @TableField("company_name")
+    private String companyName;
+
+    @TableField("job_title")
+    private String jobTitle;
+
+    @TableField("job_content")
+    private String jobContent;
+
+    @TableField("work_skills")
+    private String workSkills;
+
+    @TableField("work_achievements")
+    private String workAchievements;
+
+    @TableField("work_challenges")
+    private String workChallenges;
+
+    @TableField("career_plan")
+    private String careerPlan;
+
     private BigDecimal sleepHours;
 
     private Integer exerciseMinutes;
@@ -107,9 +128,9 @@ public class Growth {
 
     private String nextGoal;
 
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(fill = FieldFill.INSERT,value="created_at")
     private LocalDateTime createTime;
 
-    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE,value="updated_at")
     private LocalDateTime updateTime;
 }

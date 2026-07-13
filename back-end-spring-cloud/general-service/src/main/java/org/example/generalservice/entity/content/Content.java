@@ -52,6 +52,12 @@ public class Content {
     private String title;
 
     /**
+     * 摘要
+     */
+    @TableField("summary")
+    private String summary;
+
+    /**
      * 内容（支持长文本）
      */
     @TableField("content_md")
@@ -102,6 +108,12 @@ public class Content {
     /**
      * 分类（用户直接输入）
      */
+    /**
+     * 分类ID
+     */
+    @TableField("category_id")
+    private Long categoryId;
+
     @TableField(exist = false)
     private String category;
 

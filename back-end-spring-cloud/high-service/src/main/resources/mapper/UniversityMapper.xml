@@ -10,18 +10,18 @@
         SELECT * FROM gaokao_university
         <where>
             <if test="keyword != null and keyword != ''">
-                AND (name LIKE CONCAT('%', #{keyword}, '%')
-                OR code LIKE CONCAT('%', #{keyword}, '%'))
+                AND (university_name LIKE CONCAT('%', #{keyword}, '%')
+                OR university_code LIKE CONCAT('%', #{keyword}, '%'))
             </if>
             <if test="province != null and province != ''">
                 AND province = #{province}
             </if>
             <if test="level != null and level != ''">
-                AND level = #{level}
+                AND level_tags = #{level}
             </if>
         </where>
         ORDER BY
-        CASE level
+        CASE level_tags
         WHEN '985' THEN 1
         WHEN '211' THEN 2
         WHEN '双一流' THEN 3
@@ -29,7 +29,7 @@
         WHEN '二本' THEN 5
         ELSE 6
         END,
-        name
+        university_name
     </select>
 
 </mapper>

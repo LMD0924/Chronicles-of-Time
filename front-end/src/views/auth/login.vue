@@ -6,6 +6,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import request from '@/utils/request';
 import { message } from "ant-design-vue";
 import router from '@/router/index.js';
+import { View, Hide } from '@element-plus/icons-vue';
 
 // 导入主题工具
 import { getStoredTheme, toggleTheme, ThemeType } from '@/utils/theme';
@@ -56,6 +57,9 @@ const registerForm = ref({
   username: '',
   password: ''
 })
+
+const showLoginPassword = ref(false)
+const showRegisterPassword = ref(false)
 
 // 忘记密码弹窗
 const showForgotPassword = ref(false)
@@ -493,17 +497,28 @@ const navigateWithTransition = (path) => {
                   </div>
                   <div class="transition-all duration-500" style="transition-delay: 100ms">
                     <label class="block text-sm font-medium mb-1" :class="isDark ? 'text-slate-200' : ''">密码</label>
-                    <input
-                      v-model="loginForm.password"
-                      type="password"
-                      placeholder="请输入您的密码"
-                      class="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500 backdrop-blur-md"
-                      :class="[
-                        isDark
-                          ? 'bg-gray-800/40 border-gray-700/50 text-white placeholder:text-gray-400'
-                          : 'bg-white/40 border-gray-200/50 placeholder:text-gray-500'
-                      ]"
-                    />
+                    <div class="relative">
+                      <input
+                        v-model="loginForm.password"
+                        :type="showLoginPassword ? 'text' : 'password'"
+                        placeholder="请输入您的密码"
+                        class="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500 backdrop-blur-md pr-12"
+                        :class="[
+                          isDark
+                            ? 'bg-gray-800/40 border-gray-700/50 text-white placeholder:text-gray-400'
+                            : 'bg-white/40 border-gray-200/50 placeholder:text-gray-500'
+                        ]"
+                      />
+                      <button
+                        type="button"
+                        @click="showLoginPassword = !showLoginPassword"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors"
+                        :class="isDark ? 'text-gray-300 hover:bg-white/10' : 'text-gray-500 hover:bg-gray-100'"
+                        :aria-label="showLoginPassword ? '隐藏密码' : '显示密码'"
+                      >
+                        <el-icon class="text-lg"><component :is="showLoginPassword ? Hide : View" /></el-icon>
+                      </button>
+                    </div>
                   </div>
 
                   <!-- 忘记密码链接 -->
@@ -557,17 +572,28 @@ const navigateWithTransition = (path) => {
                   </div>
                   <div class="transition-all duration-500" style="transition-delay: 150ms">
                     <label class="block text-sm font-medium mb-1" :class="isDark ? 'text-slate-200' : ''">密码</label>
-                    <input
-                      v-model="registerForm.password"
-                      type="password"
-                      placeholder="请输入您的密码"
-                      class="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500 backdrop-blur-md"
-                      :class="[
-                        isDark
-                          ? 'bg-gray-800/40 border-gray-700/50 text-white placeholder:text-gray-400'
-                          : 'bg-white/40 border-gray-200/50 placeholder:text-gray-500'
-                      ]"
-                    />
+                    <div class="relative">
+                      <input
+                        v-model="registerForm.password"
+                        :type="showRegisterPassword ? 'text' : 'password'"
+                        placeholder="请输入您的密码"
+                        class="w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500 backdrop-blur-md pr-12"
+                        :class="[
+                          isDark
+                            ? 'bg-gray-800/40 border-gray-700/50 text-white placeholder:text-gray-400'
+                            : 'bg-white/40 border-gray-200/50 placeholder:text-gray-500'
+                        ]"
+                      />
+                      <button
+                        type="button"
+                        @click="showRegisterPassword = !showRegisterPassword"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors"
+                        :class="isDark ? 'text-gray-300 hover:bg-white/10' : 'text-gray-500 hover:bg-gray-100'"
+                        :aria-label="showRegisterPassword ? '隐藏密码' : '显示密码'"
+                      >
+                        <el-icon class="text-lg"><component :is="showRegisterPassword ? Hide : View" /></el-icon>
+                      </button>
+                    </div>
                   </div>
                   <button
                     type="submit"

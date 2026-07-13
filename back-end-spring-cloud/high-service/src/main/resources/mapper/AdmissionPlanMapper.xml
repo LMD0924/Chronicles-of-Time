@@ -16,16 +16,16 @@
                 AND university_id = #{universityId}
             </if>
             <if test="year != null">
-                AND year = #{year}
+                AND admission_year = #{year}
             </if>
         </where>
-        ORDER BY year DESC
+        ORDER BY admission_year DESC
     </select>
     <select id="getLatestAdmission" resultType="org.example.highservice.entity.volunteer.AdmissionPlan">
         SELECT * FROM gaokao_admission_plan
         WHERE major_id = #{majorId}
           AND university_id = #{universityId}
-        ORDER BY year DESC
+        ORDER BY admission_year DESC
             LIMIT 1
     </select>
 

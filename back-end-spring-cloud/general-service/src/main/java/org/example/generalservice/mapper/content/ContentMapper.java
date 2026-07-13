@@ -85,6 +85,11 @@ public interface ContentMapper extends BaseMapper<Content> {
     List<Long> selectUserContentIdsByTag(@Param("userId") Long userId, @Param("tag") String tag);
 
     /**
+     * 获取用户指定标签关联的分类统计
+     */
+    List<Map<String, Object>> selectUserCategoriesByTag(@Param("userId") Long userId, @Param("tag") String tag);
+
+    /**
      * 获取用户自己的标签共现关系
      */
     List<Map<String, Object>> selectUserTagCooccurrence(@Param("userId") Long userId, @Param("limit") Integer limit);

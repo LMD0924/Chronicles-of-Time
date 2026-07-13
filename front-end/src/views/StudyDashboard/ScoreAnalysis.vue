@@ -6,11 +6,11 @@
     <!-- 页面头部 -->
     <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-2xl shadow-brand-500/10">
       <div class="flex items-center gap-4">
-        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 via-pink-500 to-purple-500 flex items-center justify-center shadow-lg shadow-brand-500/30">
           <span class="text-white text-2xl">📊</span>
         </div>
         <div>
-          <h2 class="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">成绩分析</h2>
+          <h2 class="text-2xl font-bold bg-gradient-to-r from-brand-600 to-pink-600 bg-clip-text text-transparent">成绩分析</h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">✨ 数据驱动，精准提升</p>
         </div>
       </div>
@@ -22,17 +22,17 @@
         <p class="text-brand-600 dark:text-brand-400 text-sm font-medium">总平均分</p>
         <p class="text-4xl font-bold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent mt-2">{{ overallAvg || '--' }}</p>
       </div>
-      <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-emerald-500/10">
-        <p class="text-emerald-600 dark:text-emerald-400 text-sm font-medium">最高分</p>
-        <p class="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mt-2">{{ maxScore || '--' }}</p>
+      <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-brand-500/10">
+        <p class="text-brand-600 dark:text-brand-400 text-sm font-medium">最高分</p>
+        <p class="text-4xl font-bold bg-gradient-to-r from-brand-600 to-pink-600 bg-clip-text text-transparent mt-2">{{ maxScore || '--' }}</p>
       </div>
-      <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-amber-500/10">
-        <p class="text-amber-600 dark:text-amber-400 text-sm font-medium">考试次数</p>
-        <p class="text-4xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mt-2">{{ examCount || '--' }}</p>
+      <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-purple-500/10">
+        <p class="text-purple-600 dark:text-purple-400 text-sm font-medium">考试次数</p>
+        <p class="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mt-2">{{ examCount || '--' }}</p>
       </div>
-      <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-rose-500/10">
-        <p class="text-rose-600 dark:text-rose-400 text-sm font-medium">错题总数</p>
-        <p class="text-4xl font-bold bg-gradient-to-r from-rose-600 to-red-600 bg-clip-text text-transparent mt-2">{{ totalMistakes || '--' }}</p>
+      <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-pink-500/10">
+        <p class="text-pink-600 dark:text-pink-400 text-sm font-medium">错题总数</p>
+        <p class="text-4xl font-bold bg-gradient-to-r from-pink-600 to-brand-600 bg-clip-text text-transparent mt-2">{{ totalMistakes || '--' }}</p>
       </div>
     </div>
 

@@ -1,136 +1,193 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  文件说明：拾光记微服务后端通用内容服务业务服务配置或映射文件，用于描述项目依赖、构建或 SQL 映射关系。
--->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.example.generalservice.mapper.content.ContentMapper">
 
-    <!-- 增加浏览量 -->
+    <sql id="contentColumns">
+        id,
+        user_id AS userId,
+        category_id AS categoryId,
+        title,
+        summary,
+        content_md AS content,
+        content_type AS contentType,
+        cover_image_url AS coverImage,
+        location,
+        weather,
+        mood,
+        visibility AS isPublic,
+        is_top AS isTop,
+        is_essence AS isEssence,
+        status,
+        view_count AS views,
+        like_count AS likesCount,
+        favorite_count AS favoritesCount,
+        comment_count AS commentsCount,
+        created_at AS createTime,
+        updated_at AS updateTime,
+        publish_at AS publishTime
+    </sql>
+
     <update id="incrementViews">
         UPDATE content_article SET view_count = view_count + 1 WHERE id = #{id}
     </update>
-
-    <!-- 增加点赞数 -->
     <update id="incrementLikesCount">
         UPDATE content_article SET like_count = like_count + 1 WHERE id = #{id}
     </update>
-
-    <!-- 减少点赞数 -->
     <update id="decrementLikesCount">
         UPDATE content_article SET like_count = GREATEST(like_count - 1, 0) WHERE id = #{id}
     </update>
-
-    <!-- 增加收藏数 -->
     <update id="incrementFavoritesCount">
         UPDATE content_article SET favorite_count = favorite_count + 1 WHERE id = #{id}
     </update>
-
-    <!-- 减少收藏数 -->
     <update id="decrementFavoritesCount">
         UPDATE content_article SET favorite_count = GREATEST(favorite_count - 1, 0) WHERE id = #{id}
     </update>
-
-    <!-- 增加评论数 -->
     <update id="incrementCommentsCount">
         UPDATE content_article SET comment_count = comment_count + 1 WHERE id = #{id}
     </update>
-
-    <!-- 减少评论数 -->
     <update id="decrementCommentsCount">
         UPDATE content_article SET comment_count = GREATEST(comment_count - 1, 0) WHERE id = #{id}
     </update>
 
-    <!-- 查询热门内容 -->
     <select id="selectHotContents" resultType="org.example.generalservice.entity.content.Content">
-        SELECT * FROM content_article
+        SELECT <include refid="contentColumns" />
+        FROM content_article
         WHERE status = 1 AND visibility = 2
         ORDER BY view_count DESC
-            LIMIT #{limit}
+        LIMIT #{limit}
     </select>
 
-    <!-- ==================== 知识图谱相关SQL（用户个性化） ==================== -->
-
-    <!-- 获取用户自己的所有标签及使用次数 -->
     <select id="selectUserTagsWithCount" resultType="java.util.HashMap">
         SELECT
-        TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(c.tags, ',', numbers.n), ',', -1)) AS tag,
-        COUNT(*) AS count,
-        COUNT(DISTINCT c.id) AS content_count
+            t.tag_name AS tag,
+            COUNT(*) AS count,
+            COUNT(DISTINCT c.id) AS content_count
         FROM content_article c
-        CROSS JOIN (
-        SELECT 1 AS n UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
-        UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10
-        ) numbers
+        INNER JOIN content_article_tag art_tag ON art_tag.content_id = c.id
+        INNER JOIN content_tag t ON t.id = art_tag.tag_id
         WHERE c.user_id = #{userId}
-        AND c.status = 1
-        AND c.tags IS NOT NULL AND c.tags != ''
-        AND numbers.n &lt;= (LENGTH(c.tags) - LENGTH(REPLACE(c.tags, ',', '')) + 1)
-        GROUP BY tag
-        ORDER BY count DESC
+          AND c.status = 1
+        GROUP BY t.id, t.tag_name
+        ORDER BY count DESC, t.tag_name ASC
         <if test="limit != null and limit > 0">
             LIMIT #{limit}
         </if>
     </select>
 
-    <!-- 获取用户自己的所有分类及使用次数 -->
     <select id="selectUserCategoriesWithCount" resultType="java.util.HashMap">
         SELECT
-            category,
+            cc.category_name AS category,
             COUNT(*) AS count,
             COUNT(*) AS content_count
-        FROM content
-        WHERE user_id = #{userId}
-          AND status = 1
-          AND category IS NOT NULL AND category != ''
-        GROUP BY category
-        ORDER BY count DESC
+        FROM content_article c
+        INNER JOIN content_category cc ON cc.id = c.category_id
+        WHERE c.user_id = #{userId}
+          AND c.status = 1
+          AND cc.status = 1
+        GROUP BY cc.id, cc.category_name
+        ORDER BY count DESC, cc.sort_order ASC, cc.category_name ASC
     </select>
 
-    <!-- 获取用户自己的标签关联的文章ID列表 -->
     <select id="selectUserContentIdsByTag" resultType="java.lang.Long">
-        SELECT id
-        FROM content
-        WHERE user_id = #{userId}
-          AND status = 1
-          AND tags IS NOT NULL
-          AND FIND_IN_SET(#{tag}, tags) > 0
+        SELECT DISTINCT c.id
+        FROM content_article c
+        INNER JOIN content_article_tag art_tag ON art_tag.content_id = c.id
+        INNER JOIN content_tag t ON t.id = art_tag.tag_id
+        WHERE c.user_id = #{userId}
+          AND c.status = 1
+          AND t.tag_name = #{tag}
     </select>
 
-    <!-- 获取用户自己的标签共现关系 -->
+    <select id="selectUserCategoriesByTag" resultType="java.util.HashMap">
+        SELECT
+            cc.category_name AS category,
+            COUNT(*) AS count,
+            COUNT(DISTINCT c.id) AS content_count
+        FROM content_article c
+        INNER JOIN content_article_tag art_tag ON art_tag.content_id = c.id
+        INNER JOIN content_tag t ON t.id = art_tag.tag_id
+        INNER JOIN content_category cc ON cc.id = c.category_id
+        WHERE c.user_id = #{userId}
+          AND c.status = 1
+          AND cc.status = 1
+          AND t.tag_name = #{tag}
+        GROUP BY cc.id, cc.category_name
+    </select>
+
     <select id="selectUserTagCooccurrence" resultType="java.util.HashMap">
         SELECT
-        TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(c.tags, ',', n1.n), ',', -1)) AS tag1,
-        TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(c.tags, ',', n2.n), ',', -1)) AS tag2,
-        COUNT(*) AS cooccurrence
+            t1.tag_name AS tag1,
+            t2.tag_name AS tag2,
+            COUNT(*) AS cooccurrence
         FROM content_article c
-        CROSS JOIN (
-        SELECT 1 AS n UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
-        UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10
-        ) n1
-        CROSS JOIN (
-        SELECT 1 AS n UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
-        UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10
-        ) n2
+        INNER JOIN content_article_tag at1 ON at1.content_id = c.id
+        INNER JOIN content_tag t1 ON t1.id = at1.tag_id
+        INNER JOIN content_article_tag at2 ON at2.content_id = c.id
+        INNER JOIN content_tag t2 ON t2.id = at2.tag_id
         WHERE c.user_id = #{userId}
-        AND c.status = 1
-        AND c.tags IS NOT NULL AND c.tags != ''
-        AND n1.n &lt;= (LENGTH(c.tags) - LENGTH(REPLACE(c.tags, ',', '')) + 1)
-        AND n2.n &lt;= (LENGTH(c.tags) - LENGTH(REPLACE(c.tags, ',', '')) + 1)
-        AND TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(c.tags, ',', n1.n), ',', -1)) &lt;
-        TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(c.tags, ',', n2.n), ',', -1))
-        GROUP BY tag1, tag2
+          AND c.status = 1
+          AND t1.id &lt; t2.id
+        GROUP BY t1.id, t1.tag_name, t2.id, t2.tag_name
         ORDER BY cooccurrence DESC
         <if test="limit != null and limit > 0">
             LIMIT #{limit}
         </if>
     </select>
 
-    <!-- 获取用户自己的文章总数 -->
     <select id="selectUserContentCount" resultType="java.lang.Long">
         SELECT COUNT(*)
-        FROM content
+        FROM content_article
         WHERE user_id = #{userId}
           AND status = 1
     </select>
 
+    <select id="selectAllTagsWithCount" resultType="java.util.HashMap">
+        SELECT
+            t.tag_name AS tag,
+            COUNT(*) AS count,
+            COUNT(DISTINCT c.id) AS content_count
+        FROM content_article c
+        INNER JOIN content_article_tag art_tag ON art_tag.content_id = c.id
+        INNER JOIN content_tag t ON t.id = art_tag.tag_id
+        WHERE c.status = 1 AND c.visibility = 2
+        GROUP BY t.id, t.tag_name
+        ORDER BY count DESC, t.tag_name ASC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <select id="selectAllCategoriesWithCount" resultType="java.util.HashMap">
+        SELECT
+            cc.category_name AS category,
+            COUNT(*) AS count,
+            COUNT(*) AS content_count
+        FROM content_article c
+        INNER JOIN content_category cc ON cc.id = c.category_id
+        WHERE c.status = 1
+          AND c.visibility = 2
+          AND cc.status = 1
+        GROUP BY cc.id, cc.category_name
+        ORDER BY count DESC, cc.sort_order ASC, cc.category_name ASC
+    </select>
+
+    <select id="selectAllTagCooccurrence" resultType="java.util.HashMap">
+        SELECT
+            t1.tag_name AS tag1,
+            t2.tag_name AS tag2,
+            COUNT(*) AS cooccurrence
+        FROM content_article c
+        INNER JOIN content_article_tag at1 ON at1.content_id = c.id
+        INNER JOIN content_tag t1 ON t1.id = at1.tag_id
+        INNER JOIN content_article_tag at2 ON at2.content_id = c.id
+        INNER JOIN content_tag t2 ON t2.id = at2.tag_id
+        WHERE c.status = 1
+          AND c.visibility = 2
+          AND t1.id &lt; t2.id
+        GROUP BY t1.id, t1.tag_name, t2.id, t2.tag_name
+        ORDER BY cooccurrence DESC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit}
+        </if>
+    </select>
 </mapper>

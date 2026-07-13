@@ -6,6 +6,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="back-end-admin" />
       </profile>
       <profile name="Annotation profile for back-end-spring-cloud" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -36,6 +37,7 @@
       <module name="Question-Bank" options="-parameters" />
       <module name="advanced-service" options="-parameters" />
       <module name="auth-center" options="-parameters" />
+      <module name="back-end-admin" options="-parameters" />
       <module name="back-end-spring-cloud" options="" />
       <module name="common-core" options="-parameters" />
       <module name="common-db" options="-parameters" />

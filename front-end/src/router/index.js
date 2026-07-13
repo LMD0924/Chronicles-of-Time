@@ -48,6 +48,16 @@ const router = createRouter({
       component: () => import('@/views/Records.vue')
     },
     {
+      path:'/WorkRecords',
+      name:'职场新人',
+      component: () => import('@/views/career/WorkRecords.vue')
+    },
+    {
+      path:'/AdvanceRecords',
+      name:'进阶之路',
+      component: () => import('@/views/career/AdvanceRecords.vue')
+    },
+    {
       path:'/DailyCheckin',
       name:'每日打卡',
       component: () => import('@/views/social/DailyCheckin.vue')

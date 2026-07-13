@@ -4,14 +4,14 @@
 <template>
   <div class="space-y-6 space-y-6">
     <!-- 头部 -->
-    <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-2xl shadow-rose-500/10">
+    <div class="app-card-surface p-6 border border-white/20 dark:border-gray-700/30 shadow-2xl shadow-brand-500/10">
       <div class="flex flex-wrap justify-between items-center gap-4">
         <div class="flex items-center gap-4">
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500 via-red-500 to-orange-500 flex items-center justify-center shadow-lg shadow-rose-500/30">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 via-pink-500 to-purple-500 flex items-center justify-center shadow-lg shadow-brand-500/30">
             <span class="text-white text-2xl">📖</span>
           </div>
           <div>
-            <h2 class="text-2xl font-bold bg-gradient-to-r from-rose-600 to-red-600 bg-clip-text text-transparent">错题本</h2>
+            <h2 class="text-2xl font-bold bg-gradient-to-r from-brand-600 to-pink-600 bg-clip-text text-transparent">错题本</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">✨ 记录你的每一次进步</p>
           </div>
         </div>
@@ -19,7 +19,7 @@
           <button @click="startMistakePractice" class="px-6 py-2.5 rounded-2xl bg-gray-900 text-white text-sm font-medium shadow-lg">
             错题练习
           </button>
-          <button @click="showAddModal = true" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500 via-red-500 to-orange-500 text-white text-sm font-medium shadow-lg shadow-rose-500/30 hover:shadow-xl hover:shadow-rose-500/40 transform hover:-translate-y-0.5 transition-all">
+          <button @click="showAddModal = true" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-brand-500 via-pink-500 to-purple-500 text-white text-sm font-medium shadow-lg shadow-brand-500/30 hover:shadow-xl hover:shadow-brand-500/40 transform hover:-translate-y-0.5 transition-all">
             ➕ 添加错题
           </button>
         </div>
@@ -71,7 +71,7 @@
               :class="[
                 'px-3 py-1.5 rounded-full text-sm transition-all',
                 (subject === '全部' && !filters.subject) || (filters.subject === subject)
-                  ? 'bg-gradient-to-r from-rose-500 to-red-500 text-white shadow-md'
+                  ? 'bg-gradient-to-r from-brand-500 to-pink-500 text-white shadow-md'
                   : 'bg-gray-100 dark:bg-dark-surface text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-black'
               ]"
             >
@@ -115,7 +115,7 @@
               :class="[
                 'px-3 py-1.5 rounded-full text-sm transition-all',
                 filters.mastered === status.value
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
+                  ? 'bg-gradient-to-r from-brand-500 to-purple-500 text-white shadow-md'
                   : 'bg-gray-100 dark:bg-dark-surface text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-black'
               ]"
             >

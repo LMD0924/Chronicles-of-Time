@@ -1,87 +1,39 @@
-/**
- * 文件说明：拾光记微服务后端高中服务业务服务源码，负责业务服务相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
- */
-/*
- * @Author: 总会落叶
- * @Date: 2026/4/1
- * @Description: 大学专业选科要求实体类
- */
 package org.example.highservice.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 import java.time.Year;
 
-/**
- * 类说明：当前类是业务服务模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
- */
 @Data
 @TableName("gaokao_major_requirement")
 public class MajorRequirement {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
-    /**
-     * 专业代码
-     */
     private String majorCode;
-
-    /**
-     * 专业名称
-     */
     private String majorName;
-
-    /**
-     * 专业类别（如：工学/理学/医学）
-     */
     private String category;
-
-    /**
-     * 首选科目要求：物理/历史/不限
-     */
     private String firstSubjectRequired;
-
-    /**
-     * 再选科目要求：如：化学(必选) 或 化学/生物(二选一)
-     */
     private String secondSubjectRequired;
-
-    /**
-     * 详细选科要求说明
-     */
     private String requirementDetail;
-
-    /**
-     * 大学名称
-     */
     private String universityName;
-
-    /**
-     * 大学层次：985/211/双一流/普通
-     */
     private String universityLevel;
 
-    /**
-     * 匹配度均值（仅在 match 查询里返回）
-     */
+    @TableField(exist = false)
     private Double avgMatchingScore;
 
-    /**
-     * 匹配科目列表（仅在 match 查询里返回）
-     */
+    @TableField(exist = false)
     private String matchedSubjects;
 
-    /**
-     * 所在省份
-     */
     private String province;
-
-    /**
-     * 招生年份
-     */
     private Year admissionYear;
 
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 }

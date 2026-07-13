@@ -1,44 +1,35 @@
-/**
- * 文件说明：拾光记微服务后端高中服务业务服务源码，负责业务服务相关的接口、业务、数据或配置逻辑，保持各微服务边界清晰。
- */
 package org.example.highservice.entity.volunteer;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 
-/*
- * @Author:总会落叶
- * @Date:2026/4/4
- * @Description: 志愿详情表实体
- */
-/**
- * 类说明：当前类是业务服务模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
- */
 @Data
 @TableName("user_volunteer_detail")
 public class VolunteerDetail {
-
     @TableId(type = IdType.ASSIGN_ID)
     private Integer id;
 
+    @TableField("volunteer_plan_id")
     private Integer volunteerId;
 
+    @TableField("priority_no")
     private Integer priority;
 
     private Integer universityId;
-
     private Integer majorId;
-
     private Boolean isMajorAdjusted;
-
     private Boolean matchingCheck;
-
     private Integer matchingScore;
 
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
-    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "updated_at", fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 }

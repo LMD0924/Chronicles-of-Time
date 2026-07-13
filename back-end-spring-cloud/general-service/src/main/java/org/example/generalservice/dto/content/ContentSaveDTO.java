@@ -29,6 +29,11 @@ public class ContentSaveDTO {
     private String title;
 
     /**
+     * 摘要
+     */
+    private String summary;
+
+    /**
      * 内容
      */
     private String content;

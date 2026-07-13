@@ -25,7 +25,7 @@ const editForm = ref({
 const isDark = ref(getStoredTheme() === ThemeType.DARK)
 
 // 当前激活的右侧标签
-const activeRightTab = ref('articles') // articles, likes, favorites, comments
+const activeRightTab = ref('articles') // articles, records, likes, favorites, comments
 
 // 统计数据
 const stats = ref({
@@ -33,6 +33,7 @@ const stats = ref({
   totalLikes: 0,
   totalFavorites: 0,
   totalComments: 0,
+  totalRecords: 0,
   totalViews: 0
 })
 
@@ -53,6 +54,10 @@ const favoritesLoading = ref(false)
 // 我的评论列表
 const myComments = ref([])
 const commentsLoading = ref(false)
+
+// 成长记录列表
+const growthRecords = ref([])
+const recordsLoading = ref(false)
 
 // 成就徽章
 const badges = ref([
@@ -114,7 +119,7 @@ const fetchUserInfo = async () => {
 const fetchMyArticles = async () => {
   articlesLoading.value = true
   try {
-    const res = await request.get('/api/content/user/' + userInfo.value.id, {
+    const res = await request.get('/content/user/' + userInfo.value.id, {
       pageNum: articlesPage.value,
       pageSize: 10
     })
@@ -134,7 +139,7 @@ const fetchMyArticles = async () => {
 const fetchLikedArticles = async () => {
   likesLoading.value = true
   try {
-    const res = await request.get('/api/content/user/liked', {
+    const res = await request.get('/content/user/liked', {
       userId: userInfo.value.id,
       pageNum: 1,
       pageSize: 20
@@ -154,7 +159,7 @@ const fetchLikedArticles = async () => {
 const fetchFavoritedArticles = async () => {
   favoritesLoading.value = true
   try {
-    const res = await request.get('/api/content/user/favorited', {
+    const res = await request.get('/content/user/favorited', {
       userId: userInfo.value.id,
       pageNum: 1,
       pageSize: 20
@@ -174,7 +179,7 @@ const fetchFavoritedArticles = async () => {
 const fetchMyComments = async () => {
   commentsLoading.value = true
   try {
-    const res = await request.get('/api/content/comment/user/' + userInfo.value.id, {
+    const res = await request.get('/content/comment/user/' + userInfo.value.id, {
       pageNum: 1,
       pageSize: 20
     })
@@ -189,6 +194,25 @@ const fetchMyComments = async () => {
   }
 }
 
+
+// 获取成长记录
+const fetchGrowthRecords = async () => {
+  recordsLoading.value = true
+  try {
+    const res = await request.post('/growth/list', {
+      pageNum: 1,
+      pageSize: 50
+    })
+    if (res.code === 200) {
+      growthRecords.value = Array.isArray(res.data) ? res.data : (res.data?.records || [])
+      stats.value.totalRecords = growthRecords.value.length
+    }
+  } catch (error) {
+    console.error('获取成长记录失败', error)
+  } finally {
+    recordsLoading.value = false
+  }
+}
 // 加载所有数据
 const loadUserData = async () => {
   if (!userInfo.value?.id) return
@@ -196,7 +220,8 @@ const loadUserData = async () => {
     fetchMyArticles(),
     fetchLikedArticles(),
     fetchFavoritedArticles(),
-    fetchMyComments()
+    fetchMyComments(),
+    fetchGrowthRecords()
   ])
 
   // 更新成就进度
@@ -315,7 +340,7 @@ const uploadAvatar = async (file) => {
 
 // 跳转到文章详情
 const goToArticle = (id) => {
-  router.push(`/content/detail/${id}`)
+  router.push(`/View/${id}`)
 }
 
 // 格式化日期
@@ -337,6 +362,19 @@ const switchTab = (tab) => {
   activeRightTab.value = tab
 }
 
+const handleLogout = async () => {
+  try {
+    await ElMessageBox.confirm('确定要退出登录吗？', '提示', { type: 'warning' })
+    sessionStorage.removeItem('token')
+    localStorage.removeItem('token')
+    localStorage.removeItem('refresh_token')
+    localStorage.removeItem('user_info')
+    ElMessage.success('已退出登录')
+    router.push('/login')
+  } catch (_) {
+    // 用户取消退出
+  }
+}
 onMounted(async () => {
   await fetchUserInfo()
   await loadUserData()
@@ -482,6 +520,7 @@ onMounted(async () => {
               <button
                 v-for="tab in [
                   { id: 'articles', name: '我的发表', icon: '📝', count: stats.totalArticles },
+                  { id: 'records', name: '成长记录', icon: '📌', count: stats.totalRecords },
                   { id: 'likes', name: '我的点赞', icon: '❤️', count: stats.totalLikes },
                   { id: 'favorites', name: '我的收藏', icon: '⭐', count: stats.totalFavorites },
                   { id: 'comments', name: '我的评论', icon: '💬', count: stats.totalComments }
@@ -511,7 +550,7 @@ onMounted(async () => {
                 <div v-else-if="myArticles.length === 0" class="text-center py-12">
                   <div class="text-5xl mb-3">📝</div>
                   <p :class="isDark ? 'text-gray-400' : 'text-gray-500'">还没有发表过文章</p>
-                  <button @click="$router.push('/content/create')" class="mt-4 px-4 py-2 bg-gradient-to-r from-brand-500 to-pink-500 text-white rounded-lg text-sm">去写文章</button>
+                  <button @click="$router.push('/Publish')" class="mt-4 px-4 py-2 bg-gradient-to-r from-brand-500 to-pink-500 text-white rounded-lg text-sm">去写文章</button>
                 </div>
                 <div v-else class="space-y-4">
                   <div v-for="article in myArticles" :key="article.id"
@@ -624,6 +663,29 @@ onMounted(async () => {
                 </div>
               </div>
 
+              <!-- 成长记录 -->
+              <div v-if="activeRightTab === 'records'">
+                <div v-if="recordsLoading" class="text-center py-8">
+                  <div class="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                </div>
+                <div v-else-if="growthRecords.length === 0" class="text-center py-12">
+                  <div class="text-5xl mb-3">📌</div>
+                  <p :class="isDark ? 'text-gray-400' : 'text-gray-500'">还没有成长记录</p>
+                </div>
+                <div v-else class="space-y-4">
+                  <div v-for="record in growthRecords" :key="record.id"
+                       class="p-4 rounded-xl transition-all"
+                       :class="isDark ? 'bg-white/5' : 'bg-gray-50'">
+                    <div class="flex justify-between gap-3">
+                      <div class="min-w-0">
+                        <h4 :class="isDark ? 'text-white' : 'text-gray-800'" class="font-semibold mb-1 truncate">{{ record.title || record.recordTitle || record.content || '成长记录' }}</h4>
+                        <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm line-clamp-2">{{ record.description || record.summary || record.content }}</p>
+                      </div>
+                      <span class="shrink-0 text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ formatDate(record.recordTime || record.createTime || record.createdAt) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

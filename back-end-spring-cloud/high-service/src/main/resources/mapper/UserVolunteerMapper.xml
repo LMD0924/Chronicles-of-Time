@@ -10,14 +10,14 @@
     <select id="getUserVolunteerHistory" resultType="org.example.highservice.entity.volunteer.UserVolunteer">
         SELECT * FROM user_volunteer_plan
         WHERE user_id = #{userId}
-        ORDER BY year DESC, submit_time DESC
+        ORDER BY admission_year DESC, submit_time DESC
     </select>
 
     <!-- 获取志愿填报统计 -->
     <select id="getVolunteerStatistics" resultType="java.util.HashMap">
         SELECT
             COUNT(*) as total_count,
-            COUNT(DISTINCT year) as year_count,
+            COUNT(DISTINCT admission_year) as year_count,
             MAX(score) as max_score,
             MIN(score) as min_score,
             AVG(score) as avg_score
