@@ -155,9 +155,12 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   (response) => {
     const res = response.data
+    const silentError = response.config.silentError || response.config.url?.includes('auth/login')
     if (res.code !== 200) {
       // 401 处理
       if (res.code === 401) {
+        if (silentError) return Promise.reject(res)
+
         const original = response.config
         if (original._retry) {
           handleUnauthorized()
@@ -193,14 +196,20 @@ service.interceptors.response.use(
           })
       }
 
-      ElMessage.error(res.msg || '请求失败')
+      if (!silentError) {
+        ElMessage.error(res.msg || res.message || '请求失败')
+      }
       return Promise.reject(res)
     }
     return res
   },
   (error) => {
-    if (error.response?.status === 401) handleUnauthorized()
-    else ElMessage.error('网络或服务器异常')
+    const silentError = error.config?.silentError || error.config?.url?.includes('auth/login')
+    if (error.response?.status === 401) {
+      if (!silentError) handleUnauthorized()
+    } else if (!silentError) {
+      ElMessage.error('网络或服务器异常')
+    }
     return Promise.reject(error)
   }
 )

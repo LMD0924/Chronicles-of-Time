@@ -240,7 +240,7 @@ const handleSocialLogin = (provider: string) => {
 }
 
 // 表单提交处理
-const handleLogin = () => {
+const handleLogin = async () => {
   // 表单验证
   if (!loginForm.value.username) {
     messageApi.warning('请输入用户名/邮箱');
@@ -253,9 +253,10 @@ const handleLogin = () => {
 
   console.log('登录:', loginForm.value)
 
-  // 添加登录逻辑
-  request.post("auth/login", loginForm.value, (msg, data) => {
-    messageApi.success(msg)
+  try {
+    const res = await request.post('auth/login', loginForm.value, null, null, { silentError: true })
+    const data = res.data
+    messageApi.success(res.msg || '登录成功')
 
     // 方案三：根据是否记住我选择存储方式
     if (data?.accessToken) {
@@ -279,9 +280,9 @@ const handleLogin = () => {
 
     // 登录成功后跳转
     navigateWithTransition('/home')
-  }, (errorMsg) => {
-    messageApi.error(errorMsg || '登录失败，请重试');
-  })
+  } catch (error) {
+    messageApi.error('登录失败')
+  }
 }
 
 const handleRegister = async () => {

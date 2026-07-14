@@ -210,3 +210,323 @@ CALL cot_add_column_if_missing('gaokao_admission_plan', 'university_name', '`uni
 CALL cot_add_column_if_missing('gaokao_university', 'is_public', '`is_public` TINYINT DEFAULT NULL AFTER `ownership`');
 
 DROP PROCEDURE IF EXISTS cot_add_column_if_missing;
+
+/* =========================================================
+   User ownership scope fields
+   ========================================================= */
+-- All mutable business rows should carry a user_id. user_id = 0 is reserved for platform/global data.
+-- Application rule: normal users filter by their own user_id; administrators can query and operate across users.
+USE cot_identity;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing $$
+CREATE PROCEDURE cot_add_user_scope_if_missing(
+  IN p_table_name VARCHAR(64)
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = 'user_id'
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD COLUMN user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT ''owner user id, 0 means platform/global data'' AFTER id');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = CONCAT('idx_', p_table_name, '_user_id')
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD INDEX idx_', p_table_name, '_user_id (user_id)');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+CALL cot_add_user_scope_if_missing('iam_role');
+CALL cot_add_user_scope_if_missing('iam_permission');
+CALL cot_add_user_scope_if_missing('iam_role_permission');
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing;
+
+USE cot_profile;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing $$
+CREATE PROCEDURE cot_add_user_scope_if_missing(
+  IN p_table_name VARCHAR(64)
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = 'user_id'
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD COLUMN user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT ''owner user id, 0 means platform/global data'' AFTER id');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = CONCAT('idx_', p_table_name, '_user_id')
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD INDEX idx_', p_table_name, '_user_id (user_id)');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+CALL cot_add_user_scope_if_missing('resume_education');
+CALL cot_add_user_scope_if_missing('resume_work_experience');
+CALL cot_add_user_scope_if_missing('resume_project');
+CALL cot_add_user_scope_if_missing('resume_skill');
+CALL cot_add_user_scope_if_missing('resume_certificate');
+CALL cot_add_user_scope_if_missing('resume_social_experience');
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing;
+
+USE cot_content;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing $$
+CREATE PROCEDURE cot_add_user_scope_if_missing(
+  IN p_table_name VARCHAR(64)
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = 'user_id'
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD COLUMN user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT ''owner user id, 0 means platform/global data'' AFTER id');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = CONCAT('idx_', p_table_name, '_user_id')
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD INDEX idx_', p_table_name, '_user_id (user_id)');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+CALL cot_add_user_scope_if_missing('content_category');
+CALL cot_add_user_scope_if_missing('content_media');
+CALL cot_add_user_scope_if_missing('content_tag');
+CALL cot_add_user_scope_if_missing('content_article_tag');
+CALL cot_add_user_scope_if_missing('content_audit');
+CALL cot_add_user_scope_if_missing('medal_rule');
+CALL cot_add_user_scope_if_missing('chat_group');
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing;
+
+USE cot_learning;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing $$
+CREATE PROCEDURE cot_add_user_scope_if_missing(
+  IN p_table_name VARCHAR(64)
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = 'user_id'
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD COLUMN user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT ''owner user id, 0 means platform/global data'' AFTER id');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = CONCAT('idx_', p_table_name, '_user_id')
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD INDEX idx_', p_table_name, '_user_id (user_id)');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+CALL cot_add_user_scope_if_missing('learning_subject');
+CALL cot_add_user_scope_if_missing('knowledge_point');
+CALL cot_add_user_scope_if_missing('knowledge_edge');
+CALL cot_add_user_scope_if_missing('question_option');
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing;
+
+USE cot_highschool;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing $$
+CREATE PROCEDURE cot_add_user_scope_if_missing(
+  IN p_table_name VARCHAR(64)
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = 'user_id'
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD COLUMN user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT ''owner user id, 0 means platform/global data'' AFTER id');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = CONCAT('idx_', p_table_name, '_user_id')
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD INDEX idx_', p_table_name, '_user_id (user_id)');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+CALL cot_add_user_scope_if_missing('hs_subject');
+CALL cot_add_user_scope_if_missing('hs_subject_combination');
+CALL cot_add_user_scope_if_missing('hs_grading_scale');
+CALL cot_add_user_scope_if_missing('gaokao_university');
+CALL cot_add_user_scope_if_missing('gaokao_major');
+CALL cot_add_user_scope_if_missing('gaokao_admission_plan');
+CALL cot_add_user_scope_if_missing('gaokao_major_requirement');
+CALL cot_add_user_scope_if_missing('user_volunteer_detail');
+CALL cot_add_user_scope_if_missing('admission_simulation');
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing;
+
+USE cot_university;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing $$
+CREATE PROCEDURE cot_add_user_scope_if_missing(
+  IN p_table_name VARCHAR(64)
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = 'user_id'
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD COLUMN user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT ''owner user id, 0 means platform/global data'' AFTER id');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = CONCAT('idx_', p_table_name, '_user_id')
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD INDEX idx_', p_table_name, '_user_id (user_id)');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+CALL cot_add_user_scope_if_missing('uni_major');
+CALL cot_add_user_scope_if_missing('uni_course_prerequisite');
+CALL cot_add_user_scope_if_missing('thesis_suggestion');
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing;
+
+USE cot_platform;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing $$
+CREATE PROCEDURE cot_add_user_scope_if_missing(
+  IN p_table_name VARCHAR(64)
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = 'user_id'
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD COLUMN user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT ''owner user id, 0 means platform/global data'' AFTER id');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = CONCAT('idx_', p_table_name, '_user_id')
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD INDEX idx_', p_table_name, '_user_id (user_id)');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+CALL cot_add_user_scope_if_missing('sys_dict_type');
+CALL cot_add_user_scope_if_missing('sys_dict_item');
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing;
+

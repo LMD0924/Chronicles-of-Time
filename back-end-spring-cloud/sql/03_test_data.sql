@@ -96,7 +96,7 @@ BEGIN
           WHEN COLUMN_NAME LIKE '%url%' THEN QUOTE('https://example.com/seed')
           WHEN COLUMN_NAME LIKE '%ip%' THEN QUOTE('127.0.0.1')
           WHEN COLUMN_NAME LIKE '%hash%' THEN QUOTE('seed_hash')
-          WHEN COLUMN_NAME LIKE '%password%' THEN QUOTE('$2a$10$seed.password.hash')
+          WHEN COLUMN_NAME LIKE '%password%' THEN QUOTE('123456')
           ELSE QUOTE(LEFT(CONCAT('测试数据-', p_table_name, '-', COLUMN_NAME), COALESCE(CHARACTER_MAXIMUM_LENGTH, 255)))
         END
     END
@@ -218,8 +218,8 @@ USE cot_identity;
 
 INSERT INTO iam_user (id, username, password_hash, display_name, email, phone, avatar_url, introduction, user_type, status, register_channel, last_login_at, last_login_ip, password_changed_at)
 VALUES
-  (@cot_seed_user_id, 'cot_test_2075127851337654274', '$2a$10$9gF5N9pZ6tVgMZ4EwX6Kz.4xmpuU1TnY5pB7WkV9sGQ8VhQ0F9Q2K', 'COT Test User', 'cot_test_2075127851337654274@example.com', '13820754274', 'https://example.com/avatar/2075127851337654274.png', 'Seed user for local feature testing.', 1, 1, 'seed', NOW(), '127.0.0.1', NOW()),
-  (@cot_seed_friend_id, 'cot_friend_2075127851337654275', '$2a$10$9gF5N9pZ6tVgMZ4EwX6Kz.4xmpuU1TnY5pB7WkV9sGQ8VhQ0F9Q2K', 'COT Friend User', 'cot_friend_2075127851337654275@example.com', '13820754275', 'https://example.com/avatar/2075127851337654275.png', 'Friend user for chat testing.', 1, 1, 'seed', NOW(), '127.0.0.1', NOW())
+  (@cot_seed_user_id, 'cot_test_2075127851337654274', '123456', 'COT Test User', 'cot_test_2075127851337654274@example.com', '13820754274', 'https://example.com/avatar/2075127851337654274.png', 'Seed user for local feature testing.', 1, 1, 'seed', NOW(), '127.0.0.1', NOW()),
+  (@cot_seed_friend_id, 'cot_friend_2075127851337654275', '123456', 'COT Friend User', 'cot_friend_2075127851337654275@example.com', '13820754275', 'https://example.com/avatar/2075127851337654275.png', 'Friend user for chat testing.', 1, 1, 'seed', NOW(), '127.0.0.1', NOW())
 ON DUPLICATE KEY UPDATE username = VALUES(username), password_hash = VALUES(password_hash), display_name = VALUES(display_name), email = VALUES(email), phone = VALUES(phone), avatar_url = VALUES(avatar_url), introduction = VALUES(introduction), status = VALUES(status), updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO iam_user_role (id, user_id, role_id, tenant_id)
@@ -253,29 +253,29 @@ INSERT INTO resume (id, user_id, resume_name, real_name, gender, birth_date, pho
 VALUES (920000000000000110, @cot_seed_user_id, 'Seed Resume', 'Test User', 'male', '2008-06-01', '13820754274', 'cot_test_2075127851337654274@example.com', 'Hangzhou', 'AI Intern', 'open', 8000, 12000, 0, 'Strong interest in AI and software engineering.', 1, 2)
 ON DUPLICATE KEY UPDATE resume_name = VALUES(resume_name), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO resume_education (id, resume_id, school_name, degree, major, start_date, is_current, description, sort_order)
-VALUES (920000000000000111, 920000000000000110, 'Hangzhou No.1 High School', 'High School', 'Science', '2024-09-01', 1, 'STEM track.', 1)
-ON DUPLICATE KEY UPDATE school_name = VALUES(school_name), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO resume_education (id, user_id, resume_id, school_name, degree, major, start_date, is_current, description, sort_order)
+VALUES (920000000000000111, @cot_seed_user_id, 920000000000000110, 'Hangzhou No.1 High School', 'High School', 'Science', '2024-09-01', 1, 'STEM track.', 1)
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), school_name = VALUES(school_name), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO resume_work_experience (id, resume_id, company_name, position, start_date, is_current, description, achievements, sort_order)
-VALUES (920000000000000112, 920000000000000110, 'COT Lab', 'Student Developer', '2026-01-01', 1, 'Built campus tools.', 'Completed a course-selection prototype.', 1)
-ON DUPLICATE KEY UPDATE company_name = VALUES(company_name), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO resume_work_experience (id, user_id, resume_id, company_name, position, start_date, is_current, description, achievements, sort_order)
+VALUES (920000000000000112, @cot_seed_user_id, 920000000000000110, 'COT Lab', 'Student Developer', '2026-01-01', 1, 'Built campus tools.', 'Completed a course-selection prototype.', 1)
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), company_name = VALUES(company_name), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO resume_project (id, resume_id, project_name, project_role, start_date, description, responsibilities, tech_stack, project_url, sort_order)
-VALUES (920000000000000113, 920000000000000110, 'Course Selection Assistant', 'Developer', '2026-03-01', 'A tool for subject and major planning.', 'Backend and data modeling.', 'Java, Spring Cloud, MySQL', 'https://example.com/projects/course-selection', 1)
-ON DUPLICATE KEY UPDATE project_name = VALUES(project_name), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO resume_project (id, user_id, resume_id, project_name, project_role, start_date, description, responsibilities, tech_stack, project_url, sort_order)
+VALUES (920000000000000113, @cot_seed_user_id, 920000000000000110, 'Course Selection Assistant', 'Developer', '2026-03-01', 'A tool for subject and major planning.', 'Backend and data modeling.', 'Java, Spring Cloud, MySQL', 'https://example.com/projects/course-selection', 1)
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), project_name = VALUES(project_name), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO resume_skill (id, resume_id, skill_name, skill_level, years_experience, sort_order)
-VALUES (920000000000000114, 920000000000000110, 'Java', 'intermediate', 1, 1)
-ON DUPLICATE KEY UPDATE skill_level = VALUES(skill_level), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO resume_skill (id, user_id, resume_id, skill_name, skill_level, years_experience, sort_order)
+VALUES (920000000000000114, @cot_seed_user_id, 920000000000000110, 'Java', 'intermediate', 1, 1)
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), skill_level = VALUES(skill_level), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO resume_certificate (id, resume_id, certificate_name, issue_authority, issue_date, score, description, sort_order)
-VALUES (920000000000000115, 920000000000000110, 'Algorithm Contest Award', 'School', '2026-05-20', 'A', 'Seed certificate.', 1)
-ON DUPLICATE KEY UPDATE certificate_name = VALUES(certificate_name), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO resume_certificate (id, user_id, resume_id, certificate_name, issue_authority, issue_date, score, description, sort_order)
+VALUES (920000000000000115, @cot_seed_user_id, 920000000000000110, 'Algorithm Contest Award', 'School', '2026-05-20', 'A', 'Seed certificate.', 1)
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), certificate_name = VALUES(certificate_name), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO resume_social_experience (id, resume_id, experience_type, title, start_date, description, achievements, sort_order)
-VALUES (920000000000000116, 920000000000000110, 'volunteer', 'Campus Tech Volunteer', '2026-04-01', 'Helped classmates with learning tools.', 'Organized a study session.', 1)
-ON DUPLICATE KEY UPDATE title = VALUES(title), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO resume_social_experience (id, user_id, resume_id, experience_type, title, start_date, description, achievements, sort_order)
+VALUES (920000000000000116, @cot_seed_user_id, 920000000000000110, 'volunteer', 'Campus Tech Volunteer', '2026-04-01', 'Helped classmates with learning tools.', 'Organized a study session.', 1)
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), title = VALUES(title), updated_at = CURRENT_TIMESTAMP;
 
 USE cot_content;
 
@@ -299,9 +299,9 @@ INSERT INTO chat_friend (id, user_id, friend_id, status)
 VALUES (920000000000000213, @cot_seed_user_id, @cot_seed_friend_id, 'ACTIVE'), (920000000000000214, @cot_seed_friend_id, @cot_seed_user_id, 'ACTIVE')
 ON DUPLICATE KEY UPDATE status = VALUES(status), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO chat_group (id, group_no, name, announcement, owner_id, member_count, searchable)
-VALUES (920000000000000215, 'G20754274', 'Seed Study Group', 'Local test group.', @cot_seed_user_id, 2, 1)
-ON DUPLICATE KEY UPDATE name = VALUES(name), member_count = VALUES(member_count), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO chat_group (id, user_id, group_no, name, announcement, owner_id, member_count, searchable)
+VALUES (920000000000000215, @cot_seed_user_id, 'G20754274', 'Seed Study Group', 'Local test group.', @cot_seed_user_id, 2, 1)
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), name = VALUES(name), member_count = VALUES(member_count), updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO chat_group_member (id, group_id, user_id, role, status, last_read_at)
 VALUES (920000000000000216, 920000000000000215, @cot_seed_user_id, 'OWNER', 'ACTIVE', NOW()), (920000000000000217, 920000000000000215, @cot_seed_friend_id, 'MEMBER', 'ACTIVE', NOW())
@@ -335,9 +335,9 @@ INSERT INTO question (id, subject_id, knowledge_point_id, subject_name, question
 VALUES (920000000000000305, 920000000000000301, 920000000000000303, 'Physics', 'single', 'high_school', 'Newton laws', 'Which law explains action and reaction?', JSON_ARRAY(JSON_OBJECT('key','A','text','Newton third law'), JSON_OBJECT('key','B','text','Ohm law')), 'A', 'Action and reaction are described by Newton third law.', 'easy', 5, 'seed', 'Seed Question Bank', 1, @cot_seed_user_id, 'approved', @cot_seed_user_id, NOW())
 ON DUPLICATE KEY UPDATE question_title = VALUES(question_title), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO question_option (id, question_id, option_key, option_text, is_correct, sort_order)
-VALUES (920000000000000306, 920000000000000305, 'A', 'Newton third law', 1, 1), (920000000000000307, 920000000000000305, 'B', 'Ohm law', 0, 2)
-ON DUPLICATE KEY UPDATE option_text = VALUES(option_text);
+INSERT INTO question_option (id, user_id, question_id, option_key, option_text, is_correct, sort_order)
+VALUES (920000000000000306, @cot_seed_user_id, 920000000000000305, 'A', 'Newton third law', 1, 1), (920000000000000307, @cot_seed_user_id, 920000000000000305, 'B', 'Ohm law', 0, 2)
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), option_text = VALUES(option_text);
 
 INSERT INTO practice_session (id, user_id, session_type, subject_id, title, category_level, subject_name, knowledge_points, difficulty_level, question_ids, total_questions, answered_questions, correct_count, wrong_count, score_total, score_obtained, duration_seconds, anti_cheat_enabled, suspicious_count, finished_at, status)
 VALUES (920000000000000308, @cot_seed_user_id, 'practice', 920000000000000301, 'Physics seed practice', 'high_school', 'Physics', 'Newton laws', 'easy', '920000000000000305', 1, 1, 1, 0, 5, 5, 120, 0, 0, NOW(), 2)
@@ -425,13 +425,13 @@ INSERT INTO user_volunteer_plan (id, user_id, plan_name, admission_year, provinc
 VALUES (920000000000000411, @cot_seed_user_id, '2026 Zhejiang CS Volunteer Plan', 2026, 'Zhejiang', 641, 5200, 'general', 1, 'Physics,Chemistry,Biology', 1, NOW())
 ON DUPLICATE KEY UPDATE score = VALUES(score), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO user_volunteer_detail (id, volunteer_plan_id, priority_no, university_id, major_id, is_major_adjusted, matching_check, matching_score, risk_level)
-VALUES (920000000000000412, 920000000000000411, 1, 920000000000000406, 920000000000000407, 1, 1, 96, 'stable')
-ON DUPLICATE KEY UPDATE matching_score = VALUES(matching_score), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO user_volunteer_detail (id, user_id, volunteer_plan_id, priority_no, university_id, major_id, is_major_adjusted, matching_check, matching_score, risk_level)
+VALUES (920000000000000412, @cot_seed_user_id, 920000000000000411, 1, 920000000000000406, 920000000000000407, 1, 1, 96, 'stable')
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), matching_score = VALUES(matching_score), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO admission_simulation (id, volunteer_detail_id, simulation_status, reject_reason, predicted_probability, admitted_time, score_diff, rank_diff, model_version)
-VALUES (920000000000000413, 920000000000000412, 'passed', NULL, 0.8200, NOW(), 8, -300, 'seed-v1')
-ON DUPLICATE KEY UPDATE predicted_probability = VALUES(predicted_probability), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO admission_simulation (id, user_id, volunteer_detail_id, simulation_status, reject_reason, predicted_probability, admitted_time, score_diff, rank_diff, model_version)
+VALUES (920000000000000413, @cot_seed_user_id, 920000000000000412, 'passed', NULL, 0.8200, NOW(), 8, -300, 'seed-v1')
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), predicted_probability = VALUES(predicted_probability), updated_at = CURRENT_TIMESTAMP;
 
 USE cot_university;
 
@@ -449,9 +449,9 @@ VALUES
   (920000000000000704, @cot_seed_user_id, 920000000000000701, 920000000000000702, 'CS102', 'Data Structures', 4.00, 64, 40, 24, 'compulsory', 2, 'exam', 'Seed prerequisite course.', 'CS101', 2, 1)
 ON DUPLICATE KEY UPDATE course_name = VALUES(course_name), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO uni_course_prerequisite (id, course_id, prerequisite_course_id, relation_type)
-VALUES (920000000000000705, 920000000000000704, 920000000000000703, 'must_before')
-ON DUPLICATE KEY UPDATE relation_type = VALUES(relation_type);
+INSERT INTO uni_course_prerequisite (id, user_id, course_id, prerequisite_course_id, relation_type)
+VALUES (920000000000000705, @cot_seed_user_id, 920000000000000704, 920000000000000703, 'must_before')
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), relation_type = VALUES(relation_type);
 
 INSERT INTO uni_student_course (id, user_id, course_id, major_id, semester, score, grade_point, is_passed, is_retake, retake_count, status, notes)
 VALUES (920000000000000706, @cot_seed_user_id, 920000000000000703, 920000000000000701, '2026 Fall', 92.00, 4.00, 1, 0, 0, 'passed', 'Seed course progress.')
@@ -463,15 +463,15 @@ ON DUPLICATE KEY UPDATE progress_percent = VALUES(progress_percent), updated_at 
 
 INSERT INTO thesis_paper (id, user_id, title, supervisor, research_direction, abstract_text, keywords, content_md, stage, status, version_no)
 VALUES (920000000000000708, @cot_seed_user_id, 'Learning Path Recommendation Based on Course Selection', 'Seed Supervisor', 'AI Education', 'Seed abstract.', 'AI,education', '# Seed Paper', 'proposal', 'draft', 1)
-ON DUPLICATE KEY UPDATE title = VALUES(title), updated_at = CURRENT_TIMESTAMP;
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), title = VALUES(title), updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO thesis_paper_version (id, paper_id, version_no, title, content_md, change_summary, created_by)
 VALUES (920000000000000709, 920000000000000708, 1, 'Learning Path Recommendation Based on Course Selection', '# Seed Paper', 'Initial seed version.', @cot_seed_user_id)
 ON DUPLICATE KEY UPDATE change_summary = VALUES(change_summary);
 
-INSERT INTO thesis_suggestion (id, paper_id, suggester_id, suggestion_type, suggestion_content, position_json, status)
-VALUES (920000000000000710, 920000000000000708, @cot_seed_user_id, 'text', 'Add more evaluation metrics.', JSON_OBJECT('section', 'method'), 1)
-ON DUPLICATE KEY UPDATE suggestion_content = VALUES(suggestion_content), updated_at = CURRENT_TIMESTAMP;
+INSERT INTO thesis_suggestion (id, user_id, paper_id, suggester_id, suggestion_type, suggestion_content, position_json, status)
+VALUES (920000000000000710, @cot_seed_user_id, 920000000000000708, @cot_seed_user_id, 'text', 'Add more evaluation metrics.', JSON_OBJECT('section', 'method'), 1)
+ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), suggestion_content = VALUES(suggestion_content), updated_at = CURRENT_TIMESTAMP;
 
 USE cot_platform;
 

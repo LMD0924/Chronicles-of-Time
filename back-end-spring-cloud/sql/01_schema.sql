@@ -60,7 +60,9 @@ CREATE TABLE IF NOT EXISTS iam_user (
 ) ENGINE=InnoDB COMMENT='Unified account table';
 
 CREATE TABLE IF NOT EXISTS iam_role (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   role_code VARCHAR(64) NOT NULL,
   role_name VARCHAR(80) NOT NULL,
   role_scope TINYINT NOT NULL DEFAULT 1 COMMENT '1 platform, 2 tenant/school, 3 user',
@@ -69,12 +71,16 @@ CREATE TABLE IF NOT EXISTS iam_role (
   sort_order INT NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_iam_role_user_id (user_id),
   UNIQUE KEY uk_iam_role_code (role_code)
+
 ) ENGINE=InnoDB COMMENT='RBAC role';
 
 CREATE TABLE IF NOT EXISTS iam_permission (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   permission_code VARCHAR(128) NOT NULL,
   permission_name VARCHAR(128) NOT NULL,
   permission_type TINYINT NOT NULL COMMENT '1 menu, 2 button, 3 api',
@@ -87,9 +93,11 @@ CREATE TABLE IF NOT EXISTS iam_permission (
   status TINYINT NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_iam_permission_user_id (user_id),
   UNIQUE KEY uk_iam_permission_code (permission_code),
   KEY idx_iam_permission_parent (parent_id, sort_order)
+
 ) ENGINE=InnoDB COMMENT='Menu, button and API permission';
 
 CREATE TABLE IF NOT EXISTS iam_user_role (
@@ -104,13 +112,17 @@ CREATE TABLE IF NOT EXISTS iam_user_role (
 ) ENGINE=InnoDB COMMENT='User-role relation';
 
 CREATE TABLE IF NOT EXISTS iam_role_permission (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   role_id BIGINT UNSIGNED NOT NULL,
   permission_id BIGINT UNSIGNED NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_iam_role_permission_user_id (user_id),
   UNIQUE KEY uk_iam_role_permission (role_id, permission_id),
   KEY idx_iam_role_permission_perm (permission_id)
+
 ) ENGINE=InnoDB COMMENT='Role-permission relation';
 
 CREATE TABLE IF NOT EXISTS iam_refresh_token (
@@ -223,7 +235,9 @@ CREATE TABLE IF NOT EXISTS resume (
 ) ENGINE=InnoDB COMMENT='Resume master table';
 
 CREATE TABLE IF NOT EXISTS resume_education (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   resume_id BIGINT UNSIGNED NOT NULL,
   school_name VARCHAR(128) NOT NULL,
   degree VARCHAR(64) DEFAULT NULL,
@@ -235,12 +249,16 @@ CREATE TABLE IF NOT EXISTS resume_education (
   sort_order INT NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_resume_education_user_id (user_id),
   KEY idx_resume_education_resume (resume_id, sort_order)
+
 ) ENGINE=InnoDB COMMENT='Resume education experience';
 
 CREATE TABLE IF NOT EXISTS resume_work_experience (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   resume_id BIGINT UNSIGNED NOT NULL,
   company_name VARCHAR(128) NOT NULL,
   position VARCHAR(128) DEFAULT NULL,
@@ -252,12 +270,16 @@ CREATE TABLE IF NOT EXISTS resume_work_experience (
   sort_order INT NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_resume_work_experience_user_id (user_id),
   KEY idx_resume_work_resume (resume_id, sort_order)
+
 ) ENGINE=InnoDB COMMENT='Resume work experience';
 
 CREATE TABLE IF NOT EXISTS resume_project (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   resume_id BIGINT UNSIGNED NOT NULL,
   project_name VARCHAR(160) NOT NULL,
   project_role VARCHAR(128) DEFAULT NULL,
@@ -270,12 +292,16 @@ CREATE TABLE IF NOT EXISTS resume_project (
   sort_order INT NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_resume_project_user_id (user_id),
   KEY idx_resume_project_resume (resume_id, sort_order)
+
 ) ENGINE=InnoDB COMMENT='Resume project experience';
 
 CREATE TABLE IF NOT EXISTS resume_skill (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   resume_id BIGINT UNSIGNED NOT NULL,
   skill_name VARCHAR(128) NOT NULL,
   skill_level VARCHAR(64) DEFAULT NULL,
@@ -283,13 +309,17 @@ CREATE TABLE IF NOT EXISTS resume_skill (
   sort_order INT NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_resume_skill_user_id (user_id),
   KEY idx_resume_skill_resume (resume_id, sort_order),
   KEY idx_resume_skill_name (skill_name)
+
 ) ENGINE=InnoDB COMMENT='Resume skill';
 
 CREATE TABLE IF NOT EXISTS resume_certificate (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   resume_id BIGINT UNSIGNED NOT NULL,
   certificate_name VARCHAR(160) NOT NULL,
   issue_authority VARCHAR(160) DEFAULT NULL,
@@ -299,12 +329,16 @@ CREATE TABLE IF NOT EXISTS resume_certificate (
   sort_order INT NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_resume_certificate_user_id (user_id),
   KEY idx_resume_certificate_resume (resume_id, sort_order)
+
 ) ENGINE=InnoDB COMMENT='Resume certificate and honor';
 
 CREATE TABLE IF NOT EXISTS resume_social_experience (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   resume_id BIGINT UNSIGNED NOT NULL,
   experience_type VARCHAR(64) DEFAULT NULL,
   title VARCHAR(160) NOT NULL,
@@ -315,8 +349,10 @@ CREATE TABLE IF NOT EXISTS resume_social_experience (
   sort_order INT NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_resume_social_experience_user_id (user_id),
   KEY idx_resume_social_resume (resume_id, sort_order)
+
 ) ENGINE=InnoDB COMMENT='Resume social experience';
 
 /* =========================================================
@@ -326,7 +362,9 @@ CREATE TABLE IF NOT EXISTS resume_social_experience (
 USE cot_content;
 
 CREATE TABLE IF NOT EXISTS content_category (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   parent_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
   category_code VARCHAR(64) NOT NULL,
   category_name VARCHAR(96) NOT NULL,
@@ -335,9 +373,11 @@ CREATE TABLE IF NOT EXISTS content_category (
   status TINYINT NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_content_category_user_id (user_id),
   UNIQUE KEY uk_content_category_code (category_code),
   KEY idx_content_category_parent (parent_id, sort_order)
+
 ) ENGINE=InnoDB COMMENT='Content category';
 
 CREATE TABLE IF NOT EXISTS content_article (
@@ -373,7 +413,9 @@ CREATE TABLE IF NOT EXISTS content_article (
 ) ENGINE=InnoDB COMMENT='Article, diary, note and timeline content';
 
 CREATE TABLE IF NOT EXISTS content_media (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   content_id BIGINT UNSIGNED NOT NULL,
   file_id BIGINT UNSIGNED DEFAULT NULL,
   media_type TINYINT NOT NULL COMMENT '1 image, 2 video, 3 attachment',
@@ -383,30 +425,40 @@ CREATE TABLE IF NOT EXISTS content_media (
   height INT DEFAULT NULL,
   sort_order INT NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_content_media_user_id (user_id),
   KEY idx_content_media_content (content_id, sort_order)
+
 ) ENGINE=InnoDB COMMENT='Content media';
 
 CREATE TABLE IF NOT EXISTS content_tag (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   tag_name VARCHAR(64) NOT NULL,
   normalized_name VARCHAR(64) NOT NULL,
   usage_count BIGINT UNSIGNED NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_content_tag_user_id (user_id),
   UNIQUE KEY uk_content_tag_normalized (normalized_name),
   KEY idx_content_tag_usage (usage_count)
+
 ) ENGINE=InnoDB COMMENT='Content tag';
 
 CREATE TABLE IF NOT EXISTS content_article_tag (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   content_id BIGINT UNSIGNED NOT NULL,
   tag_id BIGINT UNSIGNED NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_content_article_tag_user_id (user_id),
   UNIQUE KEY uk_article_tag (content_id, tag_id),
   KEY idx_article_tag_tag (tag_id)
+
 ) ENGINE=InnoDB COMMENT='Article-tag relation';
 
 CREATE TABLE IF NOT EXISTS content_comment (
@@ -452,16 +504,20 @@ CREATE TABLE IF NOT EXISTS content_favorite (
 ) ENGINE=InnoDB COMMENT='Content favorite';
 
 CREATE TABLE IF NOT EXISTS content_audit (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   content_id BIGINT UNSIGNED NOT NULL,
   audit_status TINYINT NOT NULL COMMENT '0 pending, 1 pass, 2 reject',
   audit_reason VARCHAR(255) DEFAULT NULL,
   auditor_id BIGINT UNSIGNED DEFAULT NULL,
   audited_at DATETIME DEFAULT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_content_audit_user_id (user_id),
   KEY idx_content_audit_content (content_id, created_at),
   KEY idx_content_audit_status (audit_status, created_at)
+
 ) ENGINE=InnoDB COMMENT='Content audit';
 
 CREATE TABLE IF NOT EXISTS growth_record (
@@ -530,7 +586,9 @@ CREATE TABLE IF NOT EXISTS growth_record (
 USE cot_learning;
 
 CREATE TABLE IF NOT EXISTS learning_subject (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   subject_code VARCHAR(64) NOT NULL,
   subject_name VARCHAR(96) NOT NULL,
   category_level VARCHAR(64) NOT NULL COMMENT 'high_school, university, exam, certificate',
@@ -539,14 +597,18 @@ CREATE TABLE IF NOT EXISTS learning_subject (
   status TINYINT NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_learning_subject_user_id (user_id),
   UNIQUE KEY uk_learning_subject_code (subject_code),
   KEY idx_learning_subject_parent (parent_id, sort_order),
   KEY idx_learning_subject_category (category_level, status)
+
 ) ENGINE=InnoDB COMMENT='Learning subject';
 
 CREATE TABLE IF NOT EXISTS knowledge_point (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   subject_id BIGINT UNSIGNED NOT NULL,
   parent_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
   point_code VARCHAR(96) DEFAULT NULL,
@@ -557,24 +619,30 @@ CREATE TABLE IF NOT EXISTS knowledge_point (
   status TINYINT NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_knowledge_point_user_id (user_id),
   UNIQUE KEY uk_knowledge_point_code (subject_id, point_code),
   KEY idx_knowledge_point_subject_parent (subject_id, parent_id, sort_order),
   KEY idx_knowledge_point_name (point_name)
+
 ) ENGINE=InnoDB COMMENT='Knowledge point tree';
 
 CREATE TABLE IF NOT EXISTS knowledge_edge (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   subject_id BIGINT UNSIGNED NOT NULL,
   source_point_id BIGINT UNSIGNED NOT NULL,
   target_point_id BIGINT UNSIGNED NOT NULL,
   relation_type VARCHAR(32) NOT NULL COMMENT 'prerequisite, related, contains',
   weight DECIMAL(6,4) NOT NULL DEFAULT 1.0000,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_knowledge_edge_user_id (user_id),
   UNIQUE KEY uk_knowledge_edge (source_point_id, target_point_id, relation_type),
   KEY idx_knowledge_edge_subject (subject_id, relation_type),
   KEY idx_knowledge_edge_target (target_point_id)
+
 ) ENGINE=InnoDB COMMENT='Knowledge graph edge';
 
 CREATE TABLE IF NOT EXISTS question (
@@ -614,16 +682,20 @@ CREATE TABLE IF NOT EXISTS question (
 ) ENGINE=InnoDB COMMENT='Question bank';
 
 CREATE TABLE IF NOT EXISTS question_option (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   question_id BIGINT UNSIGNED NOT NULL,
   option_key VARCHAR(16) NOT NULL,
   option_text TEXT NOT NULL,
   is_correct TINYINT NOT NULL DEFAULT 0,
   sort_order INT NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_question_option_user_id (user_id),
   UNIQUE KEY uk_question_option_key (question_id, option_key),
   KEY idx_question_option_question (question_id, sort_order)
+
 ) ENGINE=InnoDB COMMENT='Question option';
 
 CREATE TABLE IF NOT EXISTS practice_session (
@@ -761,7 +833,9 @@ CREATE TABLE IF NOT EXISTS knowledge_mastery_stat (
 USE cot_highschool;
 
 CREATE TABLE IF NOT EXISTS hs_subject (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   subject_code VARCHAR(64) NOT NULL,
   subject_name VARCHAR(96) NOT NULL,
   subject_type TINYINT NOT NULL COMMENT '1 first-choice, 2 second-choice, 3 basic',
@@ -770,13 +844,17 @@ CREATE TABLE IF NOT EXISTS hs_subject (
   status TINYINT NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_hs_subject_user_id (user_id),
   UNIQUE KEY uk_hs_subject_code (subject_code),
   KEY idx_hs_subject_type (subject_type, status)
+
 ) ENGINE=InnoDB COMMENT='High school subject';
 
 CREATE TABLE IF NOT EXISTS hs_subject_combination (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   combination_code VARCHAR(64) NOT NULL,
   combination_name VARCHAR(128) NOT NULL,
   first_subject_id BIGINT UNSIGNED NOT NULL,
@@ -791,10 +869,12 @@ CREATE TABLE IF NOT EXISTS hs_subject_combination (
   status TINYINT NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_hs_subject_combination_user_id (user_id),
   UNIQUE KEY uk_hs_subject_combination_code (combination_code),
   UNIQUE KEY uk_hs_subject_combination_subjects (first_subject_id, second_subject_1_id, second_subject_2_id),
   KEY idx_hs_subject_combination_rate (major_coverage_rate)
+
 ) ENGINE=InnoDB COMMENT='Subject selection combination';
 
 CREATE TABLE IF NOT EXISTS hs_student_selection (
@@ -890,7 +970,9 @@ CREATE TABLE IF NOT EXISTS hs_selection_history (
 ) ENGINE=InnoDB COMMENT='Selection change history';
 
 CREATE TABLE IF NOT EXISTS hs_grading_scale (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   province VARCHAR(64) NOT NULL,
   admission_year INT NOT NULL,
   subject_id BIGINT UNSIGNED DEFAULT NULL,
@@ -905,9 +987,11 @@ CREATE TABLE IF NOT EXISTS hs_grading_scale (
   status TINYINT NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_hs_grading_scale_user_id (user_id),
   KEY idx_hs_grading_province_year_subject (province, admission_year, subject_name),
   KEY idx_hs_grading_level (grade_level)
+
 ) ENGINE=InnoDB COMMENT='Gaokao grading scale';
 
 CREATE TABLE IF NOT EXISTS hs_course_guidance (
@@ -929,7 +1013,9 @@ CREATE TABLE IF NOT EXISTS hs_course_guidance (
 ) ENGINE=InnoDB COMMENT='Course selection guidance';
 
 CREATE TABLE IF NOT EXISTS gaokao_university (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   university_code VARCHAR(64) NOT NULL,
   university_name VARCHAR(160) NOT NULL,
   province VARCHAR(64) DEFAULT NULL,
@@ -944,14 +1030,18 @@ CREATE TABLE IF NOT EXISTS gaokao_university (
   status TINYINT NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_gaokao_university_user_id (user_id),
   UNIQUE KEY uk_gaokao_university_code (university_code),
   KEY idx_gaokao_university_region (province, city),
   KEY idx_gaokao_university_level (level_tags)
+
 ) ENGINE=InnoDB COMMENT='Gaokao university catalog';
 
 CREATE TABLE IF NOT EXISTS gaokao_major (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   major_code VARCHAR(64) NOT NULL,
   major_name VARCHAR(160) NOT NULL,
   category VARCHAR(96) DEFAULT NULL,
@@ -963,13 +1053,17 @@ CREATE TABLE IF NOT EXISTS gaokao_major (
   status TINYINT NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_gaokao_major_user_id (user_id),
   UNIQUE KEY uk_gaokao_major_code (major_code),
   KEY idx_gaokao_major_category (category, sub_category)
+
 ) ENGINE=InnoDB COMMENT='Gaokao major catalog';
 
 CREATE TABLE IF NOT EXISTS gaokao_admission_plan (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   university_id BIGINT UNSIGNED NOT NULL,
   major_id BIGINT UNSIGNED NOT NULL,
   admission_year INT NOT NULL,
@@ -985,14 +1079,18 @@ CREATE TABLE IF NOT EXISTS gaokao_admission_plan (
   subject_requirement VARCHAR(255) DEFAULT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_gaokao_admission_plan_user_id (user_id),
   UNIQUE KEY uk_gaokao_plan (university_id, major_id, admission_year, province, student_type, batch_name),
   KEY idx_gaokao_plan_score (province, admission_year, student_type, min_score),
   KEY idx_gaokao_plan_rank (province, admission_year, student_type, min_rank)
+
 ) ENGINE=InnoDB COMMENT='Admission plan and score line';
 
 CREATE TABLE IF NOT EXISTS gaokao_major_requirement (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   university_id BIGINT UNSIGNED DEFAULT NULL,
   major_id BIGINT UNSIGNED DEFAULT NULL,
   major_code VARCHAR(64) DEFAULT NULL,
@@ -1007,10 +1105,12 @@ CREATE TABLE IF NOT EXISTS gaokao_major_requirement (
   admission_year INT DEFAULT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_gaokao_major_requirement_user_id (user_id),
   KEY idx_major_requirement_major (major_code, province, admission_year),
   KEY idx_major_requirement_subject (first_subject_required, province),
   KEY idx_major_requirement_university (university_id, major_id)
+
 ) ENGINE=InnoDB COMMENT='Major subject requirement';
 
 CREATE TABLE IF NOT EXISTS hs_major_subject_match (
@@ -1057,7 +1157,9 @@ CREATE TABLE IF NOT EXISTS user_volunteer_plan (
 ) ENGINE=InnoDB COMMENT='User volunteer plan';
 
 CREATE TABLE IF NOT EXISTS user_volunteer_detail (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   volunteer_plan_id BIGINT UNSIGNED NOT NULL,
   priority_no INT NOT NULL,
   university_id BIGINT UNSIGNED NOT NULL,
@@ -1068,13 +1170,17 @@ CREATE TABLE IF NOT EXISTS user_volunteer_detail (
   risk_level VARCHAR(32) DEFAULT NULL COMMENT 'sprint, stable, safe',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_user_volunteer_detail_user_id (user_id),
   UNIQUE KEY uk_volunteer_detail_priority (volunteer_plan_id, priority_no),
   KEY idx_volunteer_detail_uni_major (university_id, major_id)
+
 ) ENGINE=InnoDB COMMENT='Volunteer plan detail';
 
 CREATE TABLE IF NOT EXISTS admission_simulation (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   volunteer_detail_id BIGINT UNSIGNED NOT NULL,
   simulation_status VARCHAR(32) NOT NULL DEFAULT 'pending',
   reject_reason VARCHAR(255) DEFAULT NULL,
@@ -1085,9 +1191,11 @@ CREATE TABLE IF NOT EXISTS admission_simulation (
   model_version VARCHAR(64) DEFAULT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_admission_simulation_user_id (user_id),
   KEY idx_admission_sim_detail (volunteer_detail_id),
   KEY idx_admission_sim_status (simulation_status, created_at)
+
 ) ENGINE=InnoDB COMMENT='Admission simulation result';
 
 /* =========================================================
@@ -1097,7 +1205,9 @@ CREATE TABLE IF NOT EXISTS admission_simulation (
 USE cot_university;
 
 CREATE TABLE IF NOT EXISTS uni_major (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   major_code VARCHAR(64) NOT NULL,
   major_name VARCHAR(160) NOT NULL,
   degree_type VARCHAR(64) DEFAULT NULL,
@@ -1108,9 +1218,11 @@ CREATE TABLE IF NOT EXISTS uni_major (
   status TINYINT NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_uni_major_user_id (user_id),
   UNIQUE KEY uk_uni_major_code (major_code),
   KEY idx_uni_major_name (major_name)
+
 ) ENGINE=InnoDB COMMENT='University major training plan';
 
 CREATE TABLE IF NOT EXISTS uni_course_category (
@@ -1158,14 +1270,18 @@ CREATE TABLE IF NOT EXISTS uni_course (
 ) ENGINE=InnoDB COMMENT='University course';
 
 CREATE TABLE IF NOT EXISTS uni_course_prerequisite (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   course_id BIGINT UNSIGNED NOT NULL,
   prerequisite_course_id BIGINT UNSIGNED NOT NULL,
   relation_type VARCHAR(32) NOT NULL DEFAULT 'must_before',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_uni_course_prerequisite_user_id (user_id),
   UNIQUE KEY uk_uni_course_prerequisite (course_id, prerequisite_course_id),
   KEY idx_uni_prerequisite_target (prerequisite_course_id)
+
 ) ENGINE=InnoDB COMMENT='Course prerequisite relation';
 
 CREATE TABLE IF NOT EXISTS uni_student_course (
@@ -1246,7 +1362,9 @@ CREATE TABLE IF NOT EXISTS thesis_paper_version (
 ) ENGINE=InnoDB COMMENT='Paper version history';
 
 CREATE TABLE IF NOT EXISTS thesis_suggestion (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   paper_id BIGINT UNSIGNED NOT NULL,
   suggester_id BIGINT UNSIGNED DEFAULT NULL,
   suggestion_type VARCHAR(32) NOT NULL DEFAULT 'text',
@@ -1255,9 +1373,11 @@ CREATE TABLE IF NOT EXISTS thesis_suggestion (
   status TINYINT NOT NULL DEFAULT 1 COMMENT '1 open, 2 accepted, 3 rejected, 4 resolved',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_thesis_suggestion_user_id (user_id),
   KEY idx_suggestion_paper (paper_id, created_at),
   KEY idx_suggestion_status (status, created_at)
+
 ) ENGINE=InnoDB COMMENT='Paper revision suggestion';
 
 /* =========================================================
@@ -1295,19 +1415,25 @@ CREATE TABLE IF NOT EXISTS file_asset (
 ) ENGINE=InnoDB COMMENT='Unified file asset';
 
 CREATE TABLE IF NOT EXISTS sys_dict_type (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   dict_code VARCHAR(96) NOT NULL,
   dict_name VARCHAR(128) NOT NULL,
   status TINYINT NOT NULL DEFAULT 1,
   remark VARCHAR(255) DEFAULT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_sys_dict_type_user_id (user_id),
   UNIQUE KEY uk_dict_type_code (dict_code)
+
 ) ENGINE=InnoDB COMMENT='System dictionary type';
 
 CREATE TABLE IF NOT EXISTS sys_dict_item (
-  id BIGINT UNSIGNED NOT NULL,
+
+  id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   dict_code VARCHAR(96) NOT NULL,
   item_value VARCHAR(128) NOT NULL,
   item_label VARCHAR(128) NOT NULL,
@@ -1316,9 +1442,11 @@ CREATE TABLE IF NOT EXISTS sys_dict_item (
   remark VARCHAR(255) DEFAULT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id),
+  KEY idx_sys_dict_item_user_id (user_id),
   UNIQUE KEY uk_dict_item (dict_code, item_value),
   KEY idx_dict_item_sort (dict_code, status, sort_order)
+
 ) ENGINE=InnoDB COMMENT='System dictionary item';
 
 CREATE TABLE IF NOT EXISTS sys_notification (
@@ -1681,7 +1809,9 @@ CREATE TABLE IF NOT EXISTS user_activity_stats (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User activity, check-in and online duration stats';
 
 CREATE TABLE IF NOT EXISTS medal_rule (
-  id BIGINT NOT NULL PRIMARY KEY,
+
+  id BIGINT NOT NULL PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   code VARCHAR(64) NOT NULL,
   name VARCHAR(64) NOT NULL,
   description VARCHAR(255) NULL,
@@ -1694,6 +1824,7 @@ CREATE TABLE IF NOT EXISTS medal_rule (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uk_medal_rule_code (code),
   KEY idx_medal_rule_type_enabled (medal_type, enabled)
+
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Medal issuing rules';
 
 CREATE TABLE IF NOT EXISTS user_medal (
@@ -1725,7 +1856,9 @@ CREATE TABLE IF NOT EXISTS chat_friend (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='One-way friend relation, stored symmetrically';
 
 CREATE TABLE IF NOT EXISTS chat_group (
-  id BIGINT NOT NULL PRIMARY KEY,
+
+  id BIGINT NOT NULL PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner user id, 0 means platform/global data',
   group_no VARCHAR(16) NOT NULL,
   name VARCHAR(80) NOT NULL,
   announcement VARCHAR(500) NULL,
@@ -1737,6 +1870,7 @@ CREATE TABLE IF NOT EXISTS chat_group (
   UNIQUE KEY uk_chat_group_no (group_no),
   KEY idx_chat_group_owner (owner_id),
   KEY idx_chat_group_search (searchable, group_no)
+
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Chat groups';
 
 CREATE TABLE IF NOT EXISTS chat_group_member (
