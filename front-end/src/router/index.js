@@ -48,6 +48,21 @@ const router = createRouter({
       component: () => import('@/views/Records.vue')
     },
     {
+      path:'/GrowthHub',
+      name:'成长贯通',
+      component: () => import('@/views/growth/GrowthHub.vue')
+    },
+    {
+      path:'/HighSchoolHub',
+      name:'高中中心',
+      component: () => import('@/views/high/HighSchoolHub.vue')
+    },
+    {
+      path:'/UniversityHub',
+      name:'大学中心',
+      component: () => import('@/views/university/UniversityHub.vue')
+    },
+    {
       path:'/WorkRecords',
       name:'职场新人',
       component: () => import('@/views/career/WorkRecords.vue')

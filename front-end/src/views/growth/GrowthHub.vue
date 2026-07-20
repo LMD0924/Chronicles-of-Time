@@ -7,6 +7,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
 import Nav from '@/components/Nav.vue'
 import request from '@/utils/request'
+import GrowthPathSimulator from '@/views/growth/GrowthPathSimulator.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -16,6 +17,7 @@ const tabs = [
   { key: 'timeline', label: '成长贯通', icon: '⏳' },
   { key: 'milestones', label: '里程碑', icon: '🏆' },
   { key: 'ai', label: 'AI 建议', icon: '🤖' },
+  { key: 'simulator', label: '路径模拟', icon: '🧭' },
 ]
 
 const activeTab = ref(route.query.tab || 'timeline')
@@ -161,6 +163,8 @@ watch(() => route.query.tab, (t) => { if (t) activeTab.value = t })
             <span class="text-xs px-2 py-0.5 rounded-full" :class="a.priority === 'high' ? 'bg-red-100 text-red-600' : 'bg-zinc-100 text-zinc-600'">{{ a.priority }}</span>
           </div>
         </div>
+
+        <GrowthPathSimulator v-else-if="activeTab === 'simulator'" :is-dark="isDark" />
       </div>
     </main>
   </div>
