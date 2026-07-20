@@ -16,5 +16,5 @@ import java.util.List;
 public interface MajorMapper extends BaseMapper<Major> {
     List<Major> searchMajors(@Param("keyword") String keyword,
                              @Param("category") String category,
-                             @Param("universityId") Integer universityId);
+                             @Param("universityId") Long universityId);
 }

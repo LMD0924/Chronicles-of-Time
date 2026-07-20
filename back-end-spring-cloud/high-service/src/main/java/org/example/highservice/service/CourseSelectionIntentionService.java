@@ -13,5 +13,5 @@ import java.util.List;
 
 public interface CourseSelectionIntentionService extends IService<CourseSelectionIntention> {
     CourseSelectionIntention saveOrUpdateByStudent(CourseSelectionIntention intention);
-    List<CourseSelectionIntention> listByStudentId(Long studentId);
+    List<CourseSelectionIntention> listByUserId(Long userId);
 }

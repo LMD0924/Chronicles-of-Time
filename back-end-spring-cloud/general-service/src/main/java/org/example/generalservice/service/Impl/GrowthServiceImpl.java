@@ -257,12 +257,12 @@ public class GrowthServiceImpl extends ServiceImpl<GrowthMapper, Growth>
     }
 
     /**
-     * 获取学生的选课记录
+     * 获取用户的选课记录
      */
-    public List<StudentCourseSelection> getStudentSelections(Long studentId) {
-        log.info("获取学生选课记录，学生ID: {}", studentId);
+    public List<StudentCourseSelection> getStudentSelections(Long userId) {
+        log.info("获取用户选课记录，用户ID: {}", userId);
         LambdaQueryWrapper<StudentCourseSelection> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(StudentCourseSelection::getStudentId, studentId)
+        wrapper.eq(StudentCourseSelection::getUserId, userId)
                 .orderByDesc(StudentCourseSelection::getCreateTime);
         return studentCourseSelectionMapper.selectList(wrapper);
     }

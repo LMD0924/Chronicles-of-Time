@@ -5,7 +5,7 @@
 -- 文件说明：拾光记微服务后端数据库脚本，用于初始化表结构、索引和基础业务数据。
 /*
  Chronicles of Time enterprise database schema
- Target: MySQL 8.0+
+ Target: MySQL 8.0.19+
 
  Design notes:
  - Databases are split by service and business boundary.
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS iam_user (
   phone VARCHAR(32) DEFAULT NULL,
   avatar_url VARCHAR(512) DEFAULT NULL,
   introduction VARCHAR(512) DEFAULT NULL,
-  user_type TINYINT NOT NULL DEFAULT 1 COMMENT '1 user, 2 admin, 3 teacher, 4 parent',
+  user_type TINYINT NOT NULL DEFAULT 1 COMMENT '1 user, 2 admin',
   status TINYINT NOT NULL DEFAULT 1 COMMENT '0 disabled, 1 enabled, 2 locked, 3 cancelled',
   register_channel VARCHAR(32) NOT NULL DEFAULT 'web',
   last_login_at DATETIME DEFAULT NULL,
@@ -879,8 +879,8 @@ CREATE TABLE IF NOT EXISTS hs_subject_combination (
 
 CREATE TABLE IF NOT EXISTS hs_student_selection (
   id BIGINT UNSIGNED NOT NULL,
-  student_id BIGINT UNSIGNED NOT NULL COMMENT 'logical user or student id',
-  student_name VARCHAR(80) DEFAULT NULL,
+  user_id BIGINT UNSIGNED NOT NULL COMMENT 'logical user id',
+  user_name VARCHAR(80) DEFAULT NULL,
   grade VARCHAR(32) DEFAULT NULL,
   class_name VARCHAR(64) DEFAULT NULL,
   academic_year VARCHAR(32) DEFAULT NULL,
@@ -911,23 +911,23 @@ CREATE TABLE IF NOT EXISTS hs_student_selection (
   confirm_time DATETIME DEFAULT NULL,
   selection_reason TEXT DEFAULT NULL,
   future_plan TEXT DEFAULT NULL,
-  teacher_advice TEXT DEFAULT NULL,
-  parent_opinion TEXT DEFAULT NULL,
+  admin_advice TEXT DEFAULT NULL,
+  additional_opinion TEXT DEFAULT NULL,
   is_public TINYINT NOT NULL DEFAULT 0,
   remark VARCHAR(512) DEFAULT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   deleted_at DATETIME DEFAULT NULL,
   PRIMARY KEY (id),
-  KEY idx_hs_selection_student_year (student_id, academic_year, semester),
+  KEY idx_hs_selection_user_year (user_id, academic_year, semester),
   KEY idx_hs_selection_combination (combination_id, status),
   KEY idx_hs_selection_grade_class (grade, class_name, status)
-) ENGINE=InnoDB COMMENT='Student course selection';
+) ENGINE=InnoDB COMMENT='User course selection';
 
 CREATE TABLE IF NOT EXISTS hs_selection_intention (
   id BIGINT UNSIGNED NOT NULL,
-  student_id BIGINT UNSIGNED NOT NULL,
-  student_name VARCHAR(80) DEFAULT NULL,
+  user_id BIGINT UNSIGNED NOT NULL,
+  user_name VARCHAR(80) DEFAULT NULL,
   grade VARCHAR(32) DEFAULT NULL,
   class_name VARCHAR(64) DEFAULT NULL,
   first_subject_intention VARCHAR(96) DEFAULT NULL,
@@ -942,15 +942,15 @@ CREATE TABLE IF NOT EXISTS hs_selection_intention (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  KEY idx_hs_intention_student (student_id, created_at),
+  KEY idx_hs_intention_user (user_id, created_at),
   KEY idx_hs_intention_grade_class (grade, class_name, status)
 ) ENGINE=InnoDB COMMENT='Subject selection intention';
 
 CREATE TABLE IF NOT EXISTS hs_selection_history (
   id BIGINT UNSIGNED NOT NULL,
   selection_id BIGINT UNSIGNED NOT NULL,
-  student_id BIGINT UNSIGNED NOT NULL,
-  student_name VARCHAR(80) DEFAULT NULL,
+  user_id BIGINT UNSIGNED NOT NULL,
+  user_name VARCHAR(80) DEFAULT NULL,
   change_type VARCHAR(64) NOT NULL,
   old_first_subject VARCHAR(96) DEFAULT NULL,
   new_first_subject VARCHAR(96) DEFAULT NULL,
@@ -965,7 +965,7 @@ CREATE TABLE IF NOT EXISTS hs_selection_history (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_hs_history_selection (selection_id, change_time),
-  KEY idx_hs_history_student (student_id, change_time),
+  KEY idx_hs_history_user (user_id, change_time),
   KEY idx_hs_history_approve (approve_status, change_time)
 ) ENGINE=InnoDB COMMENT='Selection change history';
 
@@ -996,8 +996,8 @@ CREATE TABLE IF NOT EXISTS hs_grading_scale (
 
 CREATE TABLE IF NOT EXISTS hs_course_guidance (
   id BIGINT UNSIGNED NOT NULL,
-  student_id BIGINT UNSIGNED NOT NULL,
-  guidance_type VARCHAR(64) NOT NULL COMMENT 'teacher, ai, system',
+  user_id BIGINT UNSIGNED NOT NULL,
+  guidance_type VARCHAR(64) NOT NULL COMMENT 'admin, ai, system',
   title VARCHAR(160) NOT NULL,
   content TEXT NOT NULL,
   recommended_combination_id BIGINT UNSIGNED DEFAULT NULL,
@@ -1008,7 +1008,7 @@ CREATE TABLE IF NOT EXISTS hs_course_guidance (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  KEY idx_hs_guidance_student (student_id, created_at),
+  KEY idx_hs_guidance_user (user_id, created_at),
   KEY idx_hs_guidance_type (guidance_type, status)
 ) ENGINE=InnoDB COMMENT='Course selection guidance';
 
@@ -1115,7 +1115,7 @@ CREATE TABLE IF NOT EXISTS gaokao_major_requirement (
 
 CREATE TABLE IF NOT EXISTS hs_major_subject_match (
   id BIGINT UNSIGNED NOT NULL,
-  student_id BIGINT UNSIGNED DEFAULT NULL,
+  user_id BIGINT UNSIGNED DEFAULT NULL,
   combination_id BIGINT UNSIGNED DEFAULT NULL,
   major_requirement_id BIGINT UNSIGNED DEFAULT NULL,
   university_id BIGINT UNSIGNED DEFAULT NULL,
@@ -1130,7 +1130,7 @@ CREATE TABLE IF NOT EXISTS hs_major_subject_match (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  KEY idx_hs_major_match_student_score (student_id, matching_score),
+  KEY idx_hs_major_match_user_score (user_id, matching_score),
   KEY idx_hs_major_match_combination (combination_id, matching_score),
   KEY idx_hs_major_match_major (major_code, university_id)
 ) ENGINE=InnoDB COMMENT='Subject-major matching result';
@@ -1142,7 +1142,7 @@ CREATE TABLE IF NOT EXISTS user_volunteer_plan (
   admission_year INT NOT NULL,
   province VARCHAR(64) NOT NULL,
   score INT DEFAULT NULL,
-  rank_no INT DEFAULT NULL,
+  `rank_no` INT DEFAULT NULL,
   student_type VARCHAR(64) DEFAULT NULL,
   preference_order TINYINT NOT NULL DEFAULT 1 COMMENT '1 parallel, 2 sequence',
   selected_subjects VARCHAR(255) DEFAULT NULL,
@@ -1304,7 +1304,7 @@ CREATE TABLE IF NOT EXISTS uni_student_course (
   UNIQUE KEY uk_uni_student_course (user_id, course_id, semester),
   KEY idx_uni_student_major_semester (user_id, major_id, semester),
   KEY idx_uni_student_status (user_id, status)
-) ENGINE=InnoDB COMMENT='Student course progress';
+) ENGINE=InnoDB COMMENT='User course progress';
 
 CREATE TABLE IF NOT EXISTS uni_graduation_requirement (
   id BIGINT UNSIGNED NOT NULL,
@@ -1698,13 +1698,10 @@ VALUES
   (1000000000000000001, 'SUPER_ADMIN', 'Super Admin', 1, 'Full platform permissions', 1, 1),
   (1000000000000000002, 'ADMIN', 'Admin', 1, 'Admin console permissions', 1, 2),
   (1000000000000000003, 'USER', 'User', 3, 'Default user role', 1, 10),
-  (1000000000000000004, 'TEACHER', 'Teacher', 2, 'Learning guidance and paper suggestion permissions', 1, 20),
-  (1000000000000000005, 'PARENT', 'Parent', 3, 'Read-only family view permissions', 1, 30),
   (1000000000000000006, 'WORKPLACE_USER', 'Workplace User', 3, 'Career workplace permissions', 1, 40),
-  (1000000000000000007, 'MENTOR', 'Mentor', 2, 'Career and advancement guidance permissions', 1, 50)
-ON DUPLICATE KEY UPDATE
-  role_name = VALUES(role_name),
-  description = VALUES(description),
+  (1000000000000000007, 'MENTOR', 'Mentor', 2, 'Career and advancement guidance permissions', 1, 50) AS new ON DUPLICATE KEY UPDATE
+  role_name = new.role_name,
+  description = new.description,
   updated_at = CURRENT_TIMESTAMP;
 
 
@@ -1714,11 +1711,10 @@ VALUES
   (1000000000000000102, 'workplace:write', 'Workplace write', 3, 'POST', '/api/workplace/**', 102, 1),
   (1000000000000000103, 'advanced:read', 'Advanced read', 3, 'GET', '/api/advanced/**', 103, 1),
   (1000000000000000104, 'advanced:write', 'Advanced write', 3, 'POST', '/api/advanced/**', 104, 1),
-  (1000000000000000105, 'career:mentor', 'Career mentor view', 3, '*', '/api/workplace/**', 105, 1)
-ON DUPLICATE KEY UPDATE
-  permission_name = VALUES(permission_name),
-  api_method = VALUES(api_method),
-  api_path = VALUES(api_path),
+  (1000000000000000105, 'career:mentor', 'Career mentor view', 3, '*', '/api/workplace/**', 105, 1) AS new ON DUPLICATE KEY UPDATE
+  permission_name = new.permission_name,
+  api_method = new.api_method,
+  api_path = new.api_path,
   updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO iam_role_permission (id, role_id, permission_id)
@@ -1735,16 +1731,13 @@ VALUES
   (1000000000000000210, 1000000000000000003, 1000000000000000102),
   (1000000000000000211, 1000000000000000003, 1000000000000000103),
   (1000000000000000212, 1000000000000000003, 1000000000000000104),
-  (1000000000000000213, 1000000000000000004, 1000000000000000101),
-  (1000000000000000214, 1000000000000000004, 1000000000000000103),
   (1000000000000000215, 1000000000000000006, 1000000000000000101),
   (1000000000000000216, 1000000000000000006, 1000000000000000102),
   (1000000000000000217, 1000000000000000006, 1000000000000000103),
   (1000000000000000218, 1000000000000000006, 1000000000000000104),
   (1000000000000000219, 1000000000000000007, 1000000000000000101),
   (1000000000000000220, 1000000000000000007, 1000000000000000103),
-  (1000000000000000221, 1000000000000000007, 1000000000000000105)
-ON DUPLICATE KEY UPDATE created_at = created_at;
+  (1000000000000000221, 1000000000000000007, 1000000000000000105) AS new ON DUPLICATE KEY UPDATE created_at = created_at;
 USE cot_platform;
 
 INSERT INTO sys_dict_type (id, dict_code, dict_name, status, remark)
@@ -1752,9 +1745,8 @@ VALUES
   (2000000000000000001, 'education_stage', 'Education Stage', 1, NULL),
   (2000000000000000002, 'content_type', 'Content Type', 1, NULL),
   (2000000000000000003, 'question_type', 'Question Type', 1, NULL),
-  (2000000000000000004, 'volunteer_risk_level', 'Volunteer Risk Level', 1, NULL)
-ON DUPLICATE KEY UPDATE
-  dict_name = VALUES(dict_name),
+  (2000000000000000004, 'volunteer_risk_level', 'Volunteer Risk Level', 1, NULL) AS new ON DUPLICATE KEY UPDATE
+  dict_name = new.dict_name,
   updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO sys_dict_item (id, dict_code, item_value, item_label, sort_order, status)
@@ -1772,11 +1764,10 @@ VALUES
   (2000000000000000305, 'question_type', 'answer', 'Written Answer', 5, 1),
   (2000000000000000401, 'volunteer_risk_level', 'sprint', 'Sprint', 1, 1),
   (2000000000000000402, 'volunteer_risk_level', 'stable', 'Stable', 2, 1),
-  (2000000000000000403, 'volunteer_risk_level', 'safe', 'Safe', 3, 1)
-ON DUPLICATE KEY UPDATE
-  item_label = VALUES(item_label),
-  sort_order = VALUES(sort_order),
-  status = VALUES(status),
+  (2000000000000000403, 'volunteer_risk_level', 'safe', 'Safe', 3, 1) AS new ON DUPLICATE KEY UPDATE
+  item_label = new.item_label,
+  sort_order = new.sort_order,
+  status = new.status,
   updated_at = CURRENT_TIMESTAMP;
 
 
@@ -1909,3 +1900,539 @@ CREATE TABLE IF NOT EXISTS chat_message_read (
   UNIQUE KEY uk_chat_message_read (message_id, user_id),
   KEY idx_chat_read_user (user_id, read_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Message read receipts';
+
+-- Chronicles of Time field upgrades.
+-- Adds columns required by current entities and upgraded features.
+-- Run after 01_schema.sql.
+
+
+/* =========================================================
+   From 02_learning_practice_upgrade.sql
+   ========================================================= */
+-- 文件说明：在线练习/考试/错题本功能升级脚本，适用于已初始化过的 cot_learning 数据库。
+-- Target: MySQL 8.0.19+
+SET NAMES utf8mb4;
+USE cot_learning;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_column_if_missing $$
+CREATE PROCEDURE cot_add_column_if_missing(
+  IN p_table_name VARCHAR(64),
+  IN p_column_name VARCHAR(64),
+  IN p_column_definition TEXT
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = p_column_name
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE `', p_table_name, '` ADD COLUMN ', p_column_definition);
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DROP PROCEDURE IF EXISTS cot_modify_question_id_nullable $$
+CREATE PROCEDURE cot_modify_question_id_nullable()
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'mistake_record'
+      AND COLUMN_NAME = 'question_id'
+      AND IS_NULLABLE = 'NO'
+  ) THEN
+    ALTER TABLE mistake_record MODIFY COLUMN question_id BIGINT UNSIGNED DEFAULT NULL;
+  END IF;
+END $$
+
+DELIMITER ;
+
+CALL cot_add_column_if_missing('question', 'knowledge_point', '`knowledge_point` VARCHAR(512) DEFAULT NULL AFTER `category_level`');
+CALL cot_add_column_if_missing('question', 'options', '`options` JSON DEFAULT NULL AFTER `question_title`');
+CALL cot_add_column_if_missing('question', 'audit_status', '`audit_status` VARCHAR(32) NOT NULL DEFAULT ''pending'' AFTER `created_by`');
+CALL cot_add_column_if_missing('question', 'audit_remark', '`audit_remark` VARCHAR(255) DEFAULT NULL AFTER `audit_status`');
+CALL cot_add_column_if_missing('question', 'audited_by', '`audited_by` BIGINT UNSIGNED DEFAULT NULL AFTER `audit_remark`');
+CALL cot_add_column_if_missing('question', 'audited_at', '`audited_at` DATETIME DEFAULT NULL AFTER `audited_by`');
+
+CALL cot_add_column_if_missing('practice_session', 'category_level', '`category_level` VARCHAR(64) DEFAULT NULL AFTER `title`');
+CALL cot_add_column_if_missing('practice_session', 'subject_name', '`subject_name` VARCHAR(96) DEFAULT NULL AFTER `category_level`');
+CALL cot_add_column_if_missing('practice_session', 'knowledge_points', '`knowledge_points` VARCHAR(512) DEFAULT NULL AFTER `subject_name`');
+CALL cot_add_column_if_missing('practice_session', 'difficulty_level', '`difficulty_level` VARCHAR(32) DEFAULT NULL AFTER `knowledge_points`');
+CALL cot_add_column_if_missing('practice_session', 'question_ids', '`question_ids` TEXT DEFAULT NULL AFTER `difficulty_level`');
+CALL cot_add_column_if_missing('practice_session', 'wrong_count', '`wrong_count` INT NOT NULL DEFAULT 0 AFTER `correct_count`');
+CALL cot_add_column_if_missing('practice_session', 'duration_seconds', '`duration_seconds` INT DEFAULT NULL AFTER `score_obtained`');
+CALL cot_add_column_if_missing('practice_session', 'anti_cheat_enabled', '`anti_cheat_enabled` TINYINT NOT NULL DEFAULT 0 AFTER `duration_seconds`');
+CALL cot_add_column_if_missing('practice_session', 'suspicious_count', '`suspicious_count` INT NOT NULL DEFAULT 0 AFTER `anti_cheat_enabled`');
+
+CALL cot_add_column_if_missing('answer_record', 'knowledge_point', '`knowledge_point` VARCHAR(512) DEFAULT NULL AFTER `category_level`');
+
+CALL cot_modify_question_id_nullable();
+CALL cot_add_column_if_missing('mistake_record', 'subject_name', '`subject_name` VARCHAR(96) DEFAULT NULL AFTER `last_answer_record_id`');
+CALL cot_add_column_if_missing('mistake_record', 'mistake_name', '`mistake_name` VARCHAR(255) DEFAULT NULL AFTER `subject_name`');
+CALL cot_add_column_if_missing('mistake_record', 'mistake_type', '`mistake_type` VARCHAR(32) DEFAULT NULL AFTER `mistake_name`');
+CALL cot_add_column_if_missing('mistake_record', 'question_options', '`question_options` JSON DEFAULT NULL AFTER `mistake_type`');
+CALL cot_add_column_if_missing('mistake_record', 'student_choice', '`student_choice` TEXT DEFAULT NULL AFTER `question_options`');
+CALL cot_add_column_if_missing('mistake_record', 'wrong_answer', '`wrong_answer` TEXT DEFAULT NULL AFTER `student_choice`');
+CALL cot_add_column_if_missing('mistake_record', 'correct_answer', '`correct_answer` TEXT DEFAULT NULL AFTER `wrong_answer`');
+CALL cot_add_column_if_missing('mistake_record', 'answer_analysis', '`answer_analysis` TEXT DEFAULT NULL AFTER `correct_answer`');
+CALL cot_add_column_if_missing('mistake_record', 'knowledge_point', '`knowledge_point` VARCHAR(512) DEFAULT NULL AFTER `answer_analysis`');
+CALL cot_add_column_if_missing('mistake_record', 'mistake_date', '`mistake_date` DATE DEFAULT NULL AFTER `mastered`');
+CALL cot_add_column_if_missing('mistake_record', 'last_review_date', '`last_review_date` DATE DEFAULT NULL AFTER `mistake_date`');
+
+UPDATE question
+SET audit_status = 'approved'
+WHERE audit_status IS NULL OR audit_status = '';
+
+DROP PROCEDURE IF EXISTS cot_modify_question_id_nullable;
+DROP PROCEDURE IF EXISTS cot_add_column_if_missing;
+
+
+/* =========================================================
+   From 06_growth_workplace_fields.sql
+   ========================================================= */
+-- Growth record workplace fields upgrade for cot_content.
+-- Run this script on environments that already created growth_record from an older schema.
+
+SET NAMES utf8mb4;
+USE cot_content;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_column_if_missing $$
+CREATE PROCEDURE cot_add_column_if_missing(
+  IN p_table_name VARCHAR(64),
+  IN p_column_name VARCHAR(64),
+  IN p_column_definition TEXT
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = p_column_name
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE `', p_table_name, '` ADD COLUMN ', p_column_definition);
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+
+CALL cot_add_column_if_missing('growth_record', 'company_name', '`company_name` VARCHAR(160) DEFAULT NULL AFTER `dream_major`');
+CALL cot_add_column_if_missing('growth_record', 'job_title', '`job_title` VARCHAR(160) DEFAULT NULL AFTER `company_name`');
+CALL cot_add_column_if_missing('growth_record', 'job_content', '`job_content` TEXT DEFAULT NULL AFTER `job_title`');
+CALL cot_add_column_if_missing('growth_record', 'work_skills', '`work_skills` TEXT DEFAULT NULL AFTER `job_content`');
+CALL cot_add_column_if_missing('growth_record', 'work_achievements', '`work_achievements` TEXT DEFAULT NULL AFTER `work_skills`');
+CALL cot_add_column_if_missing('growth_record', 'work_challenges', '`work_challenges` TEXT DEFAULT NULL AFTER `work_achievements`');
+CALL cot_add_column_if_missing('growth_record', 'career_plan', '`career_plan` TEXT DEFAULT NULL AFTER `work_challenges`');
+
+DROP PROCEDURE IF EXISTS cot_add_column_if_missing;
+
+/* =========================================================
+   From 07_high_service_entity_fields.sql
+   ========================================================= */
+-- High-service entity field compatibility upgrade for cot_highschool.
+-- Run this script on environments that already created high-service tables from an older schema.
+
+SET NAMES utf8mb4;
+USE cot_highschool;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_column_if_missing $$
+CREATE PROCEDURE cot_add_column_if_missing(
+    IN p_table_name VARCHAR(64),
+    IN p_column_name VARCHAR(64),
+    IN p_column_definition TEXT
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = p_column_name
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE `', p_table_name, '` ADD COLUMN ', p_column_definition);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+END IF;
+END $$
+
+DELIMITER ;
+
+CALL cot_add_column_if_missing('hs_course_guidance', 'user_name', '`user_name` VARCHAR(80) DEFAULT NULL AFTER `user_id`');
+CALL cot_add_column_if_missing('hs_course_guidance', 'guidance_date', '`guidance_date` DATE DEFAULT NULL AFTER `user_name`');
+CALL cot_add_column_if_missing('hs_course_guidance', 'suggested_major', '`suggested_major` VARCHAR(160) DEFAULT NULL AFTER `recommended_combination_name`');
+CALL cot_add_column_if_missing('hs_course_guidance', 'strength_analysis', '`strength_analysis` TEXT DEFAULT NULL AFTER `suggested_major`');
+CALL cot_add_column_if_missing('hs_course_guidance', 'weakness_analysis', '`weakness_analysis` TEXT DEFAULT NULL AFTER `strength_analysis`');
+CALL cot_add_column_if_missing('hs_course_guidance', 'opportunity_analysis', '`opportunity_analysis` TEXT DEFAULT NULL AFTER `weakness_analysis`');
+CALL cot_add_column_if_missing('hs_course_guidance', 'threat_analysis', '`threat_analysis` TEXT DEFAULT NULL AFTER `opportunity_analysis`');
+CALL cot_add_column_if_missing('hs_course_guidance', 'action_plan', '`action_plan` TEXT DEFAULT NULL AFTER `threat_analysis`');
+CALL cot_add_column_if_missing('hs_course_guidance', 'advisor_name', '`advisor_name` VARCHAR(80) DEFAULT NULL AFTER `advisor_id`');
+CALL cot_add_column_if_missing('hs_course_guidance', 'advisor_position', '`advisor_position` VARCHAR(120) DEFAULT NULL AFTER `advisor_name`');
+CALL cot_add_column_if_missing('hs_course_guidance', 'user_feedback', '`user_feedback` TEXT DEFAULT NULL AFTER `advisor_position`');
+CALL cot_add_column_if_missing('hs_course_guidance', 'additional_feedback', '`additional_feedback` TEXT DEFAULT NULL AFTER `user_feedback`');
+CALL cot_add_column_if_missing('hs_course_guidance', 'follow_up_date', '`follow_up_date` DATE DEFAULT NULL AFTER `additional_feedback`');
+
+CALL cot_add_column_if_missing('hs_selection_intention', 'strength_subjects', '`strength_subjects` VARCHAR(255) DEFAULT NULL AFTER `target_university`');
+CALL cot_add_column_if_missing('hs_selection_intention', 'weak_subjects', '`weak_subjects` VARCHAR(255) DEFAULT NULL AFTER `strength_subjects`');
+CALL cot_add_column_if_missing('hs_selection_intention', 'career_interest', '`career_interest` VARCHAR(255) DEFAULT NULL AFTER `weak_subjects`');
+CALL cot_add_column_if_missing('hs_selection_intention', 'admin_feedback', '`admin_feedback` TEXT DEFAULT NULL AFTER `career_interest`');
+CALL cot_add_column_if_missing('hs_selection_intention', 'additional_feedback', '`additional_feedback` TEXT DEFAULT NULL AFTER `admin_feedback`');
+CALL cot_add_column_if_missing('hs_selection_intention', 'submit_time', '`submit_time` DATETIME DEFAULT NULL AFTER `status`');
+CALL cot_add_column_if_missing('hs_selection_intention', 'evaluate_time', '`evaluate_time` DATETIME DEFAULT NULL AFTER `submit_time`');
+CALL cot_add_column_if_missing('hs_selection_intention', 'evaluate_by', '`evaluate_by` VARCHAR(80) DEFAULT NULL AFTER `evaluate_time`');
+
+CALL cot_add_column_if_missing('hs_selection_history', 'approver', '`approver` VARCHAR(80) DEFAULT NULL AFTER `change_reason`');
+
+CALL cot_add_column_if_missing('hs_grading_scale', 'percentage_top', '`percentage_top` DECIMAL(8,4) DEFAULT NULL AFTER `grade_level`');
+CALL cot_add_column_if_missing('hs_grading_scale', 'percentage_bottom', '`percentage_bottom` DECIMAL(8,4) DEFAULT NULL AFTER `percentage_top`');
+CALL cot_add_column_if_missing('hs_grading_scale', 'raw_score_min', '`raw_score_min` DECIMAL(8,2) DEFAULT NULL AFTER `assigned_score_max`');
+CALL cot_add_column_if_missing('hs_grading_scale', 'raw_score_max', '`raw_score_max` DECIMAL(8,2) DEFAULT NULL AFTER `raw_score_min`');
+CALL cot_add_column_if_missing('hs_grading_scale', 'academic_year', '`academic_year` VARCHAR(32) DEFAULT NULL AFTER `raw_score_max`');
+CALL cot_add_column_if_missing('hs_grading_scale', 'is_active', '`is_active` TINYINT NOT NULL DEFAULT 1 AFTER `academic_year`');
+
+CALL cot_add_column_if_missing('hs_major_subject_match', 'subject_id', '`subject_id` BIGINT UNSIGNED DEFAULT NULL AFTER `major_name`');
+CALL cot_add_column_if_missing('hs_major_subject_match', 'subject_name', '`subject_name` VARCHAR(96) DEFAULT NULL AFTER `subject_id`');
+CALL cot_add_column_if_missing('hs_major_subject_match', 'importance_level', '`importance_level` TINYINT NOT NULL DEFAULT 3 AFTER `subject_name`');
+CALL cot_add_column_if_missing('hs_major_subject_match', 'description', '`description` TEXT DEFAULT NULL AFTER `matching_score`');
+
+CALL cot_add_column_if_missing('gaokao_admission_plan', 'university_name', '`university_name` VARCHAR(160) DEFAULT NULL AFTER `university_id`');
+CALL cot_add_column_if_missing('gaokao_university', 'is_public', '`is_public` TINYINT DEFAULT NULL AFTER `ownership`');
+
+DROP PROCEDURE IF EXISTS cot_add_column_if_missing;
+
+/* =========================================================
+   User ownership scope fields
+   ========================================================= */
+-- All mutable business rows should carry a user_id. user_id = 0 is reserved for platform/global data.
+-- Application rule: normal users filter by their own user_id; administrators can query and operate across users.
+USE cot_identity;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing $$
+CREATE PROCEDURE cot_add_user_scope_if_missing(
+  IN p_table_name VARCHAR(64)
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = 'user_id'
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD COLUMN user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT ''owner user id, 0 means platform/global data'' AFTER id');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = CONCAT('idx_', p_table_name, '_user_id')
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD INDEX idx_', p_table_name, '_user_id (user_id)');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+CALL cot_add_user_scope_if_missing('iam_role');
+CALL cot_add_user_scope_if_missing('iam_permission');
+CALL cot_add_user_scope_if_missing('iam_role_permission');
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing;
+
+USE cot_profile;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing $$
+CREATE PROCEDURE cot_add_user_scope_if_missing(
+  IN p_table_name VARCHAR(64)
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = 'user_id'
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD COLUMN user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT ''owner user id, 0 means platform/global data'' AFTER id');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = CONCAT('idx_', p_table_name, '_user_id')
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD INDEX idx_', p_table_name, '_user_id (user_id)');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+CALL cot_add_user_scope_if_missing('resume_education');
+CALL cot_add_user_scope_if_missing('resume_work_experience');
+CALL cot_add_user_scope_if_missing('resume_project');
+CALL cot_add_user_scope_if_missing('resume_skill');
+CALL cot_add_user_scope_if_missing('resume_certificate');
+CALL cot_add_user_scope_if_missing('resume_social_experience');
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing;
+
+USE cot_content;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing $$
+CREATE PROCEDURE cot_add_user_scope_if_missing(
+  IN p_table_name VARCHAR(64)
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = 'user_id'
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD COLUMN user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT ''owner user id, 0 means platform/global data'' AFTER id');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = CONCAT('idx_', p_table_name, '_user_id')
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD INDEX idx_', p_table_name, '_user_id (user_id)');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+CALL cot_add_user_scope_if_missing('content_category');
+CALL cot_add_user_scope_if_missing('content_media');
+CALL cot_add_user_scope_if_missing('content_tag');
+CALL cot_add_user_scope_if_missing('content_article_tag');
+CALL cot_add_user_scope_if_missing('content_audit');
+CALL cot_add_user_scope_if_missing('medal_rule');
+CALL cot_add_user_scope_if_missing('chat_group');
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing;
+
+USE cot_learning;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing $$
+CREATE PROCEDURE cot_add_user_scope_if_missing(
+  IN p_table_name VARCHAR(64)
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = 'user_id'
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD COLUMN user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT ''owner user id, 0 means platform/global data'' AFTER id');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = CONCAT('idx_', p_table_name, '_user_id')
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD INDEX idx_', p_table_name, '_user_id (user_id)');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+CALL cot_add_user_scope_if_missing('learning_subject');
+CALL cot_add_user_scope_if_missing('knowledge_point');
+CALL cot_add_user_scope_if_missing('knowledge_edge');
+CALL cot_add_user_scope_if_missing('question_option');
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing;
+
+USE cot_highschool;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing $$
+CREATE PROCEDURE cot_add_user_scope_if_missing(
+  IN p_table_name VARCHAR(64)
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = 'user_id'
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD COLUMN user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT ''owner user id, 0 means platform/global data'' AFTER id');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = CONCAT('idx_', p_table_name, '_user_id')
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD INDEX idx_', p_table_name, '_user_id (user_id)');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+CALL cot_add_user_scope_if_missing('hs_subject');
+CALL cot_add_user_scope_if_missing('hs_subject_combination');
+CALL cot_add_user_scope_if_missing('hs_grading_scale');
+CALL cot_add_user_scope_if_missing('gaokao_university');
+CALL cot_add_user_scope_if_missing('gaokao_major');
+CALL cot_add_user_scope_if_missing('gaokao_admission_plan');
+CALL cot_add_user_scope_if_missing('gaokao_major_requirement');
+CALL cot_add_user_scope_if_missing('user_volunteer_detail');
+CALL cot_add_user_scope_if_missing('admission_simulation');
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing;
+
+USE cot_university;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing $$
+CREATE PROCEDURE cot_add_user_scope_if_missing(
+  IN p_table_name VARCHAR(64)
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = 'user_id'
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD COLUMN user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT ''owner user id, 0 means platform/global data'' AFTER id');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = CONCAT('idx_', p_table_name, '_user_id')
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD INDEX idx_', p_table_name, '_user_id (user_id)');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+CALL cot_add_user_scope_if_missing('uni_major');
+CALL cot_add_user_scope_if_missing('uni_course_prerequisite');
+CALL cot_add_user_scope_if_missing('thesis_suggestion');
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing;
+
+USE cot_platform;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing $$
+CREATE PROCEDURE cot_add_user_scope_if_missing(
+  IN p_table_name VARCHAR(64)
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND COLUMN_NAME = 'user_id'
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD COLUMN user_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT ''owner user id, 0 means platform/global data'' AFTER id');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = CONCAT('idx_', p_table_name, '_user_id')
+  ) THEN
+    SET @ddl = CONCAT('ALTER TABLE ', p_table_name, ' ADD INDEX idx_', p_table_name, '_user_id (user_id)');
+    PREPARE stmt FROM @ddl;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END $$
+
+DELIMITER ;
+CALL cot_add_user_scope_if_missing('sys_dict_type');
+CALL cot_add_user_scope_if_missing('sys_dict_item');
+
+DROP PROCEDURE IF EXISTS cot_add_user_scope_if_missing;
+
+
+
+

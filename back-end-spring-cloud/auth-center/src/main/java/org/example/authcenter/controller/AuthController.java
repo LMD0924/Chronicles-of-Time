@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.authcenter.dto.AuthDTO;
 import org.example.authcenter.service.AuthService;
 import org.example.authcenter.vo.LoginVO;
+import org.example.commondb.enums.ResultCodeEnum;
+import org.springframework.dao.DuplicateKeyException;
 import org.example.commondb.utils.RestBean;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,10 +44,19 @@ public class AuthController {
      */
     @PostMapping("/register")
     public RestBean<String> register(@RequestBody AuthDTO authDTO) {
-        if(authService.register(authDTO) > 0){
-            return RestBean.success("注册成功");
+        try {
+            if (authService.register(authDTO) > 0) {
+                return RestBean.success("注册成功");
+            }
+            return RestBean.fail("注册失败");
+        } catch (DuplicateKeyException e) {
+            return RestBean.fail(ResultCodeEnum.REGISTER_FAIL.getCode(), "用户名已存在");
+        } catch (RuntimeException e) {
+            return RestBean.fail(ResultCodeEnum.REGISTER_FAIL.getCode(), e.getMessage());
+        } catch (Exception e) {
+            log.error("用户注册失败", e);
+            return RestBean.fail("注册失败，请稍后重试");
         }
-        return RestBean.fail("注册失败");
     }
 
     /**

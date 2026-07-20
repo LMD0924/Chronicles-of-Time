@@ -59,7 +59,7 @@ public class VolunteerController {
      * 删除志愿方案
      */
     @DeleteMapping("/plan/delete/{id}")
-    public RestBean<String> deleteVolunteerPlan(@PathVariable Integer id) {
+    public RestBean<String> deleteVolunteerPlan(@PathVariable Long id) {
         log.info("========== 删除志愿方案 ==========");
         if (volunteerService.deleteVolunteerPlan(id)) {
             return RestBean.success("删除成功");
@@ -71,7 +71,7 @@ public class VolunteerController {
      * 获取志愿方案详情
      */
     @GetMapping("/plan/{id}")
-    public RestBean<UserVolunteer> getVolunteerPlan(@PathVariable Integer id) {
+    public RestBean<UserVolunteer> getVolunteerPlan(@PathVariable Long id) {
         log.info("========== 获取志愿方案详情 ==========");
         UserVolunteer plan = volunteerService.getVolunteerPlanById(id);
         return RestBean.success(plan);
@@ -131,7 +131,7 @@ public class VolunteerController {
      * 删除志愿详情
      */
     @DeleteMapping("/detail/delete/{id}")
-    public RestBean<String> deleteVolunteerDetail(@PathVariable Integer id) {
+    public RestBean<String> deleteVolunteerDetail(@PathVariable Long id) {
         log.info("========== 删除志愿详情 ==========");
         if (volunteerService.deleteVolunteerDetail(id)) {
             return RestBean.success("删除成功");
@@ -143,7 +143,7 @@ public class VolunteerController {
      * 获取志愿详情列表
      */
     @GetMapping("/detail/list/{volunteerId}")
-    public RestBean<List<VolunteerDetail>> getVolunteerDetails(@PathVariable Integer volunteerId) {
+    public RestBean<List<VolunteerDetail>> getVolunteerDetails(@PathVariable Long volunteerId) {
         log.info("========== 获取志愿详情列表 ==========");
         List<VolunteerDetail> list = volunteerService.getVolunteerDetails(volunteerId);
         return RestBean.success(list);
@@ -190,7 +190,7 @@ public class VolunteerController {
      */
     @PostMapping("/matching/check/{detailId}")
     public RestBean<Map<String, Object>> checkSubjectMatching(
-            @PathVariable Integer detailId,
+            @PathVariable Long detailId,
             @RequestBody List<String> selectedSubjects) {
         log.info("========== 检查选科匹配度 ==========");
         Map<String, Object> result = volunteerService.checkSubjectMatching(detailId, selectedSubjects);
@@ -202,7 +202,7 @@ public class VolunteerController {
      */
     @GetMapping("/matching/report/{volunteerId}")
     public RestBean<List<Map<String, Object>>> getVolunteerMatchingReport(
-            @PathVariable Integer volunteerId,
+            @PathVariable Long volunteerId,
             @RequestParam List<String> selectedSubjects) {
         log.info("========== 获取志愿匹配报告 ==========");
         List<Map<String, Object>> report = volunteerService.getVolunteerMatchingReport(
@@ -216,7 +216,7 @@ public class VolunteerController {
      * 模拟单个志愿录取
      */
     @PostMapping("/simulate/single/{detailId}")
-    public RestBean<AdmissionSimulation> simulateAdmission(@PathVariable Integer detailId) {
+    public RestBean<AdmissionSimulation> simulateAdmission(@PathVariable Long detailId) {
         log.info("========== 模拟单个志愿录取 ==========");
         AdmissionSimulation result = volunteerService.simulateAdmission(detailId);
         return RestBean.success(result);
@@ -226,7 +226,7 @@ public class VolunteerController {
      * 批量模拟录取
      */
     @GetMapping("/simulate/batch/{volunteerId}")
-    public RestBean<List<Map<String, Object>>> batchSimulateAdmission(@PathVariable Integer volunteerId) {
+    public RestBean<List<Map<String, Object>>> batchSimulateAdmission(@PathVariable Long volunteerId) {
         log.info("========== 批量模拟录取 ==========");
         List<Map<String, Object>> results = volunteerService.batchSimulateAdmission(volunteerId);
         return RestBean.success(results);
@@ -236,7 +236,7 @@ public class VolunteerController {
      * 获取录取分析报告
      */
     @GetMapping("/simulate/analysis/{volunteerId}")
-    public RestBean<Map<String, Object>> getAdmissionAnalysis(@PathVariable Integer volunteerId) {
+    public RestBean<Map<String, Object>> getAdmissionAnalysis(@PathVariable Long volunteerId) {
         log.info("========== 获取录取分析报告 ==========");
         Map<String, Object> analysis = volunteerService.getAdmissionAnalysis(volunteerId);
         return RestBean.success(analysis);
@@ -248,7 +248,7 @@ public class VolunteerController {
      * 获取志愿统计
      */
     @GetMapping("/statistics/{userId}")
-    public RestBean<List<Map<String, Object>>> getVolunteerStatistics(@PathVariable Integer userId) {
+    public RestBean<List<Map<String, Object>>> getVolunteerStatistics(@PathVariable Long userId) {
         log.info("========== 获取志愿统计 ==========");
         List<Map<String, Object>> statistics = volunteerService.getVolunteerStatistics(userId);
         return RestBean.success(statistics);
@@ -259,9 +259,9 @@ public class VolunteerController {
      */
     @GetMapping("/chance/{userId}")
     public RestBean<Map<String, Object>> getApplicationChance(
-            @PathVariable Integer userId,
-            @RequestParam Integer universityId,
-            @RequestParam Integer majorId) {
+            @PathVariable Long userId,
+            @RequestParam Long universityId,
+            @RequestParam Long majorId) {
         log.info("========== 获取录取机会分析 ==========");
         Map<String, Object> chance = volunteerService.getApplicationChance(userId, universityId, majorId);
         return RestBean.success(chance);
@@ -289,7 +289,7 @@ public class VolunteerController {
     public RestBean<List<Major>> searchMajors(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) Integer universityId) {
+            @RequestParam(required = false) Long universityId) {
         log.info("========== 搜索专业 ==========");
         List<Major> list = volunteerService.searchMajors(keyword, category, universityId);
         return RestBean.success(list);
@@ -300,8 +300,8 @@ public class VolunteerController {
      */
     @GetMapping("/admission/history")
     public RestBean<List<AdmissionPlan>> getAdmissionHistory(
-            @RequestParam(required = false) Integer majorId,
-            @RequestParam(required = false) Integer universityId,
+            @RequestParam(required = false) Long majorId,
+            @RequestParam(required = false) Long universityId,
             @RequestParam(required = false) Integer year) {
         log.info("========== 获取招生历史数据 ==========");
         List<AdmissionPlan> list = volunteerService.getAdmissionHistory(majorId, universityId, year);

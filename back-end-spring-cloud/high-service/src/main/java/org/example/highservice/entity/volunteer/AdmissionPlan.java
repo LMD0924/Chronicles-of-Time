@@ -12,16 +12,16 @@ import java.math.BigDecimal;
 @TableName("gaokao_admission_plan")
 public class AdmissionPlan {
     @TableId(type = IdType.ASSIGN_ID)
-    private Integer id;
+    private Long id;
 
     @TableField("university_id")
-    private Integer universityId;
+    private Long universityId;
 
     @TableField("university_name")
     private String universityName;
 
     @TableField("major_id")
-    private Integer majorId;
+    private Long majorId;
 
     @TableField("admission_year")
     private Integer year;

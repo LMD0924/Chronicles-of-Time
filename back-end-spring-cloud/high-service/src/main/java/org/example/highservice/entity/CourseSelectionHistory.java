@@ -24,11 +24,11 @@ public class CourseSelectionHistory {
     @TableField("selection_id")
     private Long selectionId;
 
-    @TableField("student_id")
-    private Long studentId;
+    @TableField("user_id")
+    private Long userId;
 
-    @TableField("student_name")
-    private String studentName;
+    @TableField("user_name")
+    private String userName;
 
     @TableField("change_type")
     private String changeType;

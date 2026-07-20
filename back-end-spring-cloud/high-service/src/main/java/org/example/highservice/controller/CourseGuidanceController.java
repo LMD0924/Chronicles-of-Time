@@ -37,7 +37,7 @@ public class CourseGuidanceController {
                                          HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
         if (userId == null) return RestBean.fail("用户未登录");
-        guidance.setStudentId(userId);
+        guidance.setUserId(userId);
         CourseGuidance saved = guidanceService.saveOrUpdateByStudent(guidance);
         return RestBean.success("保存成功", saved);
     }
@@ -46,7 +46,7 @@ public class CourseGuidanceController {
     public RestBean<List<CourseGuidance>> list(HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
         if (userId == null) return RestBean.fail("用户未登录");
-        return RestBean.success(guidanceService.listByStudentId(userId));
+        return RestBean.success(guidanceService.listByUserId(userId));
     }
 
     @GetMapping("/detail")
@@ -54,7 +54,7 @@ public class CourseGuidanceController {
         Long userId = getCurrentUserId(request);
         if (userId == null) return RestBean.fail("用户未登录");
         CourseGuidance item = guidanceService.getById(id);
-        if (item == null || !userId.equals(item.getStudentId())) return RestBean.fail("记录不存在");
+        if (item == null || !userId.equals(item.getUserId())) return RestBean.fail("记录不存在");
         return RestBean.success(item);
     }
 
@@ -65,7 +65,7 @@ public class CourseGuidanceController {
         Long userId = getCurrentUserId(request);
         if (userId == null) return RestBean.fail("用户未登录");
         CourseGuidance item = guidanceService.getById(id);
-        if (item == null || !userId.equals(item.getStudentId())) return RestBean.fail("无权操作");
+        if (item == null || !userId.equals(item.getUserId())) return RestBean.fail("无权操作");
         item.setStatus(status);
         return RestBean.success(guidanceService.updateById(item) ? 1 : 0);
     }
@@ -75,7 +75,7 @@ public class CourseGuidanceController {
         Long userId = getCurrentUserId(request);
         if (userId == null) return RestBean.fail("用户未登录");
         CourseGuidance item = guidanceService.getById(id);
-        if (item == null || !userId.equals(item.getStudentId())) return RestBean.fail("无权删除");
+        if (item == null || !userId.equals(item.getUserId())) return RestBean.fail("无权删除");
         return RestBean.success(guidanceService.removeById(id) ? 1 : 0);
     }
 }

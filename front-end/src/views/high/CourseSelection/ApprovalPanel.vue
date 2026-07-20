@@ -112,7 +112,7 @@ onMounted(() => {
            class="rounded-xl bg-white/70 dark:bg-dark-surface backdrop-blur-sm border border-white/30 p-4">
         <div class="flex items-start justify-between mb-2">
           <div class="flex items-center gap-2">
-            <span class="font-medium">{{ item.studentName }}</span>
+            <span class="font-medium">{{ item.userName }}</span>
             <span :class="getChangeTypeClass(item.changeType)" class="px-2 py-0.5 rounded-full text-xs">
               {{ getChangeTypeText(item.changeType) }}
             </span>

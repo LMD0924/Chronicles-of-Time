@@ -3,6 +3,7 @@
  */
 package org.example.generalservice.service.question.Impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import java.util.Map;
  */
 @Slf4j
 @Service
+@DS("cot_learning")
 @RequiredArgsConstructor
 public class MistakeRecordServiceImpl extends ServiceImpl<MistakeRecordMapper, MistakeRecord> implements MistakeRecordService {
 

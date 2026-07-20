@@ -16,8 +16,8 @@ public class CourseGuidance {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
-    private Long studentId;
-    private String studentName;
+    private Long userId;
+    private String userName;
     private LocalDate guidanceDate;
     private String guidanceType;
 
@@ -35,8 +35,8 @@ public class CourseGuidance {
     private String actionPlan;
     private String advisorName;
     private String advisorPosition;
-    private String studentFeedback;
-    private String parentFeedback;
+    private String userFeedback;
+    private String additionalFeedback;
     private LocalDate followUpDate;
     private Integer status;
 

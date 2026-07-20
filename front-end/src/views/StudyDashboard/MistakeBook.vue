@@ -250,7 +250,7 @@ import request from '@/utils/request.js'
 
 const props = defineProps({
   isDark: Boolean,
-  studentId: [String, Number]
+  userId: [String, Number]
 })
 
 const userId = ref('')

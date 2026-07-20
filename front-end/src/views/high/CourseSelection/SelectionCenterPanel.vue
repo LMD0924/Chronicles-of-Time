@@ -9,7 +9,7 @@ import AiInsightPanel from '@/views/high/components/AiInsightPanel.vue'
 
 const props = defineProps({
   isDark: Boolean,
-  studentId: [String, Number]
+  userId: [String, Number]
 })
 
 const emit = defineEmits(['success'])
@@ -33,7 +33,7 @@ const selectedSubjectNames = computed(() => {
 })
 
 const aiPayload = computed(() => ({
-  userId: props.studentId,
+  userId: props.userId,
   profile: {
     firstSubject: selectedFirstSubject.value?.name || '',
     secondSubjects: selectedSecondSubjects.value.map(subject => subject.name),
@@ -86,7 +86,7 @@ const updateAdvice = () => {
   const combination = subjects.join('')
 
   const adviceMap = {
-    '物理化学生物': '物化生组合，专业覆盖率达96%以上，适合医学、生物工程、计算机等专业',
+    '物理化用户物': '物化生组合，专业覆盖率达96%以上，适合医学、生物工程、计算机等专业',
     '物理化学地理': '物化地组合，专业覆盖广，适合地质、气象、环境科学等专业',
     '物理化学政治': '物化政组合，适合公安、政治学、法学等专业',
     '历史政治地理': '史政地组合，传统文科，适合文史哲、法学、新闻等专业',
@@ -99,7 +99,7 @@ const updateAdvice = () => {
 // 检查是否已经选过课
 const checkIfSelected = async () => {
   try {
-    const res = await request.get(`/selection/student/${props.studentId}`)
+    const res = await request.get(`/selection/user/${props.userId}`)
     if (res.code === 200 && res.data && res.data.length > 0) {
       return true
     }
@@ -134,8 +134,8 @@ const submitSelection = async () => {
   submitting.value = true
   try {
     const selectionData = {
-      studentId: props.studentId,
-      studentName: '当前学生', // 从用户信息获取
+      userId: props.userId,
+      userName: '当前用户', // 从用户信息获取
       grade: '高一',
       academicYear: '2024-2025',
       semester: '上学期',

@@ -4,7 +4,7 @@
 /*
  * @Author: 总会落叶
  * @Date: 2026/4/1
- * @Description: 学生选课记录Service实现类（完整版）
+ * @Description: 用户选课记录Service实现类（完整版）
  */
 package org.example.highservice.service.Impl;
 
@@ -58,13 +58,13 @@ public class StudentCourseSelectionServiceImpl
     @Transactional
     public boolean selectCourse(StudentCourseSelection selection) {
         // 参数校验
-        if (selection.getStudentId() == null || selection.getGrade() == null) {
+        if (selection.getUserId() == null || selection.getGrade() == null) {
             return false;
         }
 
         // 检查是否已经选课
         LambdaQueryWrapper<StudentCourseSelection> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(StudentCourseSelection::getStudentId, selection.getStudentId())
+        wrapper.eq(StudentCourseSelection::getUserId, selection.getUserId())
                 .eq(StudentCourseSelection::getAcademicYear, selection.getAcademicYear())
                 .eq(StudentCourseSelection::getSemester, selection.getSemester())
                 .ne(StudentCourseSelection::getStatus, 4); // 排除已退选的
@@ -164,9 +164,9 @@ public class StudentCourseSelectionServiceImpl
     // ==================== 查询方法 ====================
 
     @Override
-    public List<StudentCourseSelection> getStudentSelections(Long studentId) {
+    public List<StudentCourseSelection> getStudentSelections(Long userId) {
         LambdaQueryWrapper<StudentCourseSelection> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(StudentCourseSelection::getStudentId, studentId)
+        wrapper.eq(StudentCourseSelection::getUserId, userId)
                 .orderByDesc(StudentCourseSelection::getCreateTime);
         return this.list(wrapper);
     }
@@ -433,8 +433,8 @@ public class StudentCourseSelectionServiceImpl
     public List<StudentCourseSelection> querySelections(SelectionQueryDTO queryDTO) {
         LambdaQueryWrapper<StudentCourseSelection> wrapper = new LambdaQueryWrapper<>();
 
-        if (queryDTO.getStudentId() != null) {
-            wrapper.eq(StudentCourseSelection::getStudentId, queryDTO.getStudentId());
+        if (queryDTO.getUserId() != null) {
+            wrapper.eq(StudentCourseSelection::getUserId, queryDTO.getUserId());
         }
         if (StringUtils.hasText(queryDTO.getGrade())) {
             wrapper.eq(StudentCourseSelection::getGrade, queryDTO.getGrade());
@@ -453,7 +453,7 @@ public class StudentCourseSelectionServiceImpl
         }
 
         // 隐私控制：非本人只能看到公开的记录
-        if (queryDTO.getCurrentUserId() != null && !queryDTO.getCurrentUserId().equals(queryDTO.getStudentId())) {
+        if (queryDTO.getCurrentUserId() != null && !queryDTO.getCurrentUserId().equals(queryDTO.getUserId())) {
             wrapper.eq(StudentCourseSelection::getIsPublic, true);
         }
 
@@ -467,8 +467,8 @@ public class StudentCourseSelectionServiceImpl
     }
 
     @Override
-    public StudentCourseSelection getStudentSelectionDetail(Long studentId) {
-        StudentCourseSelection selection = selectionMapper.getLatestSelection(studentId);
+    public StudentCourseSelection getStudentSelectionDetail(Long userId) {
+        StudentCourseSelection selection = selectionMapper.getLatestSelection(userId);
         if (selection != null) {
             // 填充组合详细信息
             if (selection.getCombinationId() != null) {
@@ -499,7 +499,7 @@ public class StudentCourseSelectionServiceImpl
         // 转换为导出格式
         return selections.stream().map(s -> {
             Map<String, Object> map = new LinkedHashMap<>();
-            map.put("学生姓名", s.getStudentName());
+            map.put("用户姓名", s.getUserName());
             map.put("班级", s.getClassName());
             map.put("首选科目", s.getFirstSubjectName());
             map.put("再选科目1", s.getSecondSubject1Name());
@@ -525,11 +525,11 @@ public class StudentCourseSelectionServiceImpl
     // ==================== 选课建议 ====================
 
     @Override
-    public Map<String, Object> getSelectionAdvice(Long studentId) {
+    public Map<String, Object> getSelectionAdvice(Long userId) {
         Map<String, Object> advice = new HashMap<>();
 
-        // 获取学生最近的选课记录
-        StudentCourseSelection selection = selectionMapper.getLatestSelection(studentId);
+        // 获取用户最近的选课记录
+        StudentCourseSelection selection = selectionMapper.getLatestSelection(userId);
         if (selection == null) {
             advice.put("hasSelection", false);
             advice.put("message", "尚未选课，请先进行选课");
@@ -596,7 +596,7 @@ public class StudentCourseSelectionServiceImpl
 
         // 检查是否重复选课
         LambdaQueryWrapper<StudentCourseSelection> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(StudentCourseSelection::getStudentId, selection.getStudentId())
+        wrapper.eq(StudentCourseSelection::getUserId, selection.getUserId())
                 .eq(StudentCourseSelection::getAcademicYear, selection.getAcademicYear())
                 .eq(StudentCourseSelection::getSemester, selection.getSemester())
                 .ne(StudentCourseSelection::getStatus, 4);
@@ -735,10 +735,11 @@ public class StudentCourseSelectionServiceImpl
                                StudentCourseSelection newSelection, String reason) {
         CourseSelectionHistory history = new CourseSelectionHistory();
         history.setSelectionId(selection.getId());
-        history.setStudentId(selection.getStudentId());
-        history.setStudentName(selection.getStudentName());
+        history.setUserId(selection.getUserId());
+        history.setUserName(selection.getUserName());
         history.setChangeType(changeType);
         history.setChangeReason(reason);
+        history.setCreateTime(LocalDateTime.now());
         history.setChangeTime(LocalDateTime.now());
 
         if ("2".equals(changeType) && newSelection != null) {

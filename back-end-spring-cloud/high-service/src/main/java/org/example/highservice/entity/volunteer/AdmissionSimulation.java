@@ -20,9 +20,9 @@ import java.time.LocalDateTime;
 public class AdmissionSimulation {
 
     @TableId(type = IdType.ASSIGN_ID)
-    private Integer id;
+    private Long id;
 
-    private Integer volunteerDetailId;
+    private Long volunteerDetailId;
 
     private String simulationStatus; // pending, admitted, rejected, waiting
 

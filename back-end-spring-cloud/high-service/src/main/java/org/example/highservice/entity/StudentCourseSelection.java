@@ -4,7 +4,7 @@
 /*
  * @Author: 总会落叶
  * @Date: 2026/4/1
- * @Description: 学生选课记录实体类（100%匹配数据库）
+ * @Description: 用户选课记录实体类（100%匹配数据库）
  */
 package org.example.highservice.entity;
 
@@ -22,8 +22,8 @@ public class StudentCourseSelection {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
-    private Long studentId;
-    private String studentName;
+    private Long userId;
+    private String userName;
     private String grade;
     private String className;
     private String academicYear;
@@ -76,8 +76,8 @@ public class StudentCourseSelection {
     private LocalDateTime confirmTime;
     private String selectionReason;
     private String futurePlan;
-    private String teacherAdvice;
-    private String parentOpinion;
+    private String adminAdvice;
+    private String additionalOpinion;
 
     // ====================== 【关键修复】is_public ======================
     // 数据库是 varchar，所以实体类必须用 String

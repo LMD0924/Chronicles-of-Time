@@ -169,7 +169,7 @@ import request from '@/utils/request.js'
 
 const props = defineProps({
   isDark: Boolean,
-  studentId: [String, Number]
+  userId: [String, Number]
 })
 
 const categories = ['高中', '大学', '考公', '考研', '考证', '专业面试']
@@ -217,9 +217,9 @@ const getUserInfo = async () => {
   try {
     const res = await request.get('/user/getUserById')
     const data = res.data || res
-    userId.value = data?.id || props.studentId || 1
+    userId.value = data?.id || props.userId || 1
   } catch {
-    userId.value = props.studentId || 1
+    userId.value = props.userId || 1
   }
   await fetchQuestions()
 }

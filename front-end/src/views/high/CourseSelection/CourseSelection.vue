@@ -102,16 +102,6 @@
               <span class="menu-icon">✅</span>
               <span>审批管理</span>
             </el-menu-item>
-
-            <el-menu-item index="grading" class="menu-item">
-              <span class="menu-icon">🧮</span>
-              <span>赋分规则</span>
-            </el-menu-item>
-
-            <el-menu-item index="majorAdmin" class="menu-item">
-              <span class="menu-icon">🧩</span>
-              <span>专业库管理</span>
-            </el-menu-item>
           </el-menu>
         </el-aside>
 
@@ -120,7 +110,8 @@
           <MySelectionPanel
             v-if="activeTab === 'mySelection'"
             :isDark="isDark"
-            :studentId="currentStudentId"
+            :userId="currentUserId"
+            :refreshToken="selectionRefreshToken"
             @refresh="fetchMySelection"
             @edit="openEditDialog"
           />
@@ -128,28 +119,28 @@
           <SelectionCenterPanel
             v-if="activeTab === 'selectionCenter'"
             :isDark="isDark"
-            :studentId="currentStudentId"
+            :userId="currentUserId"
             @success="handleSelectionSuccess"
           />
 
           <MajorRecommendPanel
             v-if="activeTab === 'majorRecommend'"
             :isDark="isDark"
-            :studentId="currentStudentId"
+            :userId="currentUserId"
           />
 
           <CourseSelectionIntentionPanel
             v-if="activeTab === 'intention'"
             :isDark="isDark"
-            :studentId="currentStudentId"
-            :studentName="User?.username || User?.nickname || User?.name || ''"
+            :userId="currentUserId"
+            :userName="User?.username || User?.nickname || User?.name || ''"
           />
 
           <CourseGuidancePanel
             v-if="activeTab === 'guidance'"
             :isDark="isDark"
-            :studentId="currentStudentId"
-            :studentName="User?.username || User?.nickname || User?.name || ''"
+            :userId="currentUserId"
+            :userName="User?.username || User?.nickname || User?.name || ''"
           />
 
           <StatisticsPanel
@@ -160,20 +151,12 @@
           <HistoryPanel
             v-if="activeTab === 'history'"
             :isDark="isDark"
-            :studentId="currentStudentId"
+            :userId="currentUserId"
           />
 
           <ApprovalPanel
             v-if="activeTab === 'approval' && isAdmin"
             :isDark="isDark"
-          />
-
-          <GradingScalePanel
-            v-if="activeTab === 'grading'"
-          />
-
-          <MajorAdminPanel
-            v-if="activeTab === 'majorAdmin'"
           />
         </el-main>
       </el-container>
@@ -206,8 +189,6 @@ import ApprovalPanel from '@/views/high/CourseSelection/ApprovalPanel.vue'
 import EditSelectionForm from '@/views/high/CourseSelection/EditSelectionForm.vue'
 import CourseSelectionIntentionPanel from '@/views/high/CourseSelection/CourseSelectionIntentionPanel.vue'
 import CourseGuidancePanel from '@/views/high/CourseSelection/CourseGuidancePanel.vue'
-import GradingScalePanel from '@/views/high/CourseSelection/GradingScalePanel.vue'
-import MajorAdminPanel from '@/views/high/CourseSelection/MajorAdminPanel.vue'
 import { getStoredTheme, ThemeType } from '@/utils/theme'
 
 // 主题
@@ -222,7 +203,8 @@ const props = defineProps({
 const activeTab = ref('mySelection')
 const editDialogVisible = ref(false)
 const editSelectionData = ref(null)
-const currentStudentId = ref('')
+const selectionRefreshToken = ref(0)
+const currentUserId = ref('')
 const User = ref({})
 const isAdmin = ref(false)
 
@@ -276,13 +258,13 @@ const handleMenuSelect = (index) => {
 const getUserInfo = () => {
   return request.get('/user/getUserById', {}, (message, data) => {
     User.value = data || {}
-    currentStudentId.value = data?.id != null ? String(data.id) : ''
+    currentUserId.value = data?.id != null ? String(data.id) : ''
   })
 }
 
 const fetchMySelection = async () => {
   try {
-    const res = await request.get(`/selection/student/${currentStudentId.value}`)
+    const res = await request.get(`/selection/user/${currentUserId.value}`)
     if (res.code === 200) {
       // 更新数据
     }
@@ -325,6 +307,7 @@ const openEditDialog = (selection) => {
 
 const handleEditSuccess = () => {
   editDialogVisible.value = false
+  selectionRefreshToken.value += 1
   fetchMySelection()
   fetchStatistics()
   ElMessage.success('修改成功')
@@ -336,7 +319,7 @@ watch(activeTab, (newValue, oldValue) => {
 
 onMounted(async () => {
   await getUserInfo()
-  if (currentStudentId.value) {
+  if (currentUserId.value) {
     fetchMySelection()
   }
   fetchStatistics()

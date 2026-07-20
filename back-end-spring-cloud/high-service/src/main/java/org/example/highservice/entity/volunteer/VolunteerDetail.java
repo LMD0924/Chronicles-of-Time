@@ -13,16 +13,16 @@ import java.time.LocalDateTime;
 @TableName("user_volunteer_detail")
 public class VolunteerDetail {
     @TableId(type = IdType.ASSIGN_ID)
-    private Integer id;
+    private Long id;
 
     @TableField("volunteer_plan_id")
-    private Integer volunteerId;
+    private Long volunteerId;
 
     @TableField("priority_no")
     private Integer priority;
 
-    private Integer universityId;
-    private Integer majorId;
+    private Long universityId;
+    private Long majorId;
     private Boolean isMajorAdjusted;
     private Boolean matchingCheck;
     private Integer matchingScore;

@@ -113,5 +113,4 @@ cot:volunteer:simulation:{plan_id} -> simulation result, TTL = 30min
 - `iam_user.password_hash` 禁止返回前端。
 - 手机号、邮箱、真实姓名属于敏感信息，后台查看应记录 `admin_operation_log`。
 - 简历公开状态默认私有。
-- 家长端只读权限走 `PARENT` 角色和接口权限控制。
 - API 日志不要长期保存完整请求体，避免写入密码、token、身份证等敏感字段。

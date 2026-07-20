@@ -24,13 +24,13 @@ public interface AdmissionSimulationMapper extends BaseMapper<AdmissionSimulatio
     /**
      * 模拟录取结果
      */
-    List<Map<String, Object>> simulateAdmission(@Param("userId") Integer userId,
-                                                @Param("volunteerId") Integer volunteerId);
+    List<Map<String, Object>> simulateAdmission(@Param("userId") Long userId,
+                                                @Param("volunteerId") Long volunteerId);
 
     /**
      * 获取录取概率预测
      */
-    Double predictAdmissionProbability(@Param("volunteerDetailId") Integer volunteerDetailId);
+    Double predictAdmissionProbability(@Param("volunteerDetailId") Long volunteerDetailId);
 
     /**
      * 批量更新模拟结果

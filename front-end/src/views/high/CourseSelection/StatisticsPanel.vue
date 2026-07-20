@@ -170,7 +170,7 @@ onMounted(() => {
         <span class="ml-auto text-xs px-2 py-1 rounded-full bg-purple-100 dark:bg-dark-surface text-purple-600 dark:text-purple-400">赋分总分</span>
       </div>
       <div class="divide-y divide-gray-200/50 dark:divide-gray-700/50">
-        <div v-for="(student, index) in topStudents" :key="student.student_id"
+        <div v-for="(student, index) in topStudents" :key="student.user_id"
              class="p-4 flex flex-wrap items-center gap-4 hover:bg-gray-50/50 dark:hover:bg-white/5 transition-all group">
           <div class="flex-shrink-0 w-12">
             <div v-if="index === 0" class="text-2xl">👑</div>
@@ -178,7 +178,7 @@ onMounted(() => {
           </div>
           <div class="flex-1 min-w-[150px]">
             <div class="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
-              {{ student.student_name }}
+              {{ student.user_name }}
               <span v-if="index === 0" class="text-xs px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-dark-surface text-yellow-700 dark:text-yellow-400">学霸</span>
             </div>
             <div class="text-sm text-gray-500 dark:text-gray-400">{{ student.combination_name }}</div>

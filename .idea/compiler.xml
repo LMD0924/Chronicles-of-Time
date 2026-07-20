@@ -6,7 +6,6 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="back-end-admin" />
       </profile>
       <profile name="Annotation profile for back-end-spring-cloud" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -29,6 +28,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="back-end-admin" target="17" />
       <module name="Question-Bank" target="17" />
     </bytecodeTargetLevel>
   </component>

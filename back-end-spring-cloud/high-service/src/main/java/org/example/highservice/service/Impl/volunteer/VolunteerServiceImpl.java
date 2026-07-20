@@ -52,7 +52,7 @@ public class VolunteerServiceImpl extends ServiceImpl<UserVolunteerMapper, UserV
 
     @Override
     @Transactional
-    public boolean deleteVolunteerPlan(Integer id) {
+    public boolean deleteVolunteerPlan(Long id) {
         log.info("删除志愿方案: id={}", id);
         LambdaQueryWrapper<VolunteerDetail> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(VolunteerDetail::getVolunteerId, id);
@@ -61,7 +61,7 @@ public class VolunteerServiceImpl extends ServiceImpl<UserVolunteerMapper, UserV
     }
 
     @Override
-    public UserVolunteer getVolunteerPlanById(Integer id) {
+    public UserVolunteer getVolunteerPlanById(Long id) {
         return this.getById(id);
     }
 
@@ -92,13 +92,13 @@ public class VolunteerServiceImpl extends ServiceImpl<UserVolunteerMapper, UserV
     }
 
     @Override
-    public boolean deleteVolunteerDetail(Integer id) {
+    public boolean deleteVolunteerDetail(Long id) {
         log.info("删除志愿详情: id={}", id);
         return volunteerDetailMapper.deleteById(id) > 0;
     }
 
     @Override
-    public List<VolunteerDetail> getVolunteerDetails(Integer volunteerId) {
+    public List<VolunteerDetail> getVolunteerDetails(Long volunteerId) {
         LambdaQueryWrapper<VolunteerDetail> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(VolunteerDetail::getVolunteerId, volunteerId)
                 .orderByAsc(VolunteerDetail::getPriority);
@@ -334,7 +334,7 @@ public class VolunteerServiceImpl extends ServiceImpl<UserVolunteerMapper, UserV
     // ==================== 匹配度分析 ====================
 
     @Override
-    public Map<String, Object> checkSubjectMatching(Integer volunteerDetailId, List<String> selectedSubjects) {
+    public Map<String, Object> checkSubjectMatching(Long volunteerDetailId, List<String> selectedSubjects) {
         log.info("检查选科匹配: volunteerDetailId={}, subjects={}", volunteerDetailId, selectedSubjects);
 
         VolunteerDetail detail = volunteerDetailMapper.selectById(volunteerDetailId);
@@ -362,7 +362,7 @@ public class VolunteerServiceImpl extends ServiceImpl<UserVolunteerMapper, UserV
     }
 
     @Override
-    public List<Map<String, Object>> getVolunteerMatchingReport(Integer volunteerId, List<String> selectedSubjects) {
+    public List<Map<String, Object>> getVolunteerMatchingReport(Long volunteerId, List<String> selectedSubjects) {
         log.info("获取志愿匹配报告: volunteerId={}", volunteerId);
 
         List<VolunteerDetail> details = getVolunteerDetails(volunteerId);
@@ -398,7 +398,7 @@ public class VolunteerServiceImpl extends ServiceImpl<UserVolunteerMapper, UserV
 
     @Override
     @Transactional
-    public AdmissionSimulation simulateAdmission(Integer volunteerDetailId) {
+    public AdmissionSimulation simulateAdmission(Long volunteerDetailId) {
         log.info("模拟录取: volunteerDetailId={}", volunteerDetailId);
 
         VolunteerDetail detail = volunteerDetailMapper.selectById(volunteerDetailId);
@@ -446,7 +446,7 @@ public class VolunteerServiceImpl extends ServiceImpl<UserVolunteerMapper, UserV
     }
 
     @Override
-    public List<Map<String, Object>> batchSimulateAdmission(Integer volunteerId) {
+    public List<Map<String, Object>> batchSimulateAdmission(Long volunteerId) {
         log.info("批量模拟录取: volunteerId={}", volunteerId);
 
         List<VolunteerDetail> details = getVolunteerDetails(volunteerId);
@@ -492,7 +492,7 @@ public class VolunteerServiceImpl extends ServiceImpl<UserVolunteerMapper, UserV
     }
 
     @Override
-    public Map<String, Object> getAdmissionAnalysis(Integer volunteerId) {
+    public Map<String, Object> getAdmissionAnalysis(Long volunteerId) {
         log.info("获取录取分析: volunteerId={}", volunteerId);
 
         List<Map<String, Object>> simulationResults = batchSimulateAdmission(volunteerId);
@@ -527,7 +527,7 @@ public class VolunteerServiceImpl extends ServiceImpl<UserVolunteerMapper, UserV
     // ==================== 统计分析 ====================
 
     @Override
-    public List<Map<String, Object>> getVolunteerStatistics(Integer userId) {
+    public List<Map<String, Object>> getVolunteerStatistics(Long userId) {
         log.info("获取志愿统计: userId={}", userId);
 
         List<Map<String, Object>> statistics = new ArrayList<>();
@@ -559,7 +559,7 @@ public class VolunteerServiceImpl extends ServiceImpl<UserVolunteerMapper, UserV
     }
 
     @Override
-    public Map<String, Object> getApplicationChance(Integer userId, Integer universityId, Integer majorId) {
+    public Map<String, Object> getApplicationChance(Long userId, Long universityId, Long majorId) {
         log.info("获取录取机会分析: userId={}, universityId={}, majorId={}", userId, universityId, majorId);
 
         // 获取用户最新的志愿方案
@@ -631,13 +631,13 @@ public class VolunteerServiceImpl extends ServiceImpl<UserVolunteerMapper, UserV
     }
 
     @Override
-    public List<Major> searchMajors(String keyword, String category, Integer universityId) {
+    public List<Major> searchMajors(String keyword, String category, Long universityId) {
         log.info("搜索专业: keyword={}, category={}, universityId={}", keyword, category, universityId);
         return majorMapper.searchMajors(keyword, category, universityId);
     }
 
     @Override
-    public List<AdmissionPlan> getAdmissionHistory(Integer majorId, Integer universityId, Integer year) {
+    public List<AdmissionPlan> getAdmissionHistory(Long majorId, Long universityId, Integer year) {
         log.info("获取招生历史: majorId={}, universityId={}, year={}", majorId, universityId, year);
         return admissionPlanMapper.getAdmissionHistory(majorId, universityId, year);
     }

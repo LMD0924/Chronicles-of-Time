@@ -68,7 +68,7 @@ AI：
 | --- | --- |
 | `/api/subject/**` | 科目 |
 | `/api/subject-combination/**` | 科目组合 |
-| `/api/selection/**` | 学生选科 |
+| `/api/selection/**` | 用户选科 |
 | `/api/intention/**` | 选科意向 |
 | `/api/guidance/**` | 选科指导 |
 | `/api/history/**` | 选科历史 |
@@ -87,16 +87,16 @@ AI：
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| `POST` | `/add` | 学生提交选科 |
+| `POST` | `/add` | 用户提交选科 |
 | `PUT` | `/confirm/{id}` | 确认选科 |
 | `PUT` | `/modify` | 修改选科 |
 | `DELETE` | `/cancel/{id}` | 退选 |
-| `GET` | `/student/{studentId}` | 获取学生选科记录 |
+| `GET` | `/user/{userId}` | 获取用户选科记录 |
 | `GET` | `/statistics/grade` | 年级选科统计 |
 | `GET` | `/recommend` | 根据专业推荐组合 |
 | `POST` | `/query` | 分页查询选科记录 |
 | `GET` | `/hot-combinations` | 热门组合 |
-| `GET` | `/advice/{studentId}` | 获取选科建议 |
+| `GET` | `/advice/{userId}` | 获取选科建议 |
 
 科目和组合：
 

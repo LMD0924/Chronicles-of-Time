@@ -16,7 +16,38 @@ export const THEME_COLOR_PRESETS = [
 
 const THEME_STORAGE_KEY = 'app_theme';
 const THEME_COLOR_STORAGE_KEY = 'app_theme_color';
+const FONT_STORAGE_KEY = 'app_font';
 const DEFAULT_THEME_COLOR = THEME_COLOR_PRESETS[0];
+
+export const APP_FONT_PRESETS = [
+  {
+    key: 'system',
+    name: '默认字体',
+    description: '适合长时间阅读和表单操作。'
+  },
+  {
+    key: 'lawyer-handwriting',
+    name: '黄楷律师手写体',
+    description: '更有手写质感，适合标题、记录和个人化界面。'
+  },
+  {
+    key: 'honglei-xingshu',
+    name: '鸿雷行书简体',
+    description: '行书风格更舒展，适合展示标题和故事型页面。'
+  },
+  {
+    key: 'yezi-xiaoshitou',
+    name: '叶子工厂小石头',
+    description: '更轻松活泼，适合成长记录和卡片式内容。'
+  },
+  {
+    key: 'yunfeng-hanchan',
+    name: '云峰寒蝉体',
+    description: '笔画更有古风气质，适合寄语、相册和时间线内容。'
+  }
+];
+
+const DEFAULT_APP_FONT = APP_FONT_PRESETS[0];
 const SHADE_STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
 
 const isBrowser = () => typeof window !== 'undefined' && typeof document !== 'undefined';
@@ -93,6 +124,11 @@ const normalizeThemeColor = (value) => {
   };
 };
 
+const normalizeFont = (value) => {
+  const key = typeof value === 'string' ? value : value?.key;
+  return APP_FONT_PRESETS.find((preset) => preset.key === key) || DEFAULT_APP_FONT;
+};
+
 const setPaletteVariables = (prefix, palette) => {
   const root = document.documentElement;
   SHADE_STEPS.forEach((shade) => {
@@ -120,6 +156,32 @@ export const getStoredThemeColor = () => {
   } catch (_) {
     return { ...DEFAULT_THEME_COLOR, preset: DEFAULT_THEME_COLOR.key };
   }
+};
+
+export const getStoredFont = () => {
+  if (!isBrowser()) return DEFAULT_APP_FONT;
+  return normalizeFont(localStorage.getItem(FONT_STORAGE_KEY));
+};
+
+export const applyFont = (font = getStoredFont()) => {
+  const normalized = normalizeFont(font);
+  if (!isBrowser()) return normalized;
+
+  document.documentElement.dataset.appFont = normalized.key;
+  return normalized;
+};
+
+export const setFont = (font) => {
+  const normalized = applyFont(font);
+  localStorage.setItem(FONT_STORAGE_KEY, normalized.key);
+
+  window.dispatchEvent(new CustomEvent('font-change', {
+    detail: normalized,
+    bubbles: false,
+    cancelable: false
+  }));
+
+  return normalized;
 };
 
 export const applyThemeColor = (themeColor = getStoredThemeColor()) => {
@@ -186,6 +248,7 @@ export const toggleTheme = () => {
 
 export const initTheme = () => {
   applyThemeColor(getStoredThemeColor());
+  applyFont(getStoredFont());
   setTheme(getStoredTheme());
 };
 
@@ -205,4 +268,13 @@ export const onThemeColorChange = (callback) => {
   window.addEventListener('theme-color-change', handler);
 
   return () => window.removeEventListener('theme-color-change', handler);
+};
+
+export const onFontChange = (callback) => {
+  callback(getStoredFont());
+
+  const handler = (e) => callback(e.detail);
+  window.addEventListener('font-change', handler);
+
+  return () => window.removeEventListener('font-change', handler);
 };

@@ -12,7 +12,6 @@ import SubjectRadarPanel from '@/views/high/features/SubjectRadarPanel.vue'
 import ReviewPlan from '@/views/high/features/ReviewPlan.vue'
 import QualityRecords from '@/views/high/features/QualityRecords.vue'
 import StrongBaseChecklist from '@/views/high/features/StrongBaseChecklist.vue'
-import ParentReadOnlyView from '@/views/high/features/ParentReadOnlyView.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,7 +24,7 @@ const tabs = [
   { key: 'plan', label: '复习计划', icon: '📆' },
   { key: 'quality', label: '综评记录', icon: '📝' },
   { key: 'strong', label: '强基清单', icon: '✅' },
-  { key: 'parent', label: '家长视图', icon: '👪' },
+
   { key: 'selection', label: '选科中心', icon: '📚', external: '/CourseSelection' },
   { key: 'volunteer', label: '志愿填报', icon: '🎓', external: '/Volunteer' },
 ]
@@ -46,7 +45,7 @@ const currentComponent = computed(() => {
     plan: ReviewPlan,
     quality: QualityRecords,
     strong: StrongBaseChecklist,
-    parent: ParentReadOnlyView,
+
   }
   return map[activeTab.value]
 })

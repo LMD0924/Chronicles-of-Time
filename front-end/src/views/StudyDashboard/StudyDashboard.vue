@@ -13,7 +13,7 @@
               <component
                 :is="currentComponent"
                 :is-dark="isDark"
-                :student-id="studentId"
+                :user-id="userId"
               />
             </keep-alive>
           </div>
@@ -34,7 +34,7 @@ import AnswerRecords from '@/views/StudyDashboard/AnswerRecords.vue'
 import Nav from '@/components/Nav.vue'
 
 defineProps({
-  studentId: { type: [String, Number], default: 1 }
+  userId: { type: [String, Number], default: 1 }
 })
 
 const route = useRoute()

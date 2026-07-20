@@ -15,8 +15,8 @@ public class CourseSelectionIntention {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
-    private Long studentId;
-    private String studentName;
+    private Long userId;
+    private String userName;
     private String grade;
     private String firstSubjectIntention;
 
@@ -40,8 +40,8 @@ public class CourseSelectionIntention {
     private String strengthSubjects;
     private String weakSubjects;
     private String careerInterest;
-    private String teacherFeedback;
-    private String parentFeedback;
+    private String adminFeedback;
+    private String additionalFeedback;
     private Integer status;
     private LocalDateTime submitTime;
     private LocalDateTime evaluateTime;

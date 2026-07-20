@@ -49,7 +49,7 @@ public class AuthUser {
     }
 
     public boolean canManageUserResource(Long ownerUserId) {
-        return hasAnyRole(RoleCodes.SUPER_ADMIN, RoleCodes.ADMIN, RoleCodes.TEACHER) || (userId != null && userId.equals(ownerUserId));
+        return hasAnyRole(RoleCodes.SUPER_ADMIN, RoleCodes.ADMIN) || (userId != null && userId.equals(ownerUserId));
     }
 
     public Set<String> safeRoles() {

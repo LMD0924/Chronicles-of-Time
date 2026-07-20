@@ -34,7 +34,7 @@
 ### 4.1 身份认证库 `cot_identity`
 
 - `iam_user`：统一账号表，对应当前 `user`。保留用户名、密码哈希、邮箱、手机号、头像、状态、最近登录等字段。
-- `iam_role`：角色表，预置 `SUPER_ADMIN`、`ADMIN`、`USER`、`TEACHER`、`PARENT`。
+- `iam_role`：角色表，预置 `SUPER_ADMIN`、`ADMIN`、`USER`。
 - `iam_permission`：菜单、按钮、API 权限统一表，后续后台管理可以直接接入。
 - `iam_user_role`、`iam_role_permission`：RBAC 关联表。
 - `iam_refresh_token`：刷新令牌与登录设备，替代只依赖 Redis 的不可追踪模式。

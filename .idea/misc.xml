@@ -26,6 +26,7 @@
     </option>
     <option name="ignoredFiles">
       <set>
+        <option value="$PROJECT_DIR$/back-end-admin/pom.xml" />
         <option value="$PROJECT_DIR$/back-end-spring-cloud/Question-Bank/pom.xml" />
         <option value="$PROJECT_DIR$/back-end-spring-cloud/Workplace/pom.xml" />
       </set>

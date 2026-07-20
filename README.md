@@ -1,4 +1,4 @@
-# 拾光记 Chronicles of Time
+﻿# 拾光记 Chronicles of Time
 
 拾光记是一个覆盖高中、大学、职场和长期成长阶段的个人成长管理系统。项目采用前后台分离和 Spring Cloud 多服务结构，包含用户端、后台管理端、统一网关、认证中心、文件上传、学习题库、高中升学规划、大学学业规划、职场和进阶成长服务。
 
@@ -19,7 +19,7 @@
 准备 MySQL 8.0+，执行：
 
 ```sql
-source back-end-spring-cloud/sql/01_cot_enterprise_schema.sql;
+source back-end-spring-cloud/sql/01_schema.sql;
 ```
 
 当前脚本按服务拆分数据库，主要包含：
@@ -102,3 +102,4 @@ $env:HIGH_AI_API_KEY="你的大模型 API Key"
 - 前端请求优先通过封装的 `request` 工具走网关，不在页面里直接拼接服务端口。
 - 后端新接口应保持 `/api/**` 前缀，并同步更新 `gateway` 路由。
 - 不要把真实数据库密码、JWT 密钥或大模型 API Key 提交到仓库；本地开发优先使用环境变量覆盖配置。
+

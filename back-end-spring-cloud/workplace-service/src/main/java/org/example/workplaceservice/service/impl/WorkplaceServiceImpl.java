@@ -249,7 +249,7 @@ public class WorkplaceServiceImpl implements WorkplaceService {
     }
 
     private <T> LambdaQueryWrapper<T> ownerScoped(LambdaQueryWrapper<T> wrapper, com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, Long> userColumn, AuthUser user) {
-        if (!user.hasAnyRole(RoleCodes.SUPER_ADMIN, RoleCodes.ADMIN, RoleCodes.TEACHER)) {
+        if (!user.hasAnyRole(RoleCodes.SUPER_ADMIN, RoleCodes.ADMIN)) {
             wrapper.eq(userColumn, user.getUserId());
         }
         return wrapper;

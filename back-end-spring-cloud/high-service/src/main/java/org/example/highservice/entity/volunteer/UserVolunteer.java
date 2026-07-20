@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @TableName("user_volunteer_plan")
 public class UserVolunteer {
     @TableId(type = IdType.ASSIGN_ID)
-    private Integer id;
+    private Long id;
 
     @TableField("user_id")
     private Long userId;
@@ -26,8 +27,9 @@ public class UserVolunteer {
     private String province;
     private Integer score;
 
-    @TableField("rank_no")
-    private Integer rank;
+    @TableField("`rank_no`")
+    @JsonProperty("rank")
+    private Integer rankNo;
 
     @TableField("student_type")
     private String studentType;

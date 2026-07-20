@@ -10,7 +10,7 @@ import lombok.Data;
 @TableName("gaokao_university")
 public class University {
     @TableId(type = IdType.ASSIGN_ID)
-    private Integer id;
+    private Long id;
 
     @TableField("university_name")
     private String name;

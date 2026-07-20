@@ -221,7 +221,7 @@ public class AdvancedServiceImpl implements AdvancedService {
             suggestions.add("核心技能近两周缺少练习记录，建议安排一次可验证的作品或输出。");
         }
         if (sessions.isEmpty()) {
-            suggestions.add("还没有导师/复盘会话记录，可以邀请老师、同事或前辈给一次路线反馈。");
+            suggestions.add("还没有导师/复盘会话记录，可以邀请管理员、同事或前辈给一次路线反馈。");
         }
         return suggestions;
     }
@@ -248,7 +248,7 @@ public class AdvancedServiceImpl implements AdvancedService {
     }
 
     private <T> LambdaQueryWrapper<T> ownerScoped(LambdaQueryWrapper<T> wrapper, com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, Long> userColumn, AuthUser user) {
-        if (!user.hasAnyRole(RoleCodes.SUPER_ADMIN, RoleCodes.ADMIN, RoleCodes.TEACHER)) {
+        if (!user.hasAnyRole(RoleCodes.SUPER_ADMIN, RoleCodes.ADMIN)) {
             wrapper.eq(userColumn, user.getUserId());
         }
         return wrapper;

@@ -1,4 +1,4 @@
-<!--
+﻿<!--
   文件说明：拾光记前台应用高中阶段页面组件，承载高中阶段场景的界面展示、交互操作和数据承接。
 -->
 <template>
@@ -241,91 +241,189 @@
     </div>
 
     <!-- 方案弹窗 -->
-    <el-dialog v-model="showPlanModal" :title="planModalTitle" width="520px" :class="{ 'dark-dialog': isDark }" class="custom-dialog">
-      <el-form :model="planForm" label-width="100px" class="dialog-form">
-        <el-form-item label="方案名称">
-          <el-input v-model="planForm.name" placeholder="请输入方案名称" class="dialog-input" />
-        </el-form-item>
-        <el-form-item label="年份">
-          <el-input-number v-model="planForm.year" :min="2020" :max="2030" class="w-full dialog-input" />
-        </el-form-item>
-        <el-form-item label="省份">
-          <el-input v-model="planForm.province" placeholder="请输入省份" class="dialog-input" />
-        </el-form-item>
-        <el-form-item label="高考分数">
-          <el-input-number v-model="planForm.score" :min="0" :max="750" class="w-full dialog-input" />
-        </el-form-item>
-        <el-form-item label="全省排名">
-          <el-input-number v-model="planForm.rank" :min="0" class="w-full dialog-input" />
-        </el-form-item>
-        <el-form-item label="是否提交">
-          <el-switch v-model="planForm.isFinal" class="dialog-switch" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <button @click="showPlanModal = false" class="dialog-btn cancel">取消</button>
-          <button @click="submitPlan" class="dialog-btn confirm">确定</button>
-        </div>
-      </template>
-    </el-dialog>
-
-    <!-- 志愿弹窗 -->
-    <el-dialog v-model="showDetailModal" :title="detailModalTitle" width="520px" :class="{ 'dark-dialog': isDark }" class="custom-dialog">
-      <el-form :model="detailForm" label-width="100px" class="dialog-form">
-        <el-form-item label="大学ID">
-          <el-input-number v-model="detailForm.universityId" class="w-full dialog-input" />
-        </el-form-item>
-        <el-form-item label="专业ID">
-          <el-input-number v-model="detailForm.majorId" class="w-full dialog-input" />
-        </el-form-item>
-        <el-form-item label="志愿顺序">
-          <el-input-number v-model="detailForm.priority" :min="1" class="w-full dialog-input" />
-        </el-form-item>
-        <el-form-item label="服从调剂">
-          <el-switch v-model="detailForm.isMajorAdjusted" class="dialog-switch" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <button @click="showDetailModal = false" class="dialog-btn cancel">取消</button>
-          <button @click="submitDetail" class="dialog-btn confirm">确定</button>
-        </div>
-      </template>
-    </el-dialog>
-
-    <!-- 批量添加弹窗 -->
-    <el-dialog v-model="showBatchModal" title="批量添加志愿" width="700px" :class="{ 'dark-dialog': isDark }" class="custom-dialog">
-      <div class="batch-modal-content">
-        <div v-for="(item, idx) in batchDetails" :key="idx" class="batch-item">
-          <div class="batch-item-header">
-            <span class="batch-item-index">志愿 {{ idx + 1 }}</span>
-            <button v-if="batchDetails.length > 1" @click="batchDetails.splice(idx, 1)" class="batch-remove">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
+    <transition name="modal-fade">
+      <div v-if="showPlanModal" class="modal-overlay" @click.self="showPlanModal = false">
+        <div class="modal-shell modal-shell-md" :class="isDark ? 'modal-shell-dark' : 'modal-shell-light'">
+          <div class="modal-header">
+            <div>
+              <p class="modal-kicker">规划未来</p>
+              <h3 class="modal-title">{{ planModalTitle }}</h3>
+            </div>
+            <button type="button" class="modal-close" aria-label="关闭" @click="showPlanModal = false">
+              <span>×</span>
             </button>
           </div>
-          <div class="batch-item-fields">
-            <el-input-number v-model="item.universityId" placeholder="大学ID" class="batch-input" />
-            <el-input-number v-model="item.majorId" placeholder="专业ID" class="batch-input" />
-            <el-input-number v-model="item.priority" :min="1" placeholder="顺序" class="batch-input" />
+
+          <div class="modal-body">
+            <div class="modal-form modal-form-grid">
+              <label class="field field-wide">
+                <span class="field-label">方案名称</span>
+                <input v-model="planForm.name" type="text" class="field-input" placeholder="请输入方案名称" />
+              </label>
+              <label class="field">
+                <span class="field-label">年份</span>
+                <input v-model.number="planForm.year" type="number" min="2020" max="2030" class="field-input" />
+              </label>
+              <label class="field">
+                <span class="field-label">省份</span>
+                <input v-model="planForm.province" type="text" class="field-input" placeholder="例如：浙江" />
+              </label>
+              <label class="field">
+                <span class="field-label">分数</span>
+                <input v-model.number="planForm.score" type="number" min="0" max="750" class="field-input" placeholder="0-750" />
+              </label>
+              <label class="field">
+                <span class="field-label">位次</span>
+                <input v-model.number="planForm.rank" type="number" min="0" class="field-input" placeholder="请输入位次" />
+              </label>
+              <label class="field field-wide switch-field">
+                <span>
+                  <span class="field-label">最终方案</span>
+                  <span class="field-hint">用于标记当前最想保留的一版规划</span>
+                </span>
+                <span class="switch-toggle">
+                  <input v-model="planForm.isFinal" type="checkbox" />
+                  <span class="switch-track"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">{{ planForm.isFinal ? '已标记' : '未标记' }}</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="dialog-footer">
+            <button type="button" @click="showPlanModal = false" class="dialog-btn cancel">取消</button>
+            <button type="button" @click="submitPlan" class="dialog-btn confirm">保存</button>
           </div>
         </div>
-        <button @click="addBatchDetailRow" class="batch-add-btn">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-          添加一行
-        </button>
       </div>
-      <template #footer>
-        <div class="dialog-footer">
-          <button @click="showBatchModal = false" class="dialog-btn cancel">取消</button>
-          <button @click="batchAddDetails" class="dialog-btn confirm">提交</button>
+    </transition>
+
+    <!-- 志愿弹窗 -->
+    <transition name="modal-fade">
+      <div v-if="showDetailModal" class="modal-overlay" @click.self="showDetailModal = false">
+        <div class="modal-shell modal-shell-md" :class="isDark ? 'modal-shell-dark' : 'modal-shell-light'">
+          <div class="modal-header">
+            <div>
+              <p class="modal-kicker">志愿管理</p>
+              <h3 class="modal-title">{{ detailModalTitle }}</h3>
+            </div>
+            <button type="button" class="modal-close" aria-label="关闭" @click="showDetailModal = false">
+              <span>×</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <div class="modal-form modal-form-grid">
+              <label class="field">
+                <span class="field-label">院校 ID</span>
+                <input v-model.number="detailForm.universityId" type="number" min="1" class="field-input" placeholder="请输入院校ID" />
+              </label>
+              <label class="field">
+                <span class="field-label">专业 ID</span>
+                <input v-model.number="detailForm.majorId" type="number" min="1" class="field-input" placeholder="请输入专业ID" />
+              </label>
+              <label class="field">
+                <span class="field-label">志愿顺序</span>
+                <input v-model.number="detailForm.priority" type="number" min="1" class="field-input" />
+              </label>
+              <label class="field switch-field">
+                <span>
+                  <span class="field-label">服从调剂</span>
+                  <span class="field-hint">影响录取模拟的专业风险判断</span>
+                </span>
+                <span class="switch-toggle">
+                  <input v-model="detailForm.isMajorAdjusted" type="checkbox" />
+                  <span class="switch-track"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">{{ detailForm.isMajorAdjusted ? '是' : '否' }}</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="dialog-footer">
+            <button type="button" @click="showDetailModal = false" class="dialog-btn cancel">取消</button>
+            <button type="button" @click="submitDetail" class="dialog-btn confirm">保存</button>
+          </div>
         </div>
-      </template>
-    </el-dialog>
+      </div>
+    </transition>
+
+    <!-- 批量添加弹窗 -->
+    <transition name="modal-fade">
+      <div v-if="showBatchModal" class="modal-overlay" @click.self="showBatchModal = false">
+        <div class="modal-shell modal-shell-lg" :class="isDark ? 'modal-shell-dark' : 'modal-shell-light'">
+          <div class="modal-header">
+            <div>
+              <p class="modal-kicker">批量编辑</p>
+              <h3 class="modal-title">批量添加志愿</h3>
+            </div>
+            <button type="button" class="modal-close" aria-label="关闭" @click="showBatchModal = false">
+              <span>×</span>
+            </button>
+          </div>
+
+          <div class="batch-modal-content">
+            <div v-for="(item, idx) in batchDetails" :key="idx" class="batch-item">
+              <div class="batch-item-header">
+                <span class="batch-item-index">志愿 {{ idx + 1 }}</span>
+                <button v-if="batchDetails.length > 1" type="button" @click="batchDetails.splice(idx, 1)" class="batch-remove" aria-label="移除">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="batch-item-fields">
+                <label class="field compact-field">
+                  <span class="field-label">院校 ID</span>
+                  <input v-model.number="item.universityId" type="number" min="1" class="field-input" />
+                </label>
+                <label class="field compact-field">
+                  <span class="field-label">专业 ID</span>
+                  <input v-model.number="item.majorId" type="number" min="1" class="field-input" />
+                </label>
+                <label class="field compact-field">
+                  <span class="field-label">顺序</span>
+                  <input v-model.number="item.priority" type="number" min="1" class="field-input" />
+                </label>
+              </div>
+            </div>
+            <button type="button" @click="addBatchDetailRow" class="batch-add-btn">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              添加一条志愿
+            </button>
+          </div>
+
+          <div class="dialog-footer">
+            <button type="button" @click="showBatchModal = false" class="dialog-btn cancel">取消</button>
+            <button type="button" @click="batchAddDetails" class="dialog-btn confirm">确认添加</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- 删除确认弹层 -->
+    <transition name="modal-fade">
+      <div v-if="showDeleteConfirm" class="modal-overlay" @click.self="closeDeleteConfirm">
+        <div class="modal-shell modal-shell-confirm" :class="isDark ? 'modal-shell-dark' : 'modal-shell-light'">
+          <div class="confirm-badge">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86l-8.5 15A2 2 0 003.5 22h17a2 2 0 001.71-3.14l-8.5-15a2 2 0 00-3.42 0z"></path>
+            </svg>
+          </div>
+          <div class="confirm-copy">
+            <p class="modal-kicker danger">确认删除</p>
+            <h3 class="modal-title">{{ deleteTarget.label || '当前记录' }}</h3>
+            <p class="modal-description">删除后无法恢复，是否继续删除这条记录？</p>
+          </div>
+          <div class="confirm-actions">
+            <button type="button" @click="closeDeleteConfirm" class="dialog-btn cancel">取消</button>
+            <button type="button" @click="confirmDelete" class="dialog-btn danger">删除</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -383,7 +481,7 @@ const planAiPayload = computed(() => ({
     scoreDiff: detail.scoreDiff,
     matchingCheck: detail.matchingCheck
   })),
-  question: '请分析当前志愿方案的梯度、选科匹配、专业风险、保底充分性和下一步修改建议。'
+  question: '请分析当前志愿方案的梯度、选科匹配、专业风险、保底充足性和下一步修改建议。'
 }))
 
 const formatDate = (dateStr) => {
@@ -391,7 +489,6 @@ const formatDate = (dateStr) => {
   const date = new Date(dateStr)
   return `${date.getMonth() + 1}月${date.getDate()}日`
 }
-
 const getVolunteerPlans = async () => {
   try {
     const res = await request.get(`/volunteer/plan/list/${props.userId}`)
@@ -450,19 +547,56 @@ const submitPlan = async () => {
   }
 }
 
-const deletePlan = async (id) => {
+const showDeleteConfirm = ref(false)
+const deleteTarget = ref({ type: '', id: null, label: '' })
+
+const openDeleteConfirm = (type, id, label) => {
+  deleteTarget.value = { type, id, label }
+  showDeleteConfirm.value = true
+}
+
+const closeDeleteConfirm = () => {
+  showDeleteConfirm.value = false
+  deleteTarget.value = { type: '', id: null, label: '' }
+}
+
+const deletePlan = (id) => {
+  const plan = volunteerPlans.value.find(item => item.id === id)
+  openDeleteConfirm('plan', id, plan ? `${plan.name || `方案${plan.year}`}` : `方案 ${id}`)
+}
+
+const deleteDetail = (id) => {
+  const detail = volunteerDetails.value.find(item => item.id === id)
+  const label = detail
+    ? `第${detail.priority || ''}志愿${detail.universityName ? ` · ${detail.universityName}` : ''}${detail.majorName ? ` - ${detail.majorName}` : ''}`
+    : `志愿记录 ${id}`
+  openDeleteConfirm('detail', id, label)
+}
+const confirmDelete = async () => {
+  const target = deleteTarget.value
+  if (!target.id) return
   try {
-    const res = await request.delete(`/volunteer/plan/delete/${id}`)
-    if (res.code === 200) {
-      ElMessage.success('删除成功')
-      await getVolunteerPlans()
-      if (selectedPlan.value?.id === id) {
-        selectedPlan.value = null
-        volunteerDetails.value = []
+    if (target.type === 'plan') {
+      const res = await request.delete(`/volunteer/plan/delete/${target.id}`)
+      if (res.code === 200) {
+        ElMessage.success('删除成功')
+        await getVolunteerPlans()
+        if (selectedPlan.value?.id === target.id) {
+          selectedPlan.value = null
+          volunteerDetails.value = []
+        }
+        closeDeleteConfirm()
+      }
+    } else if (target.type === 'detail') {
+      const res = await request.delete(`/volunteer/detail/delete/${target.id}`)
+      if (res.code === 200) {
+        ElMessage.success('删除成功')
+        await selectPlan(selectedPlan.value)
+        closeDeleteConfirm()
       }
     }
   } catch (error) {
-    console.error('删除方案失败', error)
+    console.error('删除失败', error)
   }
 }
 
@@ -500,18 +634,6 @@ const submitDetail = async () => {
     }
   } catch (error) {
     console.error('提交详情失败', error)
-  }
-}
-
-const deleteDetail = async (id) => {
-  try {
-    const res = await request.delete(`/volunteer/detail/delete/${id}`)
-    if (res.code === 200) {
-      ElMessage.success('删除成功')
-      await selectPlan(selectedPlan.value)
-    }
-  } catch (error) {
-    console.error('删除志愿失败', error)
   }
 }
 
@@ -1089,114 +1211,273 @@ onMounted(() => {
   transform: scale(1.05);
 }
 
-/* 弹窗样式 */
-.custom-dialog :deep(.el-dialog) {
-  border-radius: 24px;
+/* 自定义弹窗 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(18px);
+}
+
+.modal-shell {
+  width: min(100%, 560px);
+  max-height: min(86vh, 760px);
   overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
 }
 
-.dark-dialog :deep(.el-dialog) {
-  background: rgba(30, 41, 59, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.modal-shell-md { width: min(100%, 620px); }
+.modal-shell-lg { width: min(100%, 820px); }
+
+.modal-shell-confirm {
+  width: min(100%, 430px);
+  padding: 28px;
+  text-align: center;
 }
 
-.dialog-form {
-  padding: 0 8px;
+.modal-shell-light {
+  background: rgba(255, 255, 255, 0.96);
+  color: #111827;
 }
 
-.dialog-input :deep(.el-input__wrapper),
-.dialog-input :deep(.el-input-number__wrapper) {
+.modal-shell-dark {
+  background: rgba(15, 23, 42, 0.94);
+  color: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.26);
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 26px 28px 18px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.modal-kicker {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #0f766e;
+}
+
+.modal-kicker.danger { color: #ef4444; }
+
+.modal-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.modal-close {
+  width: 36px;
+  height: 36px;
+  border: none;
   border-radius: 12px;
-  box-shadow: none;
-  border: 1px solid #e5e7eb;
+  background: rgba(148, 163, 184, 0.14);
+  color: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.dark .dialog-input :deep(.el-input__wrapper),
-.dark .dialog-input :deep(.el-input-number__wrapper) {
-  background: rgba(51, 65, 85, 0.8);
-  border-color: #475569;
+.modal-close:hover {
+  transform: translateY(-1px);
+  background: rgba(20, 184, 166, 0.16);
 }
 
-.dialog-switch :deep(.el-switch__core) {
-  border-radius: 20px;
+.modal-body { padding: 24px 28px 8px; }
+
+.modal-form {
+  display: grid;
+  gap: 18px;
+}
+
+.modal-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.field { display: grid; gap: 8px; }
+.field-wide { grid-column: 1 / -1; }
+
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.modal-shell-dark .field-label { color: #cbd5e1; }
+
+.field-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.field-input {
+  width: 100%;
+  height: 42px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #111827;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.field-input:focus {
+  border-color: rgba(15, 118, 110, 0.74);
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
+}
+
+.modal-shell-dark .field-input {
+  background: rgba(30, 41, 59, 0.82);
+  color: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+.switch-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(20, 184, 166, 0.08);
+}
+
+.switch-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.switch-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.switch-track {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  transition: background 0.2s ease;
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.switch-toggle input:checked + .switch-track {
+  background: linear-gradient(135deg, #0f766e, #2563eb);
+}
+
+.switch-toggle input:checked + .switch-track .switch-thumb { transform: translateX(20px); }
+
+.switch-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f766e;
 }
 
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  padding: 20px 28px 26px;
 }
 
 .dialog-btn {
-  padding: 10px 24px;
-  border-radius: 40px;
+  min-width: 92px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 999px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   border: none;
 }
 
+.dialog-btn:hover { transform: translateY(-1px); }
+
 .dialog-btn.cancel {
-  background: #f3f4f6;
-  color: #4b5563;
+  background: rgba(148, 163, 184, 0.16);
+  color: #475569;
 }
 
-.dark .dialog-btn.cancel {
-  background: #374151;
-  color: #9ca3af;
-}
-
-.dialog-btn.cancel:hover {
-  background: #e5e7eb;
-}
+.modal-shell-dark .dialog-btn.cancel { color: #e2e8f0; }
 
 .dialog-btn.confirm {
-  background: linear-gradient(135deg, #d946ef, #8b5cf6);
-  color: white;
+  background: linear-gradient(135deg, #0f766e, #2563eb);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.22);
 }
 
-.dialog-btn.confirm:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+.dialog-btn.danger {
+  background: linear-gradient(135deg, #ef4444, #f97316);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(239, 68, 68, 0.24);
 }
 
-/* 批量添加弹窗样式 */
 .batch-modal-content {
-  max-height: 500px;
+  max-height: 520px;
   overflow-y: auto;
-  padding: 8px;
+  padding: 24px 28px 8px;
 }
 
 .batch-item {
-  background: rgba(243, 244, 246, 0.5);
-  border-radius: 16px;
   padding: 16px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.82);
 }
 
-.dark .batch-item {
-  background: rgba(30, 41, 59, 0.5);
-}
+.modal-shell-dark .batch-item { background: rgba(30, 41, 59, 0.62); }
 
 .batch-item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .batch-item-index {
   font-size: 13px;
-  font-weight: 600;
-  color: #d946ef;
+  font-weight: 800;
+  color: #0f766e;
 }
 
 .batch-remove {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1204,43 +1485,85 @@ onMounted(() => {
   color: #ef4444;
   border: none;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
-.batch-remove:hover {
-  background: rgba(239, 68, 68, 0.2);
-}
+.batch-remove:hover { background: rgba(239, 68, 68, 0.2); }
 
 .batch-item-fields {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
-.batch-input :deep(.el-input-number__wrapper) {
-  width: 100%;
-  border-radius: 12px;
-}
+.compact-field .field-input { height: 38px; }
 
 .batch-add-btn {
   width: 100%;
-  padding: 12px;
-  border-radius: 40px;
-  background: rgba(99, 102, 241, 0.1);
-  border: 1px dashed rgba(99, 102, 241, 0.3);
-  color: #d946ef;
+  height: 44px;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.1);
+  border: 1px dashed rgba(15, 118, 110, 0.35);
+  color: #0f766e;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  font-weight: 800;
+  transition: all 0.2s ease;
 }
 
 .batch-add-btn:hover {
-  background: rgba(99, 102, 241, 0.15);
+  background: rgba(20, 184, 166, 0.16);
+  transform: translateY(-1px);
 }
 
+.confirm-badge {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 18px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.confirm-copy { display: grid; gap: 8px; }
+
+.modal-description {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.modal-shell-dark .modal-description { color: #cbd5e1; }
+
+.confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active { transition: opacity 0.18s ease; }
+.modal-fade-enter-from,
+.modal-fade-leave-to { opacity: 0; }
+
+@media (max-width: 640px) {
+  .modal-overlay { padding: 14px; }
+  .modal-form-grid,
+  .batch-item-fields { grid-template-columns: 1fr; }
+  .switch-field {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .dialog-footer,
+  .confirm-actions { flex-direction: column-reverse; }
+  .dialog-btn { width: 100%; }
+}
 /* 空状态样式 */
 .empty-state {
   text-align: center;
@@ -1262,3 +1585,6 @@ onMounted(() => {
   color: #9ca3af;
 }
 </style>
+
+
+

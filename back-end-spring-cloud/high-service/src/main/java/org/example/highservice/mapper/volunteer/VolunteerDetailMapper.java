@@ -24,12 +24,12 @@ public interface VolunteerDetailMapper extends BaseMapper<VolunteerDetail> {
     /**
      * 获取完整志愿详情（含大学和专业信息）
      */
-    List<Map<String, Object>> getFullVolunteerDetail(@Param("volunteerId") Integer volunteerId);
+    List<Map<String, Object>> getFullVolunteerDetail(@Param("volunteerId") Long volunteerId);
 
     /**
      * 获取志愿匹配度分析
      */
-    Map<String, Object> getMatchingAnalysis(@Param("volunteerDetailId") Integer volunteerDetailId);
+    Map<String, Object> getMatchingAnalysis(@Param("volunteerDetailId") Long volunteerDetailId);
 
     /**
      * 批量插入志愿详情

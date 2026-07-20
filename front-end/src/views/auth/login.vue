@@ -510,14 +510,39 @@ const navigateWithTransition = (path) => {
                             : 'bg-white/40 border-gray-200/50 placeholder:text-gray-500'
                         ]"
                       />
+                      <!-- 登录密码小眼睛 -->
                       <button
                         type="button"
                         @click="showLoginPassword = !showLoginPassword"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors"
-                        :class="isDark ? 'text-gray-300 hover:bg-white/10' : 'text-gray-500 hover:bg-gray-100'"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-all duration-300 hover:scale-110 active:scale-90"
+                        :class="[
+    isDark
+      ? 'text-gray-300 hover:bg-white/10 hover:text-white'
+      : 'text-gray-400 hover:bg-gray-100/80 hover:text-brand-600'
+  ]"
                         :aria-label="showLoginPassword ? '隐藏密码' : '显示密码'"
                       >
-                        <el-icon class="text-lg"><component :is="showLoginPassword ? Hide : View" /></el-icon>
+                        <svg
+                          class="w-5 h-5 transition-all duration-300"
+                          :class="showLoginPassword ? 'text-brand-500' : ''"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          viewBox="0 0 24 24"
+                        >
+                          <!-- 眼睛睁开 -->
+                          <template v-if="!showLoginPassword">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </template>
+                          <!-- 眼睛闭合（斜线穿过） -->
+                          <template v-else>
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <line x1="4.5" y1="4.5" x2="19.5" y2="19.5" />
+                          </template>
+                        </svg>
                       </button>
                     </div>
                   </div>
@@ -585,14 +610,37 @@ const navigateWithTransition = (path) => {
                             : 'bg-white/40 border-gray-200/50 placeholder:text-gray-500'
                         ]"
                       />
+                      <!-- 注册密码小眼睛 -->
                       <button
                         type="button"
                         @click="showRegisterPassword = !showRegisterPassword"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors"
-                        :class="isDark ? 'text-gray-300 hover:bg-white/10' : 'text-gray-500 hover:bg-gray-100'"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-all duration-300 hover:scale-110 active:scale-90"
+                        :class="[
+    isDark
+      ? 'text-gray-300 hover:bg-white/10 hover:text-white'
+      : 'text-gray-400 hover:bg-gray-100/80 hover:text-brand-600'
+  ]"
                         :aria-label="showRegisterPassword ? '隐藏密码' : '显示密码'"
                       >
-                        <el-icon class="text-lg"><component :is="showRegisterPassword ? Hide : View" /></el-icon>
+                        <svg
+                          class="w-5 h-5 transition-all duration-300"
+                          :class="showRegisterPassword ? 'text-brand-500' : ''"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          viewBox="0 0 24 24"
+                        >
+                          <template v-if="!showRegisterPassword">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </template>
+                          <template v-else>
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <line x1="4.5" y1="4.5" x2="19.5" y2="19.5" />
+                          </template>
+                        </svg>
                       </button>
                     </div>
                   </div>

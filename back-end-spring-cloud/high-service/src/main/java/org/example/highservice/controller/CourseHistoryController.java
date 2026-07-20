@@ -27,11 +27,11 @@ public class CourseHistoryController {
     private CourseHistoryService historyService;
 
     /**
-     * 获取学生的变更历史
+     * 获取用户的变更历史
      */
-    @GetMapping("/student/{studentId}")
-    public RestBean<?> getStudentHistory(@PathVariable Long studentId) {
-        List<CourseSelectionHistory> histories = historyService.getStudentHistory(studentId);
+    @GetMapping("/user/{userId}")
+    public RestBean<?> getStudentHistory(@PathVariable Long userId) {
+        List<CourseSelectionHistory> histories = historyService.getStudentHistory(userId);
         return RestBean.success(histories);
     }
 
@@ -81,11 +81,11 @@ public class CourseHistoryController {
     }
 
     /**
-     * 获取学生最后一次变更
+     * 获取用户最后一次变更
      */
-    @GetMapping("/last/{studentId}")
-    public RestBean<?> getLastChange(@PathVariable Long studentId) {
-        CourseSelectionHistory lastChange = historyService.getLastChange(studentId);
+    @GetMapping("/last/{userId}")
+    public RestBean<?> getLastChange(@PathVariable Long userId) {
+        CourseSelectionHistory lastChange = historyService.getLastChange(userId);
         return RestBean.success(lastChange);
     }
 }

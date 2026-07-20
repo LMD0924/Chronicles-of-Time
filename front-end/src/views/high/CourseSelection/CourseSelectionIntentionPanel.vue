@@ -5,11 +5,12 @@
 import { ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
+import IntentionEditDialog from './IntentionEditDialog.vue'
 
 const props = defineProps({
   isDark: Boolean,
-  studentId: [String, Number],
-  studentName: String
+  userId: [String, Number],
+  userName: String
 })
 
 const loading = ref(false)
@@ -17,6 +18,8 @@ const saving = ref(false)
 const intentions = ref([])
 const detailVisible = ref(false)
 const currentDetail = ref(null)
+const editDialogVisible = ref(false)
+const editingRecord = ref(null)
 const form = ref({
   id: null,
   grade: '高一',
@@ -31,12 +34,12 @@ const form = ref({
   strengthSubjects: '',
   weakSubjects: '',
   careerInterest: '',
-  teacherFeedback: '',
-  parentFeedback: ''
+  adminFeedback: '',
+  additionalFeedback: ''
 })
 
 const fetchList = async () => {
-  if (!props.studentId) return
+  if (!props.userId) return
   loading.value = true
   try {
     const res = await request.get('/intention/list')
@@ -47,16 +50,17 @@ const fetchList = async () => {
 }
 
 const submit = async () => {
-  if (!props.studentId) return ElMessage.warning('用户信息未加载')
+  if (!props.userId) return ElMessage.warning('用户信息未加载')
   if (!form.value.secondSubjectIntention1 || !form.value.secondSubjectIntention2) {
     return ElMessage.warning('请至少填写两门再选科目意向')
   }
+  const isCreating = !form.value.id
   saving.value = true
   try {
     const payload = {
       ...form.value,
-      studentId: String(props.studentId),
-      studentName: props.studentName || '当前学生'
+      userId: String(props.userId),
+      userName: props.userName || '当前用户'
     }
     const res = await request.post('/intention/save', payload)
     if (res.code === 200) {
@@ -64,7 +68,7 @@ const submit = async () => {
       form.value.id = res.data?.id || form.value.id
       await fetchList()
       // 重置表单（如果是新增）
-      if (!form.value.id) {
+      if (isCreating) {
         form.value = {
           id: null,
           grade: '高一',
@@ -79,8 +83,8 @@ const submit = async () => {
           strengthSubjects: '',
           weakSubjects: '',
           careerInterest: '',
-          teacherFeedback: '',
-          parentFeedback: ''
+          adminFeedback: '',
+          additionalFeedback: ''
         }
       }
     }
@@ -90,7 +94,8 @@ const submit = async () => {
 }
 
 const edit = (row) => {
-  form.value = { ...row }
+  editingRecord.value = { ...row }
+  editDialogVisible.value = true
 }
 
 const remove = async (id) => {
@@ -133,7 +138,7 @@ const getStatusText = (status) => {
   return map[status] || status
 }
 
-watch(() => props.studentId, fetchList, { immediate: true })
+watch(() => props.userId, fetchList, { immediate: true })
 </script>
 
 <template>
@@ -269,12 +274,12 @@ watch(() => props.studentId, fetchList, { immediate: true })
 
         <div class="form-row">
           <div class="form-group flex-1">
-            <label class="form-label">👨‍🏫 老师反馈</label>
-            <textarea v-model="form.teacherFeedback" rows="2" class="form-textarea" placeholder="老师的建议和评价..." />
+            <label class="form-label">👨‍🏫 管理员反馈</label>
+            <textarea v-model="form.adminFeedback" rows="2" class="form-textarea" placeholder="管理员的建议和评价..." />
           </div>
           <div class="form-group flex-1">
-            <label class="form-label">👪 家长反馈</label>
-            <textarea v-model="form.parentFeedback" rows="2" class="form-textarea" placeholder="家长的意见和期望..." />
+            <label class="form-label">👪 补充反馈</label>
+            <textarea v-model="form.additionalFeedback" rows="2" class="form-textarea" placeholder="补充意见和期望..." />
           </div>
         </div>
 
@@ -341,6 +346,14 @@ watch(() => props.studentId, fetchList, { immediate: true })
       </div>
     </div>
 
+    <IntentionEditDialog
+      v-model="editDialogVisible"
+      :record="editingRecord"
+      :isDark="isDark"
+      :userId="userId"
+      :userName="userName"
+      @saved="fetchList"
+    />
     <!-- 详情弹窗 -->
     <el-dialog v-model="detailVisible" title="选课意向详情" width="800px" :class="{ 'dark-dialog': isDark }">
       <div v-if="currentDetail" class="detail-dialog">
@@ -348,7 +361,7 @@ watch(() => props.studentId, fetchList, { immediate: true })
         <div class="detail-header">
           <div class="detail-student">
             <span class="detail-icon">👨‍🎓</span>
-            {{ currentDetail.studentName }}
+            {{ currentDetail.userName }}
           </div>
           <div class="detail-grade">
             <span class="detail-icon">📚</span>
@@ -429,12 +442,12 @@ watch(() => props.studentId, fetchList, { immediate: true })
           <div class="section-title">反馈信息</div>
           <div class="feedback-grid">
             <div class="feedback-item">
-              <div class="feedback-label">👨‍🏫 老师反馈</div>
-              <div class="feedback-content">{{ currentDetail.teacherFeedback || '-' }}</div>
+              <div class="feedback-label">👨‍🏫 管理员反馈</div>
+              <div class="feedback-content">{{ currentDetail.adminFeedback || '-' }}</div>
             </div>
             <div class="feedback-item">
-              <div class="feedback-label">👪 家长反馈</div>
-              <div class="feedback-content">{{ currentDetail.parentFeedback || '-' }}</div>
+              <div class="feedback-label">👪 补充反馈</div>
+              <div class="feedback-content">{{ currentDetail.additionalFeedback || '-' }}</div>
             </div>
           </div>
         </div>

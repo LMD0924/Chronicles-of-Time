@@ -35,9 +35,9 @@ public class CourseGuidanceServiceImpl
     }
 
     @Override
-    public List<CourseGuidance> listByStudentId(Long studentId) {
+    public List<CourseGuidance> listByUserId(Long userId) {
         LambdaQueryWrapper<CourseGuidance> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(CourseGuidance::getStudentId, studentId)
+        wrapper.eq(CourseGuidance::getUserId, userId)
                 .orderByDesc(CourseGuidance::getGuidanceDate)
                 .orderByDesc(CourseGuidance::getCreateTime);
         return this.list(wrapper);

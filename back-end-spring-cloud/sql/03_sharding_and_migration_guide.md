@@ -1,4 +1,4 @@
-# 分库分表与迁移上线方案
+﻿# 分库分表与迁移上线方案
 
 ## 1. 分库策略
 
@@ -87,7 +87,7 @@ table = answer_record_${month}_${shard}
 
 - 冻结旧库 DDL，不再新增旧表字段。
 - 给所有旧表补充主键、唯一键和更新时间。
-- 新建七个目标库，执行 `01_cot_enterprise_schema.sql`。
+- 新建七个目标库，执行 `01_schema.sql`。
 - 编写字段映射表，明确旧字段到新字段的转换。
 
 ### 5.2 迁移映射建议
@@ -150,4 +150,5 @@ table = answer_record_${month}_${shard}
 - 当前高中志愿域和大学课程域都有 `major` 表，新设计通过 `gaokao_major` 和 `uni_major` 拆开，迁移时不能混淆。
 - 当前部分实体主键是 `Integer`，新设计统一 `BIGINT`，代码落地时 DTO/VO 也要同步。
 - Redis 中的 token、计数、验证码不是数据库全量替代，迁移期间要统一过期策略。
+
 

@@ -8,7 +8,11 @@ import request from '@/utils/request'
 
 const props = defineProps({
   isDark: Boolean,
-  studentId: [String, Number]
+  userId: [String, Number],
+  refreshToken: {
+    type: Number,
+    default: 0
+  }
 })
 
 const emit = defineEmits(['refresh', 'edit'])
@@ -20,7 +24,7 @@ const selections = ref([])
 const fetchSelections = async () => {
   loading.value = true
   try {
-    const res = await request.get(`/selection/student/${props.studentId}`)
+    const res = await request.get(`/selection/user/${props.userId}`)
     if (res.code === 200) {
       selections.value = res.data || []
     }
@@ -108,9 +112,13 @@ const getStatusText = (status, isConfirmed) => {
   return '未确认'
 }
 
-watch(() => props.studentId, (val) => {
+watch(() => props.userId, (val) => {
   if (val) fetchSelections()
 }, { immediate: true })
+
+watch(() => props.refreshToken, () => {
+  if (props.userId) fetchSelections()
+})
 </script>
 <template>
   <div class="cs-panel space-y-4">

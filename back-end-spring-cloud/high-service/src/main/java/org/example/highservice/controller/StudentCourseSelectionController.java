@@ -4,7 +4,7 @@
 /*
  * @Author: 总会落叶
  * @Date: 2026/4/1
- * @Description: 学生选课记录控制器
+ * @Description: 用户选课记录控制器
  */
 package org.example.highservice.controller;
 
@@ -29,7 +29,7 @@ public class StudentCourseSelectionController {
     private StudentCourseSelectionService selectionService;
 
     /**
-     * 学生选课
+     * 用户选课
      */
     @PostMapping("/add")
     public RestBean<?> addSelection(@Valid @RequestBody StudentCourseSelection selection) {
@@ -65,11 +65,11 @@ public class StudentCourseSelectionController {
     }
 
     /**
-     * 获取学生的选课记录
+     * 获取用户的选课记录
      */
-    @GetMapping("/student/{studentId}")
-    public RestBean<?> getStudentSelections(@PathVariable Long studentId) {
-        List<StudentCourseSelection> selections = selectionService.getStudentSelections(studentId);
+    @GetMapping("/user/{userId}")
+    public RestBean<?> getStudentSelections(@PathVariable Long userId) {
+        List<StudentCourseSelection> selections = selectionService.getStudentSelections(userId);
         return RestBean.success(selections);
     }
 
@@ -157,7 +157,7 @@ public class StudentCourseSelectionController {
     }
 
     /**
-     * 获取年级排名前N的学生
+     * 获取年级排名前N的用户
      */
     @GetMapping("/top-students")
     public RestBean<?> getTopStudents(@RequestParam String grade, @RequestParam(defaultValue = "10") int limit) {
@@ -175,11 +175,11 @@ public class StudentCourseSelectionController {
     }
 
     /**
-     * 获取学生选课建议
+     * 获取用户选课建议
      */
-    @GetMapping("/advice/{studentId}")
-    public RestBean<?> getSelectionAdvice(@PathVariable Long studentId) {
-        Map<String, Object> advice = selectionService.getSelectionAdvice(studentId);
+    @GetMapping("/advice/{userId}")
+    public RestBean<?> getSelectionAdvice(@PathVariable Long userId) {
+        Map<String, Object> advice = selectionService.getSelectionAdvice(userId);
         return RestBean.success(advice);
     }
 }

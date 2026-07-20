@@ -28,8 +28,8 @@ public interface SubjectMapper extends BaseMapper<Subject> {
     List<Subject> getAllActiveSubjects();
 
     @Select("SELECT s.id, s.subject_name AS name, s.subject_type AS category, " +
-            "COUNT(DISTINCT CASE WHEN scs.first_subject_id = s.id THEN scs.student_id END) as first_count, " +
-            "COUNT(DISTINCT CASE WHEN scs.second_subject_1_id = s.id OR scs.second_subject_2_id = s.id THEN scs.student_id END) as second_count " +
+            "COUNT(DISTINCT CASE WHEN scs.first_subject_id = s.id THEN scs.user_id END) as first_count, " +
+            "COUNT(DISTINCT CASE WHEN scs.second_subject_1_id = s.id OR scs.second_subject_2_id = s.id THEN scs.user_id END) as second_count " +
             "FROM hs_subject s " +
             "LEFT JOIN hs_student_selection scs ON (scs.first_subject_id = s.id OR scs.second_subject_1_id = s.id OR scs.second_subject_2_id = s.id) " +
             "AND scs.is_confirmed = 1 " +

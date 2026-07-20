@@ -13,5 +13,5 @@ import java.util.List;
 
 public interface CourseGuidanceService extends IService<CourseGuidance> {
     CourseGuidance saveOrUpdateByStudent(CourseGuidance guidance);
-    List<CourseGuidance> listByStudentId(Long studentId);
+    List<CourseGuidance> listByUserId(Long userId);
 }

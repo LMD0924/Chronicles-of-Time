@@ -4,7 +4,7 @@
 /*
  * @Author: 总会落叶
  * @Date: 2026/4/1
- * @Description: 学生选课记录Mapper接口（完整版）
+ * @Description: 用户选课记录Mapper接口（完整版）
  */
 package org.example.highservice.mapper;
 
@@ -45,9 +45,9 @@ public interface StudentCourseSelectionMapper extends BaseMapper<StudentCourseSe
     List<Map<String, Object>> getFirstSubjectStatistics();
 
     /**
-     * 获取年级排名前N的学生
+     * 获取年级排名前N的用户
      */
-    @Select("SELECT id, student_id, student_name, grade, class_name, combination_name, " +
+    @Select("SELECT id, user_id, user_name, grade, class_name, combination_name, " +
             "total_score_weighted, grade_rank, first_subject_name, second_subject_1_name, second_subject_2_name " +
             "FROM hs_student_selection " +
             "WHERE is_confirmed = 1 AND is_public = 1 AND grade = #{grade} " +
@@ -134,12 +134,12 @@ public interface StudentCourseSelectionMapper extends BaseMapper<StudentCourseSe
     List<Map<String, Object>> getCombinationScoreRanking(@Param("grade") String grade);
 
     /**
-     * 根据学生ID获取最新选课记录
+     * 根据用户ID获取最新选课记录
      */
     @Select("SELECT * FROM hs_student_selection " +
-            "WHERE student_id = #{studentId} " +
+            "WHERE user_id = #{userId} " +
             "ORDER BY created_at DESC LIMIT 1")
-    StudentCourseSelection getLatestSelection(@Param("studentId") Long studentId);
+    StudentCourseSelection getLatestSelection(@Param("userId") Long userId);
 
     /**
      * 获取某组合的详细统计信息

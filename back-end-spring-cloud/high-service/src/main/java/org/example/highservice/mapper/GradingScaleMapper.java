@@ -64,7 +64,7 @@ public interface GradingScaleMapper extends BaseMapper<GradingScale> {
                                 @Param("isActive") Boolean isActive);
 
     /**
-     * 获取各分数段学生人数统计
+     * 获取各分数段用户人数统计
      */
     @Select("SELECT subject_id, " +
             "SUM(CASE WHEN raw_score_min <= 90 THEN 1 ELSE 0 END) as level_a_count, " +

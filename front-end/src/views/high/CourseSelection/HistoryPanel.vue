@@ -117,75 +117,40 @@
 
           <!-- 变更内容 -->
           <div class="content-body">
-            <div v-if="item.changeType === '1'" class="change-detail">
-              <div class="detail-row">
-                <span class="detail-label">选课组合</span>
-                <div class="subject-combination">
-                  <span class="subject-tag">{{ item.newFirstSubject }}</span>
-                  <span class="subject-plus">+</span>
-                  <span class="subject-tag">{{ item.newSecondSubject1 }}</span>
-                  <span class="subject-plus">+</span>
-                  <span class="subject-tag">{{ item.newSecondSubject2 }}</span>
+            <div class="change-detail">
+              <div class="compare-grid compact-compare">
+                <div class="compare-pane">
+                  <div class="compare-pane-title">变更前</div>
+                  <div
+                    v-for="field in buildSideSubjects(item, 'old')"
+                    :key="'old-' + field.key"
+                    class="compare-field"
+                  >
+                    <span class="compare-field-label">{{ field.label }}</span>
+                    <span class="compare-field-value old">{{ field.value }}</span>
+                  </div>
+                </div>
+                <div class="compare-arrow">→</div>
+                <div class="compare-pane">
+                  <div class="compare-pane-title">变更后</div>
+                  <div
+                    v-for="field in buildSideSubjects(item, 'new')"
+                    :key="'new-' + field.key"
+                    class="compare-field"
+                  >
+                    <span class="compare-field-label">{{ field.label }}</span>
+                    <span class="compare-field-value new">{{ field.value }}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div v-else-if="item.changeType === '2'" class="change-detail">
-              <div class="detail-row">
-                <span class="detail-label">变更前</span>
-                <div class="subject-combination old">
-                  <span class="subject-tag old">{{ item.oldFirstSubject }}</span>
-                  <span class="subject-plus">+</span>
-                  <span class="subject-tag old">{{ item.oldSecondSubject1 }}</span>
-                  <span class="subject-plus">+</span>
-                  <span class="subject-tag old">{{ item.oldSecondSubject2 }}</span>
-                </div>
-              </div>
-              <div class="detail-arrow">↓</div>
-              <div class="detail-row">
-                <span class="detail-label">变更后</span>
-                <div class="subject-combination new">
-                  <span class="subject-tag new">{{ item.newFirstSubject }}</span>
-                  <span class="subject-plus">+</span>
-                  <span class="subject-tag new">{{ item.newSecondSubject1 }}</span>
-                  <span class="subject-plus">+</span>
-                  <span class="subject-tag new">{{ item.newSecondSubject2 }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div v-else-if="item.changeType === '3'" class="change-detail">
-              <div class="detail-row">
-                <span class="detail-label">退选组合</span>
-                <div class="subject-combination cancelled">
-                  <span class="subject-tag cancelled">{{ item.oldFirstSubject }}</span>
-                  <span class="subject-plus">+</span>
-                  <span class="subject-tag cancelled">{{ item.oldSecondSubject1 }}</span>
-                  <span class="subject-plus">+</span>
-                  <span class="subject-tag cancelled">{{ item.oldSecondSubject2 }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div v-else-if="item.changeType === '4'" class="change-detail">
-              <div class="detail-row">
-                <span class="detail-label">确认组合</span>
-                <div class="subject-combination confirmed">
-                  <span class="subject-tag confirmed">{{ item.newFirstSubject }}</span>
-                  <span class="subject-plus">+</span>
-                  <span class="subject-tag confirmed">{{ item.newSecondSubject1 }}</span>
-                  <span class="subject-plus">+</span>
-                  <span class="subject-tag confirmed">{{ item.newSecondSubject2 }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div v-if="item.changeReason" class="detail-row">
+            <div v-if="item.changeReason" class="detail-row detail-note-row">
               <span class="detail-label">变更原因</span>
               <span class="detail-value">{{ item.changeReason }}</span>
             </div>
 
-            <div v-if="item.approveComment" class="detail-row">
+            <div v-if="item.approveComment" class="detail-row detail-note-row">
               <span class="detail-label">审批意见</span>
               <span class="detail-value">{{ item.approveComment }}</span>
             </div>
@@ -223,26 +188,40 @@
             <span class="info-value">{{ detail.selectionId }}</span>
           </div>
           <div class="info-item">
-            <span class="info-label">学生ID</span>
-            <span class="info-value">{{ detail.studentId }}</span>
+            <span class="info-label">用户ID</span>
+            <span class="info-value">{{ detail.userId }}</span>
           </div>
           <div class="info-item">
-            <span class="info-label">学生姓名</span>
-            <span class="info-value">{{ detail.studentName }}</span>
+            <span class="info-label">用户姓名</span>
+            <span class="info-value">{{ detail.userName }}</span>
           </div>
         </div>
 
         <div class="detail-section">
-          <div class="section-title">选课变更详情</div>
-          <div class="change-compare">
-            <div class="compare-old">
-              <div class="compare-label">变更前</div>
-              <div class="compare-value">{{ detail.oldFirstSubject || '-' }} + {{ detail.oldSecondSubject1 || '-' }} + {{ detail.oldSecondSubject2 || '-' }}</div>
+          <div class="section-title">变更前后信息</div>
+          <div class="compare-grid detail-compare">
+            <div class="compare-pane detail-pane">
+              <div class="compare-pane-title">变更前</div>
+              <div
+                v-for="field in buildSideSubjects(detail, 'old')"
+                :key="'detail-old-' + field.key"
+                class="compare-field"
+              >
+                <span class="compare-field-label">{{ field.label }}</span>
+                <span class="compare-field-value old">{{ field.value }}</span>
+              </div>
             </div>
             <div class="compare-arrow">→</div>
-            <div class="compare-new">
-              <div class="compare-label">变更后</div>
-              <div class="compare-value">{{ detail.newFirstSubject || '-' }} + {{ detail.newSecondSubject1 || '-' }} + {{ detail.newSecondSubject2 || '-' }}</div>
+            <div class="compare-pane detail-pane">
+              <div class="compare-pane-title">变更后</div>
+              <div
+                v-for="field in buildSideSubjects(detail, 'new')"
+                :key="'detail-new-' + field.key"
+                class="compare-field"
+              >
+                <span class="compare-field-label">{{ field.label }}</span>
+                <span class="compare-field-value new">{{ field.value }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -280,7 +259,7 @@ import request from '@/utils/request'
 
 const props = defineProps({
   isDark: Boolean,
-  studentId: [String, Number]
+  userId: [String, Number]
 })
 
 const loading = ref(false)
@@ -296,12 +275,30 @@ const statistics = ref({
 })
 const detailVisible = ref(false)
 const detail = ref(null)
+const subjectFields = [
+  { key: 'first', label: '首选科目', oldKey: 'oldFirstSubject', newKey: 'newFirstSubject' },
+  { key: 'second1', label: '再选科目1', oldKey: 'oldSecondSubject1', newKey: 'newSecondSubject1' },
+  { key: 'second2', label: '再选科目2', oldKey: 'oldSecondSubject2', newKey: 'newSecondSubject2' }
+]
+
+const displayValue = (value) => {
+  if (value === null || value === undefined || value === '') return '-'
+  return value
+}
+
+const buildSideSubjects = (item, side) => {
+  const keyName = side === 'old' ? 'oldKey' : 'newKey'
+  return subjectFields.map(field => ({
+    ...field,
+    value: displayValue(item?.[field[keyName]])
+  }))
+}
 
 // 获取历史记录
 const fetchHistory = async () => {
   loading.value = true
   try {
-    const res = await request.get(`/history/student/${props.studentId}`)
+    const res = await request.get(`/history/user/${props.userId}`)
     if (res.code === 200) {
       let data = res.data || []
       if (filterType.value !== 'all') {
@@ -383,7 +380,7 @@ const openDetail = async (id) => {
   }
 }
 
-watch(() => props.studentId, (val) => {
+watch(() => props.userId, (val) => {
   if (val) fetchHistory()
 }, { immediate: true })
 </script>
@@ -722,6 +719,98 @@ watch(() => props.studentId, (val) => {
 
 .dark .change-detail {
   background: rgba(255, 255, 255, 0.03);
+}
+.compare-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.compare-pane {
+  min-width: 0;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.dark .compare-pane {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.compare-pane-title {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.dark .compare-pane-title {
+  color: #d1d5db;
+}
+
+.compare-field {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.25);
+}
+
+.compare-field:last-child {
+  border-bottom: none;
+}
+
+.compare-field-label {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.dark .compare-field-label {
+  color: #9ca3af;
+}
+
+.compare-field-value {
+  min-width: 0;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  overflow-wrap: anywhere;
+}
+
+.compare-field-value.old {
+  color: #ef4444;
+}
+
+.compare-field-value.new {
+  color: #10b981;
+}
+
+.dark .compare-field-value.old {
+  color: #f87171;
+}
+
+.dark .compare-field-value.new {
+  color: #6ee7b7;
+}
+
+.detail-note-row {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.06);
+}
+
+.dark .detail-note-row {
+  background: rgba(129, 140, 248, 0.08);
+}
+
+.detail-compare .compare-pane {
+  padding: 14px;
 }
 
 .detail-row {
@@ -1092,6 +1181,10 @@ watch(() => props.studentId, (val) => {
     flex-direction: column;
   }
 
+
+  .compare-grid {
+    grid-template-columns: 1fr;
+  }
   .compare-arrow {
     transform: rotate(90deg);
   }

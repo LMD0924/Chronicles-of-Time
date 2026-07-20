@@ -1,138 +1,137 @@
-<!--
-  文件说明：拾光记前台应用高中阶段页面组件，承载高中阶段场景的界面展示、交互操作和数据承接。
--->
-<template>
-  <div class="space-y-6">
-    <!-- 综合推荐 -->
-    <div :class="[isDark ? 'bg-gray-800/50' : 'bg-white', 'backdrop-blur-xl rounded-2xl p-6 shadow-lg', isDark ? 'border border-gray-700' : 'border border-gray-200']">
-      <div class="flex items-center gap-3 mb-6">
-        <div class="w-10 h-10 bg-gradient-to-r from-brand-500 to-brand-600 rounded-xl flex items-center justify-center">
-          <span class="text-xl">🎯</span>
+﻿<template>
+  <div class="volunteer-panel space-y-6">
+    <section class="panel-shell panel-shell-hero" :class="isDark ? 'panel-shell-dark' : 'panel-shell-light'">
+      <div class="panel-head">
+        <div class="panel-brand panel-brand-primary">
+          <span>🎯</span>
         </div>
         <div>
-          <h2 :class="isDark ? 'text-white' : 'text-gray-900'" class="text-lg font-semibold">综合智能推荐</h2>
-          <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm">根据您的分数和选科，智能推荐适合的大学和专业</p>
+          <h2 class="panel-title" :class="isDark ? 'text-white' : 'text-slate-900'">综合智能推荐</h2>
+          <p class="panel-subtitle" :class="isDark ? 'text-slate-400' : 'text-slate-500'">根据分数、位次和选科，生成更贴近实际录取区间的推荐结果。</p>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-        <div>
-          <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">📅 年份</label>
-          <el-select v-model="recommendParams.year" class="w-full">
-            <el-option v-for="y in [2025,2024,2023,2022]" :key="y" :value="y" :label="`${y}年`" />
-          </el-select>
-        </div>
-        <div>
-          <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">📍 省份</label>
-          <el-select v-model="recommendParams.province" class="w-full">
-            <el-option v-for="p in provinces" :key="p" :value="p" />
-          </el-select>
-        </div>
-        <div>
-          <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">📊 高考分数</label>
-          <el-input-number v-model="recommendParams.score" :min="0" :max="750" class="w-full" />
-        </div>
-        <div>
-          <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">🏆 全省排名</label>
-          <el-input-number v-model="recommendParams.rank" :min="0" class="w-full" />
-        </div>
+      <div class="control-grid control-grid-4">
+        <label class="field">
+          <span class="field-label">年份</span>
+          <div class="select-wrap">
+            <select v-model="recommendParams.year" class="select-input">
+              <option v-for="y in [2025, 2024, 2023, 2022]" :key="y" :value="y">{{ y }}年</option>
+            </select>
+            <svg class="select-arrow" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+        </label>
+
+        <label class="field">
+          <span class="field-label">省份</span>
+          <div class="select-wrap">
+            <select v-model="recommendParams.province" class="select-input">
+              <option v-for="p in provinces" :key="p" :value="p">{{ p }}</option>
+            </select>
+            <svg class="select-arrow" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+        </label>
+
+        <label class="field">
+          <span class="field-label">高考分数</span>
+          <input v-model.number="recommendParams.score" type="number" min="0" max="750" class="input-base" placeholder="0 - 750" />
+        </label>
+
+        <label class="field">
+          <span class="field-label">全省排名</span>
+          <input v-model.number="recommendParams.rank" type="number" min="0" class="input-base" placeholder="可选" />
+        </label>
       </div>
 
-      <div class="mb-6">
-        <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">📚 选考科目</label>
-        <div class="flex flex-wrap gap-3">
+      <div class="field mt-6">
+        <span class="field-label">选科</span>
+        <div class="chip-group">
           <button
             v-for="subject in subjects"
             :key="subject"
+            type="button"
             @click="toggleSubject(subject)"
-            :class="[
-              'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',
-              recommendParams.subjects.includes(subject)
-                ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-lg'
-                : isDark
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            ]"
+            :class="recommendParams.subjects.includes(subject) ? 'chip chip-active' : 'chip chip-inactive'"
           >
             {{ subject }}
           </button>
         </div>
       </div>
 
-      <el-button
-        type="primary"
-        size="large"
-        @click="getRecommendations"
-        :loading="loading"
-        class="!w-full !bg-gradient-to-r !from-blue-500 !to-brand-500 !border-0 !h-12"
-      >
-        <el-icon><MagicStick /></el-icon>
-        {{ loading ? '分析中...' : '开始智能推荐' }}
-      </el-button>
-    </div>
+      <button type="button" class="action-btn action-btn-primary mt-6" @click="getRecommendations" :disabled="loading">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M10 3l1.9 4.4L16 9.1l-4.1 1.4L10 15l-1.9-4.5L4 9.1l4.1-1.7L10 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+        </svg>
+        <span>{{ loading ? '分析中...' : '开始智能推荐' }}</span>
+      </button>
+    </section>
 
-    <!-- 按专业推荐 -->
-    <div :class="[isDark ? 'bg-gray-800/50' : 'bg-white', 'backdrop-blur-xl rounded-2xl p-6 shadow-lg', isDark ? 'border border-gray-700' : 'border border-gray-200']">
-      <div class="flex items-center gap-3 mb-6">
-        <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-teal-500 rounded-xl flex items-center justify-center">
-          <span class="text-xl">💼</span>
+    <section class="panel-shell" :class="isDark ? 'panel-shell-dark' : 'panel-shell-light'">
+      <div class="panel-head">
+        <div class="panel-brand panel-brand-secondary">
+          <span>📘</span>
         </div>
         <div>
-          <h2 :class="isDark ? 'text-white' : 'text-gray-900'" class="text-lg font-semibold">按专业推荐</h2>
-          <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm">根据专业代码，查找开设该专业的院校</p>
+          <h2 class="panel-title" :class="isDark ? 'text-white' : 'text-slate-900'">按专业推荐</h2>
+          <p class="panel-subtitle" :class="isDark ? 'text-slate-400' : 'text-slate-500'">输入专业代码，快速找出更合适的院校组合。</p>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">🔖 专业代码</label>
-          <el-input v-model="recommendByMajorParams.majorCode" placeholder="如: 080901" />
-        </div>
-        <div>
-          <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">📊 高考分数</label>
-          <el-input-number v-model="recommendByMajorParams.score" :min="0" :max="750" class="w-full" />
-        </div>
-        <div>
-          <label :class="isDark ? 'text-gray-400' : 'text-gray-600'" class="block text-sm mb-2">📍 省份</label>
-          <el-select v-model="recommendByMajorParams.province" class="w-full">
-            <el-option value="北京" /><el-option value="上海" /><el-option value="浙江" /><el-option value="广东" />
-          </el-select>
-        </div>
-      </div>
+      <div class="control-grid control-grid-3">
+        <label class="field">
+          <span class="field-label">专业代码</span>
+          <input v-model="recommendByMajorParams.majorCode" type="text" class="input-base" placeholder="如 080901" />
+        </label>
 
-      <el-button type="success" size="large" @click="getRecommendByMajor" class="!w-full !bg-gradient-to-r !from-green-500 !to-teal-500 !border-0 !h-12">
-        <el-icon><School /></el-icon>
-        按专业推荐
-      </el-button>
+        <label class="field">
+          <span class="field-label">高考分数</span>
+          <input v-model.number="recommendByMajorParams.score" type="number" min="0" max="750" class="input-base" placeholder="0 - 750" />
+        </label>
 
-      <!-- 按专业推荐结果 -->
-      <div v-if="recommendByMajorResults.length > 0" class="mt-6 space-y-3">
-        <div :class="isDark ? 'text-gray-300' : 'text-gray-600'" class="text-sm mb-2">共找到 {{ recommendByMajorResults.length }} 所院校</div>
-        <div v-for="item in recommendByMajorResults" :key="item.universityId" :class="[
-          isDark ? 'bg-gray-700/50 border-gray-600 hover:border-gray-500' : 'bg-gray-50 border-gray-200 hover:border-gray-300',
-          'rounded-xl p-4 border transition'
-        ]">
-          <div class="flex flex-wrap justify-between items-center gap-4">
-            <div>
-              <h4 :class="isDark ? 'text-white' : 'text-gray-900'" class="font-semibold">{{ item.universityName }}</h4>
-              <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm">{{ item.majorName }} · 录取线: {{ item.minScore }}分</p>
-            </div>
-            <div class="text-right">
-              <span :class="[
-                'px-3 py-1 rounded-full text-xs font-medium',
-                item.strategy === '冲刺' ? 'bg-orange-500/20 text-orange-500' :
-                item.strategy === '稳妥' ? 'bg-green-500/20 text-green-500' : 'bg-brand-500/20 text-blue-500'
-              ]">
-                {{ item.strategy }}
-              </span>
-              <div :class="getProbabilityColor(item.probability)" class="text-2xl font-bold mt-1">
-                {{ (item.probability * 100).toFixed(0) }}%
-              </div>
-              <el-button text size="small" @click="getChance(item.universityId, item.majorId)" class="!text-blue-500 mt-1">
-                机会分析 →
-              </el-button>
-            </div>
+        <label class="field">
+          <span class="field-label">省份</span>
+          <div class="select-wrap">
+            <select v-model="recommendByMajorParams.province" class="select-input">
+              <option value="北京">北京</option>
+              <option value="上海">上海</option>
+              <option value="浙江">浙江</option>
+              <option value="广东">广东</option>
+            </select>
+            <svg class="select-arrow" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
           </div>
+        </label>
+      </div>
+
+      <button type="button" class="action-btn action-btn-secondary mt-6" @click="getRecommendByMajor">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M4 4h12v12H4z" stroke="currentColor" stroke-width="1.6" />
+          <path d="M7 10h6M10 7v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+        <span>开始按专业推荐</span>
+      </button>
+
+      <div v-if="recommendByMajorResults.length > 0" class="results-block mt-6">
+        <div class="results-meta" :class="isDark ? 'text-slate-400' : 'text-slate-500'">共找到 {{ recommendByMajorResults.length }} 所院校</div>
+        <div class="stack-list">
+          <article v-for="item in recommendByMajorResults" :key="item.universityId" class="result-card" :class="isDark ? 'result-card-dark' : 'result-card-light'">
+            <div class="result-card-main">
+              <div>
+                <h4 class="result-title" :class="isDark ? 'text-white' : 'text-slate-900'">{{ item.universityName }}</h4>
+                <p class="result-subtitle" :class="isDark ? 'text-slate-400' : 'text-slate-500'">{{ item.majorName }} · 录取线 {{ item.minScore }} 分</p>
+              </div>
+              <div class="result-aside">
+                <span class="status-pill" :class="strategyClass(item.strategy)">{{ item.strategy }}</span>
+                <div class="result-percent" :class="getProbabilityColor(item.probability)">{{ (item.probability * 100).toFixed(0) }}%</div>
+                <button type="button" class="text-action" @click="getChance(item.universityId, item.majorId)">机会分析</button>
+              </div>
+            </div>
+          </article>
         </div>
       </div>
 
@@ -146,20 +145,9 @@
         :is-dark="isDark"
         :payload="majorAiPayload"
       />
-    </div>
+    </section>
 
-    <!-- 推荐结果 -->
-    <div v-if="recommendations.length > 0" class="space-y-6">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-          <span class="text-xl">✨</span>
-        </div>
-        <div>
-          <h2 :class="isDark ? 'text-white' : 'text-gray-900'" class="text-lg font-semibold">智能推荐结果</h2>
-          <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm">基于您的分数和选科，为您推荐以下院校</p>
-        </div>
-      </div>
-
+    <section v-if="recommendations.length > 0" class="space-y-6">
       <AiInsightPanel
         scenario="volunteer"
         title="AI 志愿推荐分析"
@@ -169,125 +157,80 @@
         :payload="volunteerAiPayload"
       />
 
-      <!-- 冲刺志愿 -->
-      <div v-if="groupedRecommendations.冲刺?.length" :class="[isDark ? 'bg-orange-500/10 border-orange-500/30' : 'bg-orange-50 border-orange-200', 'rounded-2xl p-5 border']">
-        <h3 class="text-lg font-semibold text-orange-500 mb-4 flex items-center gap-2">
-          <span>🚀</span> 冲刺志愿 <span :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm">({{ groupedRecommendations.冲刺.length }}个)</span>
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div v-for="item in groupedRecommendations.冲刺" :key="item.universityId" :class="[
-            isDark ? 'bg-gray-700/50 border-gray-600 hover:border-orange-500/30' : 'bg-white border-gray-200 hover:border-orange-300',
-            'rounded-xl p-4 border transition'
-          ]">
-            <h4 :class="isDark ? 'text-white' : 'text-gray-900'" class="font-semibold">{{ item.universityName }}</h4>
-            <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm">{{ item.majorName }}</p>
-            <div class="flex justify-between items-center mt-3">
-              <div>
-                <p :class="isDark ? 'text-gray-500' : 'text-gray-400'" class="text-xs">录取线: {{ item.minScore }}分</p>
-                <p :class="isDark ? 'text-gray-500' : 'text-gray-400'" class="text-xs">分差: {{ item.scoreDiff }}分</p>
-              </div>
-              <div class="text-right">
-                <div class="text-xl font-bold text-orange-500">{{ (item.probability * 100).toFixed(0) }}%</div>
-                <el-button size="small" @click="addToPlan(item)" class="!mt-2">
-                  添加
-                </el-button>
-              </div>
-            </div>
-          </div>
+      <div v-for="section in visibleSections" :key="section.key" class="result-section" :class="section.shellClass">
+        <div class="section-head">
+          <h3 class="section-title" :class="section.titleClass">
+            <span>{{ section.icon }}</span>
+            {{ section.label }}
+          </h3>
+          <span class="section-count" :class="isDark ? 'text-slate-400' : 'text-slate-500'">{{ groupedRecommendations[section.key].length }} 条</span>
         </div>
-      </div>
 
-      <!-- 稳妥志愿 -->
-      <div v-if="groupedRecommendations.稳妥?.length" :class="[isDark ? 'bg-green-500/10 border-green-500/30' : 'bg-green-50 border-green-200', 'rounded-2xl p-5 border']">
-        <h3 class="text-lg font-semibold text-green-500 mb-4 flex items-center gap-2">
-          <span>✅</span> 稳妥志愿 <span :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm">({{ groupedRecommendations.稳妥.length }}个)</span>
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div v-for="item in groupedRecommendations.稳妥" :key="item.universityId" :class="[
-            isDark ? 'bg-gray-700/50 border-gray-600 hover:border-green-500/30' : 'bg-white border-gray-200 hover:border-green-300',
-            'rounded-xl p-4 border transition'
-          ]">
-            <h4 :class="isDark ? 'text-white' : 'text-gray-900'" class="font-semibold">{{ item.universityName }}</h4>
-            <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm">{{ item.majorName }}</p>
-            <div class="flex justify-between items-center mt-3">
+        <div class="grid-cards">
+          <article v-for="item in groupedRecommendations[section.key]" :key="item.universityId + '-' + item.majorId" class="mini-card" :class="isDark ? 'mini-card-dark' : 'mini-card-light'">
+            <div>
+              <h4 class="result-title" :class="isDark ? 'text-white' : 'text-slate-900'">{{ item.universityName }}</h4>
+              <p class="result-subtitle" :class="isDark ? 'text-slate-400' : 'text-slate-500'">{{ item.majorName }}</p>
+            </div>
+            <div class="mini-card-foot">
               <div>
-                <p :class="isDark ? 'text-gray-500' : 'text-gray-400'" class="text-xs">录取线: {{ item.minScore }}分</p>
-                <p :class="isDark ? 'text-gray-500' : 'text-gray-400'" class="text-xs">分差: {{ item.scoreDiff }}分</p>
+                <div class="mini-meta" :class="isDark ? 'text-slate-400' : 'text-slate-500'">录取线 {{ item.minScore }} 分</div>
+                <div class="mini-meta" :class="isDark ? 'text-slate-400' : 'text-slate-500'">分差 {{ item.scoreDiff }} 分</div>
               </div>
               <div class="text-right">
-                <div class="text-xl font-bold text-green-500">{{ (item.probability * 100).toFixed(0) }}%</div>
-                <el-button size="small" @click="addToPlan(item)" class="!mt-2">
-                  添加
-                </el-button>
+                <div class="result-percent" :class="section.percentClass">{{ (item.probability * 100).toFixed(0) }}%</div>
+                <button type="button" class="text-action mt-2" @click="addToPlan(item)">加入志愿</button>
               </div>
             </div>
-          </div>
+          </article>
         </div>
       </div>
+    </section>
 
-      <!-- 保底志愿 -->
-      <div v-if="groupedRecommendations.保底?.length" :class="[isDark ? 'bg-blue-500/10 border-blue-500/30' : 'bg-blue-50 border-blue-200', 'rounded-2xl p-5 border']">
-        <h3 class="text-lg font-semibold text-blue-500 mb-4 flex items-center gap-2">
-          <span>🛡️</span> 保底志愿 <span :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm">({{ groupedRecommendations.保底.length }}个)</span>
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div v-for="item in groupedRecommendations.保底" :key="item.universityId + '-' + item.majorId" :class="[
-            isDark ? 'bg-gray-700/50 border-gray-600 hover:border-blue-500/30' : 'bg-white border-gray-200 hover:border-blue-300',
-            'rounded-xl p-4 border transition'
-          ]">
-            <h4 :class="isDark ? 'text-white' : 'text-gray-900'" class="font-semibold">{{ item.universityName }}</h4>
-            <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm">{{ item.majorName }}</p>
-            <div class="flex justify-between items-center mt-3">
-              <div>
-                <p :class="isDark ? 'text-gray-500' : 'text-gray-400'" class="text-xs">录取线: {{ item.minScore }}分</p>
-                <p :class="isDark ? 'text-gray-500' : 'text-gray-400'" class="text-xs">分差: {{ item.scoreDiff }}分</p>
+    <transition name="modal-fade">
+      <div v-if="chanceVisible" class="modal-overlay" @click.self="closeChanceModal">
+        <div class="modal-shell modal-shell-md" :class="isDark ? 'modal-shell-dark' : 'modal-shell-light'">
+          <div class="modal-header">
+            <div>
+              <p class="modal-kicker">机会分析</p>
+              <h3 class="modal-title">{{ chanceInfo?.universityName || '录取机会' }}</h3>
+            </div>
+            <button type="button" class="modal-close" aria-label="关闭" @click="closeChanceModal">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="chance-grid">
+              <div class="chance-stat">
+                <span class="chance-label">录取概率</span>
+                <strong class="chance-value text-sky-500">{{ chanceDisplayProbability }}</strong>
               </div>
-              <div class="text-right">
-                <div class="text-xl font-bold text-blue-500">{{ (item.probability * 100).toFixed(0) }}%</div>
-                <el-button size="small" @click="addToPlan(item)" class="!mt-2">
-                  添加
-                </el-button>
+              <div class="chance-stat">
+                <span class="chance-label">等级</span>
+                <strong class="chance-value">{{ chanceInfo?.level || '未知' }}</strong>
+              </div>
+              <div class="chance-stat">
+                <span class="chance-label">你的分数</span>
+                <strong class="chance-value">{{ chanceInfo?.yourScore ?? '--' }}</strong>
+              </div>
+              <div class="chance-stat">
+                <span class="chance-label">目标分数</span>
+                <strong class="chance-value">{{ chanceInfo?.targetScore ?? '--' }}</strong>
               </div>
             </div>
+            <div class="chance-note">分差 {{ chanceInfo?.scoreDiff ?? '--' }} 分</div>
+            <p class="chance-description">{{ chanceInfo?.suggestion || '暂无建议' }}</p>
+          </div>
+          <div class="dialog-footer">
+            <button type="button" class="dialog-btn confirm" @click="closeChanceModal">知道了</button>
           </div>
         </div>
       </div>
-
-      <!-- 梦想志愿（分差较大，仅供参考） -->
-      <div v-if="groupedRecommendations.梦想?.length" :class="[isDark ? 'bg-violet-500/10 border-violet-500/30' : 'bg-violet-50 border-violet-200', 'rounded-2xl p-5 border']">
-        <h3 class="text-lg font-semibold text-violet-500 mb-4 flex items-center gap-2">
-          <span>✨</span> 梦想志愿 <span :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm">({{ groupedRecommendations.梦想.length }}个)</span>
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div v-for="item in groupedRecommendations.梦想" :key="item.universityId + '-' + item.majorId" :class="[
-            isDark ? 'bg-gray-700/50 border-gray-600 hover:border-violet-500/30' : 'bg-white border-gray-200 hover:border-violet-300',
-            'rounded-xl p-4 border transition'
-          ]">
-            <h4 :class="isDark ? 'text-white' : 'text-gray-900'" class="font-semibold">{{ item.universityName }}</h4>
-            <p :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-sm">{{ item.majorName }}</p>
-            <div class="flex justify-between items-center mt-3">
-              <div>
-                <p :class="isDark ? 'text-gray-500' : 'text-gray-400'" class="text-xs">录取线: {{ item.minScore }}分</p>
-                <p :class="isDark ? 'text-gray-500' : 'text-gray-400'" class="text-xs">分差: {{ item.scoreDiff }}分</p>
-              </div>
-              <div class="text-right">
-                <div class="text-xl font-bold text-violet-500">{{ (item.probability * 100).toFixed(0) }}%</div>
-                <el-button size="small" @click="addToPlan(item)" class="!mt-2">
-                  添加
-                </el-button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, inject, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { MagicStick, School } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 import AiInsightPanel from '@/views/high/components/AiInsightPanel.vue'
 
@@ -308,6 +251,43 @@ const recommendations = ref([])
 const recommendParams = ref({ userId: props.userId, year: 2025, province: '浙江', score: null, rank: null, subjects: [] })
 const recommendByMajorParams = ref({ userId: props.userId, majorCode: '', score: null, province: '浙江' })
 const recommendByMajorResults = ref([])
+const chanceVisible = ref(false)
+const chanceInfo = ref(null)
+
+const strategySections = [
+  {
+    key: '冲刺',
+    label: '冲刺志愿',
+    icon: '🚀',
+    shellClass: 'section-shell section-shell-amber',
+    titleClass: 'text-amber-500',
+    percentClass: 'text-amber-500'
+  },
+  {
+    key: '稳妥',
+    label: '稳妥志愿',
+    icon: '🟢',
+    shellClass: 'section-shell section-shell-emerald',
+    titleClass: 'text-emerald-500',
+    percentClass: 'text-emerald-500'
+  },
+  {
+    key: '保底',
+    label: '保底志愿',
+    icon: '🛟',
+    shellClass: 'section-shell section-shell-sky',
+    titleClass: 'text-sky-500',
+    percentClass: 'text-sky-500'
+  },
+  {
+    key: '梦想',
+    label: '梦想志愿',
+    icon: '✨',
+    shellClass: 'section-shell section-shell-violet',
+    titleClass: 'text-violet-500',
+    percentClass: 'text-violet-500'
+  }
+]
 
 const volunteerAiPayload = computed(() => ({
   userId: props.userId,
@@ -315,14 +295,14 @@ const volunteerAiPayload = computed(() => ({
     ...recommendParams.value,
     recommendationCount: recommendations.value.length,
     strategyCount: {
-      冲刺: groupedRecommendations.value.冲刺.length,
-      稳妥: groupedRecommendations.value.稳妥.length,
-      保底: groupedRecommendations.value.保底.length,
-      梦想: groupedRecommendations.value.梦想.length
+      冲刺: groupedRecommendations.value['冲刺'].length,
+      稳妥: groupedRecommendations.value['稳妥'].length,
+      保底: groupedRecommendations.value['保底'].length,
+      梦想: groupedRecommendations.value['梦想'].length
     }
   },
   candidates: recommendations.value,
-  question: '请分析推荐结果的冲稳保梯度、录取风险、选科匹配和志愿方案调整建议。'
+  question: '请分析推荐结果的冲稳保结构、录取风险、选科匹配和志愿调整建议。'
 }))
 
 const majorAiPayload = computed(() => ({
@@ -336,17 +316,30 @@ const majorAiPayload = computed(() => ({
 }))
 
 const groupedRecommendations = computed(() => ({
-  '冲刺': recommendations.value.filter(r => r.strategy === '冲刺'),
-  '稳妥': recommendations.value.filter(r => r.strategy === '稳妥'),
-  '保底': recommendations.value.filter(r => r.strategy === '保底'),
-  // 后端分差过大时标记为「梦想」，原先未展示导致「有数据却像空白」
-  '梦想': recommendations.value.filter(r => r.strategy === '梦想')
+  冲刺: recommendations.value.filter(r => r.strategy === '冲刺'),
+  稳妥: recommendations.value.filter(r => r.strategy === '稳妥'),
+  保底: recommendations.value.filter(r => r.strategy === '保底'),
+  梦想: recommendations.value.filter(r => r.strategy === '梦想')
 }))
 
+const visibleSections = computed(() => strategySections.filter(section => groupedRecommendations.value[section.key].length > 0))
+
+const chanceDisplayProbability = computed(() => {
+  if (!chanceInfo.value || chanceInfo.value.probability == null) return '--'
+  return `${(chanceInfo.value.probability * 100).toFixed(0)}%`
+})
+
 const getProbabilityColor = (prob) => {
-  if (prob >= 0.7) return 'text-green-500'
-  if (prob >= 0.4) return 'text-yellow-500'
-  return 'text-red-500'
+  if (prob >= 0.7) return 'text-emerald-500'
+  if (prob >= 0.4) return 'text-amber-500'
+  return 'text-rose-500'
+}
+
+const strategyClass = (strategy) => {
+  if (strategy === '冲刺') return 'status-pill-amber'
+  if (strategy === '稳妥') return 'status-pill-emerald'
+  if (strategy === '保底') return 'status-pill-sky'
+  return 'status-pill-violet'
 }
 
 const toggleSubject = (subject) => {
@@ -360,7 +353,7 @@ const toggleSubject = (subject) => {
 
 const getRecommendations = async () => {
   if (!recommendParams.value.score) {
-    ElMessage.warning('请填写高考分数')
+    ElMessage.warning('请先填写高考分数')
     return
   }
   loading.value = true
@@ -372,11 +365,7 @@ const getRecommendations = async () => {
       score: recommendParams.value.score,
       rank: recommendParams.value.rank || 0
     }
-    const res = await request.post(
-      '/volunteer/recommend/universities',
-      recommendParams.value.subjects,
-      queryParams
-    )
+    const res = await request.post('/volunteer/recommend/universities', recommendParams.value.subjects, queryParams)
     if (res.code === 200) {
       recommendations.value = res.data || []
       if (recommendations.value.length === 0) ElMessage.warning('未找到匹配的推荐结果')
@@ -390,7 +379,7 @@ const getRecommendations = async () => {
 
 const getRecommendByMajor = async () => {
   if (!recommendByMajorParams.value.majorCode || !recommendByMajorParams.value.score) {
-    ElMessage.warning('请填写专业代码和分数')
+    ElMessage.warning('请先填写专业代码和分数')
     return
   }
   try {
@@ -404,23 +393,25 @@ const getRecommendByMajor = async () => {
   }
 }
 
+const openChanceModal = (chance, universityName = '', majorName = '') => {
+  chanceInfo.value = {
+    ...chance,
+    universityName,
+    majorName
+  }
+  chanceVisible.value = true
+}
+
+const closeChanceModal = () => {
+  chanceVisible.value = false
+  chanceInfo.value = null
+}
+
 const getChance = async (universityId, majorId) => {
   try {
     const res = await request.get(`/volunteer/chance/${props.userId}`, { universityId, majorId })
     if (res.code === 200) {
-      const chance = res.data
-      ElMessageBox.alert(
-        `<div class="space-y-2">
-          <h4 class="font-bold text-lg">📈 录取机会分析</h4>
-          <p>录取概率：<span class="font-bold text-blue-500">${(chance.probability * 100).toFixed(0)}%</span></p>
-          <p>等级：<span class="font-bold">${chance.level || ''}</span></p>
-          <p>你的分数：${chance.yourScore}分 | 目标分数：${chance.targetScore}分</p>
-          <p>分差：${chance.scoreDiff}分</p>
-          <p class="mt-2 text-sm">建议：${chance.suggestion || ''}</p>
-        </div>`,
-        '机会分析',
-        { dangerouslyUseHTMLString: true }
-      )
+      openChanceModal(res.data || {})
     }
   } catch (error) {
     console.error('获取机会分析失败', error)
@@ -428,7 +419,7 @@ const getChance = async (universityId, majorId) => {
 }
 
 const addToPlan = async (item) => {
-  ElMessage.info(`已将 ${item.universityName} - ${item.majorName} 添加到志愿，请在"志愿方案"页面完善`)
+  ElMessage.info(`已将 ${item.universityName} - ${item.majorName} 加入志愿，请在“志愿方案”页面完善`)
 }
 
 const loadFilters = async () => {
@@ -452,4 +443,500 @@ defineExpose({
 </script>
 
 <style scoped>
+.volunteer-panel {
+  color: inherit;
+}
+
+.panel-shell {
+  border-radius: 20px;
+  padding: 24px;
+  backdrop-filter: blur(22px);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+}
+
+.panel-shell-light {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.panel-shell-dark {
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.panel-shell-hero {
+  border-top: 3px solid rgba(15, 118, 110, 0.35);
+}
+
+.panel-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.panel-brand {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex: 0 0 auto;
+}
+
+.panel-brand-primary {
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.18), rgba(37, 99, 235, 0.18));
+}
+
+.panel-brand-secondary {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(20, 184, 166, 0.18));
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.panel-subtitle {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.control-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.control-grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.control-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.select-wrap {
+  position: relative;
+}
+
+.select-input,
+.input-base {
+  width: 100%;
+  height: 44px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #0f172a;
+  padding: 0 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.select-input {
+  appearance: none;
+  padding-right: 42px;
+}
+
+.select-input:focus,
+.input-base:focus {
+  border-color: rgba(15, 118, 110, 0.7);
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
+}
+
+.select-arrow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  color: #64748b;
+  pointer-events: none;
+}
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chip {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chip-active {
+  color: #fff;
+  background: linear-gradient(135deg, #0f766e, #2563eb);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.18);
+}
+
+.chip-inactive {
+  color: #475569;
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.chip-inactive:hover {
+  background: rgba(148, 163, 184, 0.18);
+}
+
+.action-btn {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.action-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.action-btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, #0f766e, #2563eb);
+  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.22);
+}
+
+.action-btn-secondary {
+  color: #fff;
+  background: linear-gradient(135deg, #14b8a6, #0ea5e9);
+  box-shadow: 0 16px 30px rgba(14, 165, 233, 0.18);
+}
+
+.results-block,
+.result-section {
+  border-radius: 20px;
+}
+
+.results-meta,
+.section-count,
+.result-subtitle,
+.mini-meta,
+.chance-label,
+.chance-description {
+  letter-spacing: 0;
+}
+
+.stack-list,
+.grid-cards {
+  display: grid;
+  gap: 14px;
+}
+
+.result-card,
+.mini-card {
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.result-card-light,
+.mini-card-light {
+  background: rgba(248, 250, 252, 0.9);
+}
+
+.result-card-dark,
+.mini-card-dark {
+  background: rgba(30, 41, 59, 0.72);
+}
+
+.result-card-main,
+.mini-card-foot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.result-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.result-subtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+}
+
+.result-aside {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.status-pill-amber { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+.status-pill-emerald { background: rgba(16, 185, 129, 0.12); color: #059669; }
+.status-pill-sky { background: rgba(14, 165, 233, 0.12); color: #0284c7; }
+.status-pill-violet { background: rgba(124, 58, 237, 0.12); color: #7c3aed; }
+
+.result-percent {
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.text-action {
+  border: none;
+  background: transparent;
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.text-action:hover {
+  color: #2563eb;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.section-title {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.section-shell {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  padding: 18px;
+  border-radius: 18px;
+}
+
+.section-shell-amber { background: rgba(245, 158, 11, 0.06); }
+.section-shell-emerald { background: rgba(16, 185, 129, 0.06); }
+.section-shell-sky { background: rgba(14, 165, 233, 0.06); }
+.section-shell-violet { background: rgba(124, 58, 237, 0.06); }
+
+.chance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.chance-stat {
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.chance-value {
+  display: block;
+  margin-top: 6px;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.chance-note {
+  margin-top: 14px;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(20, 184, 166, 0.08);
+  color: #0f766e;
+  font-weight: 700;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(18px);
+}
+
+.modal-shell {
+  width: min(100%, 620px);
+  max-height: min(86vh, 760px);
+  overflow: hidden;
+  border-radius: 22px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+}
+
+.modal-shell-light {
+  background: rgba(255, 255, 255, 0.96);
+  color: #111827;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.modal-shell-dark {
+  background: rgba(15, 23, 42, 0.94);
+  color: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 28px 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.modal-body {
+  padding: 22px 28px 10px;
+}
+
+.modal-kicker {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f766e;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.modal-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(148, 163, 184, 0.14);
+  color: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 18px 28px 26px;
+}
+
+.dialog-btn {
+  min-width: 92px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: none;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dialog-btn.confirm {
+  color: #fff;
+  background: linear-gradient(135deg, #0f766e, #2563eb);
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+@media (max-width: 960px) {
+  .control-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .panel-shell,
+  .modal-body,
+  .modal-header,
+  .dialog-footer {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .control-grid-4,
+  .control-grid-3,
+  .chance-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .result-card-main,
+  .mini-card-foot {
+    flex-direction: column;
+  }
+
+  .result-aside {
+    justify-items: start;
+  }
+
+  .dialog-footer {
+    flex-direction: column-reverse;
+  }
+
+  .dialog-btn {
+    width: 100%;
+  }
+}
 </style>

@@ -24,10 +24,10 @@ public interface UserVolunteerMapper extends BaseMapper<UserVolunteer> {
     /**
      * 获取用户历年志愿方案
      */
-    List<UserVolunteer> getUserVolunteerHistory(@Param("userId") Integer userId);
+    List<UserVolunteer> getUserVolunteerHistory(@Param("userId") Long userId);
 
     /**
      * 获取志愿填报统计
      */
-    List<Map<String, Object>> getVolunteerStatistics(@Param("userId") Integer userId);
+    List<Map<String, Object>> getVolunteerStatistics(@Param("userId") Long userId);
 }

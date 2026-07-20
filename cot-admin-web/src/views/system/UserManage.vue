@@ -45,16 +45,14 @@ const statusOptions = [
 const userTypeOptions = [
   { label: '个人用户', value: 1 },
   { label: '管理员', value: 2 },
-  { label: '教师', value: 3 },
-  { label: '家长', value: 4 },
 ]
 
 const roleOptions = [
   { label: '普通用户', value: 'USER' },
   { label: '管理员', value: 'ADMIN' },
   { label: '超级管理员', value: 'SUPER_ADMIN' },
-  { label: '教师', value: 'TEACHER' },
-  { label: '家长', value: 'PARENT' },
+
+
 ]
 
 const rules = computed(() => ({

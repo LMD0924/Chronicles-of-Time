@@ -4,7 +4,7 @@
 /*
  * @Author: 总会落叶
  * @Date: 2026/4/1
- * @Description: 学生选课记录Service接口（完整版）
+ * @Description: 用户选课记录Service接口（完整版）
  */
 package org.example.highservice.service;
 
@@ -22,7 +22,7 @@ import java.util.Map;
 public interface StudentCourseSelectionService extends IService<StudentCourseSelection> {
 
     /**
-     * 学生选课
+     * 用户选课
      * @param selection 选课信息
      * @return 是否成功
      */
@@ -51,11 +51,11 @@ public interface StudentCourseSelectionService extends IService<StudentCourseSel
     boolean cancelSelection(Long id, String reason);
 
     /**
-     * 获取学生的选课记录
-     * @param studentId 学生ID
+     * 获取用户的选课记录
+     * @param userId 用户ID
      * @return 选课记录列表
      */
-    List<StudentCourseSelection> getStudentSelections(Long studentId);
+    List<StudentCourseSelection> getStudentSelections(Long userId);
 
     /**
      * 获取年级选课统计
@@ -133,10 +133,10 @@ public interface StudentCourseSelectionService extends IService<StudentCourseSel
     List<Map<String, Object>> getHotCombinations();
 
     /**
-     * 获取年级排名前N的学生
+     * 获取年级排名前N的用户
      * @param grade 年级
      * @param limit 数量限制
-     * @return 学生列表
+     * @return 用户列表
      */
     List<StudentCourseSelection> getTopStudents(String grade, int limit);
 
@@ -161,16 +161,16 @@ public interface StudentCourseSelectionService extends IService<StudentCourseSel
     List<Map<String, Object>> getSelectionTrend();
 
     /**
-     * 获取学生的详细选课信息（包含科目详情）
-     * @param studentId 学生ID
+     * 获取用户的详细选课信息（包含科目详情）
+     * @param userId 用户ID
      * @return 详细选课信息
      */
-    StudentCourseSelection getStudentSelectionDetail(Long studentId);
+    StudentCourseSelection getStudentSelectionDetail(Long userId);
 
     /**
-     * 获取某组合的所有学生
+     * 获取某组合的所有用户
      * @param combinationId 组合ID
-     * @return 学生列表
+     * @return 用户列表
      */
     List<StudentCourseSelection> getStudentsByCombination(Long combinationId);
 
@@ -183,11 +183,11 @@ public interface StudentCourseSelectionService extends IService<StudentCourseSel
     List<Map<String, Object>> exportSelectionData(String grade, String academicYear);
 
     /**
-     * 获取学生选课建议
-     * @param studentId 学生ID
+     * 获取用户选课建议
+     * @param userId 用户ID
      * @return 选课建议
      */
-    Map<String, Object> getSelectionAdvice(Long studentId);
+    Map<String, Object> getSelectionAdvice(Long userId);
 
     /**
      * 检查选课冲突

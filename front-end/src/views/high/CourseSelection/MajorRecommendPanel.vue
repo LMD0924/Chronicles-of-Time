@@ -8,7 +8,7 @@ import AiInsightPanel from '@/views/high/components/AiInsightPanel.vue'
 
 const props = defineProps({
   isDark: Boolean,
-  studentId: [String, Number]
+  userId: [String, Number]
 })
 
 const loading = ref(false)
@@ -19,7 +19,7 @@ const searchResults = ref([])
 const hotMajors = ref([])
 
 const aiPayload = computed(() => ({
-  userId: props.studentId,
+  userId: props.userId,
   profile: {
     firstSubjectName: currentSelection.value?.firstSubjectName || '',
     secondSubject1Name: currentSelection.value?.secondSubject1Name || '',
@@ -44,7 +44,7 @@ const aiPayload = computed(() => ({
 // 获取当前选课
 const fetchCurrentSelection = async () => {
   try {
-    const res = await request.get(`/selection/student/${props.studentId}`)
+    const res = await request.get(`/selection/user/${props.userId}`)
     if (res.code === 200 && res.data.length > 0) {
       currentSelection.value = res.data[0]
       fetchRecommendations()
@@ -56,7 +56,7 @@ const fetchCurrentSelection = async () => {
 
 // 获取推荐专业
 const fetchRecommendations = async () => {
-  if (!currentSelection.value || !props.studentId) return
+  if (!currentSelection.value || !props.userId) return
 
   loading.value = true
   try {
@@ -121,7 +121,7 @@ const getMatchingScoreColor = (score) => {
   return 'from-gray-500 to-gray-600'
 }
 
-watch(() => props.studentId, (val) => {
+watch(() => props.userId, (val) => {
   if (val) {
     fetchCurrentSelection()
     fetchHotMajors()

@@ -16,9 +16,9 @@ import lombok.Data;
 @Data
 public class SelectionQueryDTO {
     /**
-     * 学生ID
+     * 用户ID
      */
-    private Long studentId;
+    private Long userId;
 
     /**
      * 当前用户ID（用于权限判断）

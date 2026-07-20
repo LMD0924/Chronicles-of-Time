@@ -30,7 +30,7 @@ public class CourseSelectionIntentionServiceImpl
         }
 
         LambdaQueryWrapper<CourseSelectionIntention> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(CourseSelectionIntention::getStudentId, intention.getStudentId())
+        wrapper.eq(CourseSelectionIntention::getUserId, intention.getUserId())
                 .orderByDesc(CourseSelectionIntention::getSubmitTime)
                 .last("LIMIT 1");
         CourseSelectionIntention latest = this.getOne(wrapper);
@@ -49,9 +49,9 @@ public class CourseSelectionIntentionServiceImpl
     }
 
     @Override
-    public List<CourseSelectionIntention> listByStudentId(Long studentId) {
+    public List<CourseSelectionIntention> listByUserId(Long userId) {
         LambdaQueryWrapper<CourseSelectionIntention> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(CourseSelectionIntention::getStudentId, studentId)
+        wrapper.eq(CourseSelectionIntention::getUserId, userId)
                 .orderByDesc(CourseSelectionIntention::getSubmitTime);
         return this.list(wrapper);
     }

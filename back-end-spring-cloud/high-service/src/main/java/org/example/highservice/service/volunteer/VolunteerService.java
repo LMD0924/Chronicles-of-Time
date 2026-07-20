@@ -20,15 +20,15 @@ public interface VolunteerService {
     // 志愿方案管理
     boolean saveVolunteerPlan(UserVolunteer userVolunteer);
     boolean updateVolunteerPlan(UserVolunteer userVolunteer);
-    boolean deleteVolunteerPlan(Integer id);
-    UserVolunteer getVolunteerPlanById(Integer id);
+    boolean deleteVolunteerPlan(Long id);
+    UserVolunteer getVolunteerPlanById(Long id);
     List<UserVolunteer> getUserVolunteerPlans(Long userId, Integer year);
 
     // 志愿详情管理
     boolean addVolunteerDetail(VolunteerDetail volunteerDetail);
     boolean updateVolunteerDetail(VolunteerDetail volunteerDetail);
-    boolean deleteVolunteerDetail(Integer id);
-    List<VolunteerDetail> getVolunteerDetails(Integer volunteerId);
+    boolean deleteVolunteerDetail(Long id);
+    List<VolunteerDetail> getVolunteerDetails(Long volunteerId);
     boolean batchAddVolunteerDetails(List<VolunteerDetail> details);
 
     // 智能推荐
@@ -37,22 +37,22 @@ public interface VolunteerService {
     List<Map<String, Object>> recommendByMajor(Long userId, String majorCode, Integer score, String province);
 
     // 匹配度分析
-    Map<String, Object> checkSubjectMatching(Integer volunteerDetailId, List<String> selectedSubjects);
-    List<Map<String, Object>> getVolunteerMatchingReport(Integer volunteerId, List<String> selectedSubjects);
+    Map<String, Object> checkSubjectMatching(Long volunteerDetailId, List<String> selectedSubjects);
+    List<Map<String, Object>> getVolunteerMatchingReport(Long volunteerId, List<String> selectedSubjects);
 
     // 模拟录取
-    AdmissionSimulation simulateAdmission(Integer volunteerDetailId);
-    List<Map<String, Object>> batchSimulateAdmission(Integer volunteerId);
-    Map<String, Object> getAdmissionAnalysis(Integer volunteerId);
+    AdmissionSimulation simulateAdmission(Long volunteerDetailId);
+    List<Map<String, Object>> batchSimulateAdmission(Long volunteerId);
+    Map<String, Object> getAdmissionAnalysis(Long volunteerId);
 
     // 统计分析
-    List<Map<String, Object>> getVolunteerStatistics(Integer userId);
-    Map<String, Object> getApplicationChance(Integer userId, Integer universityId, Integer majorId);
+    List<Map<String, Object>> getVolunteerStatistics(Long userId);
+    Map<String, Object> getApplicationChance(Long userId, Long universityId, Long majorId);
 
     // 数据查询
     List<University> searchUniversities(String keyword, String province, String level);
-    List<Major> searchMajors(String keyword, String category, Integer universityId);
-    List<AdmissionPlan> getAdmissionHistory(Integer majorId, Integer universityId, Integer year);
+    List<Major> searchMajors(String keyword, String category, Long universityId);
+    List<AdmissionPlan> getAdmissionHistory(Long majorId, Long universityId, Integer year);
     
     // 获取筛选条件
     List<String> getAllProvinces();

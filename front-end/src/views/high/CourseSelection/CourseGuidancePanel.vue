@@ -5,11 +5,12 @@
 import { ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
+import GuidanceEditDialog from './GuidanceEditDialog.vue'
 
 const props = defineProps({
   isDark: Boolean,
-  studentId: [String, Number],
-  studentName: String
+  userId: [String, Number],
+  userName: String
 })
 
 const loading = ref(false)
@@ -17,6 +18,8 @@ const saving = ref(false)
 const list = ref([])
 const detailVisible = ref(false)
 const currentDetail = ref(null)
+const editDialogVisible = ref(false)
+const editingRecord = ref(null)
 const form = ref({
   id: null,
   guidanceDate: new Date().toISOString().split('T')[0],
@@ -31,14 +34,14 @@ const form = ref({
   actionPlan: '',
   advisorName: '',
   advisorPosition: '',
-  studentFeedback: '',
-  parentFeedback: '',
+  userFeedback: '',
+  additionalFeedback: '',
   followUpDate: '',
   status: 1
 })
 
 const fetchList = async () => {
-  if (!props.studentId) return
+  if (!props.userId) return
   loading.value = true
   try {
     const res = await request.get('/guidance/list')
@@ -49,13 +52,14 @@ const fetchList = async () => {
 }
 
 const submit = async () => {
-  if (!props.studentId) return ElMessage.warning('用户信息未加载')
+  if (!props.userId) return ElMessage.warning('用户信息未加载')
+  const isCreating = !form.value.id
   saving.value = true
   try {
     const payload = {
       ...form.value,
-      studentId: String(props.studentId),
-      studentName: props.studentName || '当前学生'
+      userId: String(props.userId),
+      userName: props.userName || '当前用户'
     }
     const res = await request.post('/guidance/save', payload)
     if (res.code === 200) {
@@ -63,7 +67,7 @@ const submit = async () => {
       form.value.id = res.data?.id || form.value.id
       await fetchList()
       // 重置表单
-      if (!form.value.id) {
+      if (isCreating) {
         form.value = {
           id: null,
           guidanceDate: new Date().toISOString().split('T')[0],
@@ -78,8 +82,8 @@ const submit = async () => {
           actionPlan: '',
           advisorName: '',
           advisorPosition: '',
-          studentFeedback: '',
-          parentFeedback: '',
+          userFeedback: '',
+          additionalFeedback: '',
           followUpDate: '',
           status: 1
         }
@@ -90,7 +94,10 @@ const submit = async () => {
   }
 }
 
-const edit = (row) => { form.value = { ...row } }
+const edit = (row) => {
+  editingRecord.value = { ...row }
+  editDialogVisible.value = true
+}
 
 const remove = async (id) => {
   await ElMessageBox.confirm('确认删除该指导记录？', '提示', { type: 'warning' })
@@ -137,7 +144,7 @@ const getStatusText = (status) => {
   return map[status] || status
 }
 
-watch(() => props.studentId, fetchList, { immediate: true })
+watch(() => props.userId, fetchList, { immediate: true })
 </script>
 
 <template>
@@ -193,14 +200,14 @@ watch(() => props.studentId, fetchList, { immediate: true })
           </div>
         </div>
 
-        <!-- 指导老师信息 -->
+        <!-- 指导人信息 -->
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">指导老师</label>
-            <input v-model="form.advisorName" class="form-input" placeholder="老师姓名" />
+            <label class="form-label">指导人</label>
+            <input v-model="form.advisorName" class="form-input" placeholder="指导人姓名" />
           </div>
           <div class="form-group">
-            <label class="form-label">老师职位</label>
+            <label class="form-label">指导人职务</label>
             <input v-model="form.advisorPosition" class="form-input" placeholder="例：年级主任、班主任" />
           </div>
           <div class="form-group"></div>
@@ -261,12 +268,12 @@ watch(() => props.studentId, fetchList, { immediate: true })
         <!-- 反馈信息 -->
         <div class="form-row">
           <div class="form-group flex-1">
-            <label class="form-label">学生反馈</label>
-            <textarea v-model="form.studentFeedback" rows="2" class="form-textarea" placeholder="学生的想法和意见..." />
+            <label class="form-label">用户反馈</label>
+            <textarea v-model="form.userFeedback" rows="2" class="form-textarea" placeholder="用户的想法和意见..." />
           </div>
           <div class="form-group flex-1">
-            <label class="form-label">家长反馈</label>
-            <textarea v-model="form.parentFeedback" rows="2" class="form-textarea" placeholder="家长的看法和建议..." />
+            <label class="form-label">补充反馈</label>
+            <textarea v-model="form.additionalFeedback" rows="2" class="form-textarea" placeholder="补充意见..." />
           </div>
         </div>
 
@@ -336,6 +343,14 @@ watch(() => props.studentId, fetchList, { immediate: true })
       </div>
     </div>
 
+    <GuidanceEditDialog
+      v-model="editDialogVisible"
+      :record="editingRecord"
+      :isDark="isDark"
+      :userId="userId"
+      :userName="userName"
+      @saved="fetchList"
+    />
     <!-- 详情弹窗 -->
     <el-dialog v-model="detailVisible" title="选科指导详情" width="800px" :class="{ 'dark-dialog': isDark }">
       <div v-if="currentDetail" class="detail-dialog">
@@ -343,7 +358,7 @@ watch(() => props.studentId, fetchList, { immediate: true })
         <div class="detail-header">
           <div class="detail-student">
             <span class="detail-icon">👨‍🎓</span>
-            {{ currentDetail.studentName }}
+            {{ currentDetail.userName }}
           </div>
           <div class="detail-date">
             <span class="detail-icon">📅</span>
@@ -371,11 +386,11 @@ watch(() => props.studentId, fetchList, { immediate: true })
               <span class="info-value major-value">{{ currentDetail.suggestedMajor || '-' }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">指导老师</span>
+              <span class="info-label">指导人</span>
               <span class="info-value">{{ currentDetail.advisorName || '-' }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">老师职位</span>
+              <span class="info-label">指导人职务</span>
               <span class="info-value">{{ currentDetail.advisorPosition || '-' }}</span>
             </div>
             <div class="info-item">
@@ -425,12 +440,12 @@ watch(() => props.studentId, fetchList, { immediate: true })
           <div class="section-title">反馈信息</div>
           <div class="feedback-grid">
             <div class="feedback-item">
-              <div class="feedback-label">👨‍🎓 学生反馈</div>
-              <div class="feedback-content">{{ currentDetail.studentFeedback || '-' }}</div>
+              <div class="feedback-label">👨‍🎓 用户反馈</div>
+              <div class="feedback-content">{{ currentDetail.userFeedback || '-' }}</div>
             </div>
             <div class="feedback-item">
-              <div class="feedback-label">👪 家长反馈</div>
-              <div class="feedback-content">{{ currentDetail.parentFeedback || '-' }}</div>
+              <div class="feedback-label">👪 补充反馈</div>
+              <div class="feedback-content">{{ currentDetail.additionalFeedback || '-' }}</div>
             </div>
           </div>
         </div>

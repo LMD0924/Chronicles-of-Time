@@ -14,10 +14,10 @@ import java.util.List;
  */
 @Mapper
 public interface AdmissionPlanMapper extends BaseMapper<AdmissionPlan> {
-    List<AdmissionPlan> getAdmissionHistory(@Param("majorId") Integer majorId,
-                                            @Param("universityId") Integer universityId,
+    List<AdmissionPlan> getAdmissionHistory(@Param("majorId") Long majorId,
+                                            @Param("universityId") Long universityId,
                                             @Param("year") Integer year);
 
-    AdmissionPlan getLatestAdmission(@Param("majorId") Integer majorId,
-                                     @Param("universityId") Integer universityId);
+    AdmissionPlan getLatestAdmission(@Param("majorId") Long majorId,
+                                     @Param("universityId") Long universityId);
 }

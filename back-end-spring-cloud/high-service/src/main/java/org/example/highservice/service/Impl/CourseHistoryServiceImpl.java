@@ -43,8 +43,8 @@ public class CourseHistoryServiceImpl
     }
 
     @Override
-    public List<CourseSelectionHistory> getStudentHistory(Long studentId) {
-        return historyMapper.getHistoryByStudent(studentId);
+    public List<CourseSelectionHistory> getStudentHistory(Long userId) {
+        return historyMapper.getHistoryByStudent(userId);
     }
 
     @Override
@@ -95,8 +95,8 @@ public class CourseHistoryServiceImpl
     }
 
     @Override
-    public CourseSelectionHistory getLastChange(Long studentId) {
-        return historyMapper.getLastChange(studentId);
+    public CourseSelectionHistory getLastChange(Long userId) {
+        return historyMapper.getLastChange(userId);
     }
 
     @Override

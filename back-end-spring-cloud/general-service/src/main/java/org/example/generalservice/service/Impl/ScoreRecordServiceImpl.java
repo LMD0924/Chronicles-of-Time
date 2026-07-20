@@ -3,6 +3,7 @@
  */
 package org.example.generalservice.service.Impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ import java.util.Map;
  */
 @Slf4j
 @Service
+@DS("cot_learning")
 @RequiredArgsConstructor
 public class ScoreRecordServiceImpl extends ServiceImpl<ScoreRecordMapper, ScoreRecord> implements ScoreRecordService {
 

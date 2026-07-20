@@ -12,7 +12,10 @@ import {
   setTheme,
   setThemeColor,
   THEME_COLOR_PRESETS,
-  ThemeType
+  ThemeType,
+  APP_FONT_PRESETS,
+  getStoredFont,
+  setFont
 } from '@/utils/theme'
 import Nav from '@/components/Nav.vue'
 import request from '@/utils/request'
@@ -24,6 +27,14 @@ const [messageApi, contextHolder] = message.useMessage()
 const user = ref({})
 const currentTheme = ref(getStoredTheme())
 const selectedPreset = ref(getStoredThemeColor().preset || getStoredThemeColor().key)
+const currentFont = ref(getStoredFont().key)
+const fontPreviewClassMap = {
+  'lawyer-handwriting': 'font-lawyer-handwriting',
+  'honglei-xingshu': 'font-honglei-xingshu',
+  'yezi-xiaoshitou': 'font-yezi-xiaoshitou',
+  'yunfeng-hanchan': 'font-yunfeng-hanchan'
+}
+const fontPreviewClass = (fontKey) => fontPreviewClassMap[fontKey] || ''
 const customColor = ref({
   primary: getStoredThemeColor().primary,
   secondary: getStoredThemeColor().secondary
@@ -70,6 +81,12 @@ const pickPreset = (preset) => {
   messageApi.success(`已切换为${preset.name}主题`)
 }
 
+const setDisplayFont = (fontKey) => {
+  const font = setFont(fontKey)
+  currentFont.value = font.key
+  messageApi.success(`已切换为${font.name}`)
+}
+
 const saveCustomTheme = () => {
   selectedPreset.value = 'custom'
   setThemeColor({
@@ -82,7 +99,7 @@ const saveCustomTheme = () => {
 }
 
 const clearCache = () => {
-  const keep = ['token', 'refresh_token', 'app_theme', 'app_theme_color', STORAGE_PREFS]
+  const keep = ['token', 'refresh_token', 'app_theme', 'app_theme_color', 'app_font', STORAGE_PREFS]
   Object.keys(localStorage).forEach((k) => {
     if (!keep.includes(k)) localStorage.removeItem(k)
   })
@@ -168,6 +185,31 @@ onMounted(load)
           </div>
         </div>
 
+        <div class="app-card-surface p-6 space-y-5">
+          <div>
+            <h3 class="text-lg font-black text-slate-900 dark:text-white">字体风格</h3>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">选择项目界面的默认字体。黄楷律师手写体会带来更强的手写记录感，密集表单仍可随时切回默认字体。</p>
+          </div>
+
+          <div class="grid gap-3 sm:grid-cols-2">
+            <button
+              v-for="font in APP_FONT_PRESETS"
+              :key="font.key"
+              type="button"
+              class="settings-font-option"
+              :class="currentFont === font.key ? 'settings-font-option-active' : ''"
+              @click="setDisplayFont(font.key)"
+            >
+              <span class="settings-font-title" :class="fontPreviewClass(font.key)">{{ font.name }}</span>
+              <span class="settings-font-desc">{{ font.description }}</span>
+            </button>
+          </div>
+
+          <div class="settings-font-preview" :class="fontPreviewClass(currentFont)">
+            <span>字体预览</span>
+            <strong>拾光记 · 让每一次考试和成长都有迹可循</strong>
+          </div>
+        </div>
         <div class="grid gap-6 lg:grid-cols-2">
           <div class="app-card-surface p-6 space-y-3">
             <h3 class="font-black text-slate-900 dark:text-white">通知与隐私</h3>
@@ -311,6 +353,65 @@ html.dark .settings-preset {
   line-height: 1;
 }
 
+.settings-font-option {
+  display: flex;
+  min-height: 5.2rem;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid var(--app-card-border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.66);
+  padding: 1rem;
+  color: var(--app-text);
+  text-align: left;
+  transition: all 180ms ease;
+}
+
+html.dark .settings-font-option {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.settings-font-option:hover,
+.settings-font-option-active {
+  border-color: rgba(var(--theme-primary-rgb), 0.42);
+  box-shadow: 0 16px 34px -28px rgba(var(--theme-primary-rgb), 0.72);
+  transform: translateY(-1px);
+}
+
+.settings-font-title {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--app-text);
+}
+
+.settings-font-desc {
+  color: var(--app-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.settings-font-preview {
+  border: 1px solid var(--app-card-border);
+  border-radius: 18px;
+  background: rgba(var(--theme-primary-rgb), 0.08);
+  padding: 1.1rem 1.25rem;
+}
+
+.settings-font-preview span {
+  display: block;
+  color: rgb(var(--color-brand-600));
+  font-size: 0.72rem;
+  font-weight: 900;
+  margin-bottom: 0.45rem;
+}
+
+.settings-font-preview strong {
+  display: block;
+  color: var(--app-text);
+  font-size: 1.35rem;
+  line-height: 1.55;
+}
 .settings-switch-row {
   display: flex;
   align-items: center;

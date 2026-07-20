@@ -25,9 +25,9 @@ public interface CourseHistoryService extends IService<CourseSelectionHistory> {
     boolean recordChange(CourseSelectionHistory history);
 
     /**
-     * 获取学生的变更历史
+     * 获取用户的变更历史
      */
-    List<CourseSelectionHistory> getStudentHistory(Long studentId);
+    List<CourseSelectionHistory> getStudentHistory(Long userId);
 
     /**
      * 获取选课记录的变更历史
@@ -50,9 +50,9 @@ public interface CourseHistoryService extends IService<CourseSelectionHistory> {
     Map<String, Object> getChangeStatistics(int days);
 
     /**
-     * 获取学生的最后一次变更
+     * 获取用户的最后一次变更
      */
-    CourseSelectionHistory getLastChange(Long studentId);
+    CourseSelectionHistory getLastChange(Long userId);
 
     /**
      * 获取变更趋势

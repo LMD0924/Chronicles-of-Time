@@ -25,12 +25,12 @@ import java.util.Map;
 public interface CourseSelectionHistoryMapper extends BaseMapper<CourseSelectionHistory> {
 
     /**
-     * 获取学生的选课变更历史
+     * 获取用户的选课变更历史
      */
     @Select("SELECT * FROM hs_selection_history " +
-            "WHERE student_id = #{studentId} " +
+            "WHERE user_id = #{userId} " +
             "ORDER BY change_time DESC")
-    List<CourseSelectionHistory> getHistoryByStudent(@Param("studentId") Long studentId);
+    List<CourseSelectionHistory> getHistoryByStudent(@Param("userId") Long userId);
 
     /**
      * 获取选课记录的变更历史
@@ -82,12 +82,12 @@ public interface CourseSelectionHistoryMapper extends BaseMapper<CourseSelection
                             @Param("comment") String comment);
 
     /**
-     * 获取学生的最后一次变更记录
+     * 获取用户的最后一次变更记录
      */
     @Select("SELECT * FROM hs_selection_history " +
-            "WHERE student_id = #{studentId} " +
+            "WHERE user_id = #{userId} " +
             "ORDER BY change_time DESC LIMIT 1")
-    CourseSelectionHistory getLastChange(@Param("studentId") Long studentId);
+    CourseSelectionHistory getLastChange(@Param("userId") Long userId);
 
     /**
      * 获取某时间段内的变更趋势

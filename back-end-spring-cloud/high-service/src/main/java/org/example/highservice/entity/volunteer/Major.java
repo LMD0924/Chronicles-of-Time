@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @TableName("gaokao_major")
 public class Major {
     @TableId(type = IdType.ASSIGN_ID)
-    private Integer id;
+    private Long id;
 
     @TableField("major_code")
     private String code;

@@ -35,7 +35,7 @@ const homeNavItems = [
   { id: 'home', name: '首页', icon: '🏠' },
   { id: 'timeline', name: '时光轴', icon: '⏳' },
   { id: 'milestone', name: '图谱总览', icon: '📜' },
-  { id: 'gallery', name: '回忆相册', icon: '📸' },
+  { id: 'exam', name: '在线考试', icon: '📝' },
   { id: 'journal', name: '云边小札', icon: '📖' }
 ]
 
@@ -75,19 +75,19 @@ const sectionContents = {
       { label: '整体掌握率', value: '68.7%' }
     ]
   },
-  gallery: {
-    title: '📸 回忆相册',
-    description: '用影像定格时光，让回忆触手可及。每一张照片都是一个故事。',
+  exam: {
+    title: '📝 在线考试',
+    description: '从题库抽题、限时作答、提交后生成成绩与错题复盘，把练习结果沉淀成学习路径。',
     menuList: [
-      { icon: '🎓', name: '毕业季', description: '那些年的青春', link: '/graduation' },
-      { icon: '✈️', name: '旅行日记', description: '走过的路', link: '/travel' },
-      { icon: '🎉', name: '聚会时光', description: '与朋友们的欢乐', link: '/gathering' },
-      { icon: '🏆', name: '荣誉时刻', description: '领奖台上的我', link: '/awards' }
+      { icon: '⚡', name: '开始考试', description: '按分类、知识点和难度随机组卷', link: '/StudyDashboard?tab=practice' },
+      { icon: '📚', name: '题库管理', description: '维护个人题库，审核通过后进入考试', link: '/StudyDashboard?tab=questionBank' },
+      { icon: '🧩', name: '错题练习', description: '从未掌握错题中抽题复习', link: '/StudyDashboard?tab=mistake' },
+      { icon: '📈', name: '成绩分析', description: '查看考试次数、分数趋势和薄弱科目', link: '/StudyDashboard?tab=analysis' }
     ],
     stats: [
-      { label: '照片总数', value: '342张' },
-      { label: '相册数', value: '8个' },
-      { label: '今日新增', value: '12张' }
+      { label: '组卷模式', value: '3种' },
+      { label: '题库来源', value: '个人题库' },
+      { label: '复盘闭环', value: '自动生成' }
     ]
   },
   journal: {
@@ -215,15 +215,14 @@ const milestones = [
 ]
 
 // 相册数据
-const galleryPhotos = [
-  { icon: '🏫', title: '高中毕业照', date: '2022年6月' },
-  { icon: '🎓', title: '大学迎新晚会', date: '2022年9月' },
-  { icon: '🏆', title: '比赛获奖', date: '2023年12月' },
-  { icon: '💼', title: '实习第一天', date: '2024年7月' },
-  { icon: '✈️', title: '第一次出差', date: '2025年3月' },
-  { icon: '🎉', title: '团队聚餐', date: '2025年8月' }
+const examCards = [
+  { icon: '⚡', title: '随机组卷', desc: '按分类、知识点、题型和难度生成试卷', link: '/StudyDashboard?tab=practice' },
+  { icon: '⏱️', title: '限时考试', desc: '支持考试计时与防作弊提醒', link: '/StudyDashboard?tab=practice' },
+  { icon: '🧩', title: '错题练习', desc: '从错题本中抽题，针对薄弱点复习', link: '/StudyDashboard?tab=mistake' },
+  { icon: '📈', title: '成绩分析', desc: '查看考试历史、得分和知识掌握趋势', link: '/StudyDashboard?tab=analysis' },
+  { icon: '📚', title: '题库管理', desc: '新增题目并等待审核进入考试题库', link: '/StudyDashboard?tab=questionBank' },
+  { icon: '✅', title: '答题记录', desc: '追踪每次作答、解析和正确率', link: '/StudyDashboard?tab=answerRecords' }
 ]
-
 // 日记数据
 const journalEntries = [
   { day: '15', month: '3月', title: '今天学会了新技能', excerpt: '花了整整一天时间，终于把数据分析的基础搞懂了...', likes: 23, comments: 5 },
@@ -271,7 +270,7 @@ const handleScroll = () => {
   isScrolled.value = window.scrollY > 20
   showBackTop.value = window.scrollY > 500
 
-  const sections = ['home', 'timeline', 'milestone', 'gallery', 'journal']
+  const sections = ['home', 'timeline', 'milestone', 'exam', 'journal']
   for (const section of sections) {
     const element = document.getElementById(section)
     if (element) {
@@ -304,7 +303,7 @@ const scrollToTop = () => {
 
 // 查看更多
 const viewMore = () => {
-  router.push('/gallery')
+  navigateWithTransition('/StudyDashboard?tab=practice')
 }
 
 // 切换用户菜单
@@ -743,7 +742,7 @@ onUnmounted(() => {
             <div v-for="(stat, idx) in [
               { icon: '📚', number: '2,847', label: '学习时长（小时）', trend: '↑ 较上周 +12%', trendColor: 'text-green-500' },
               { icon: '✍️', number: '156', label: '时光笔记', trend: '累计 3.2万字', trendColor: 'text-gray-400' },
-              { icon: '📸', number: '342', label: '回忆照片', trend: '新增 12张本周', trendColor: 'text-green-500' },
+              { icon: '📝', number: '12', label: '在线考试', trend: '进入组卷与复盘', trendColor: 'text-green-500' },
               { icon: '🎯', number: '23', label: '目标达成', trend: '完成率 85%', trendColor: 'text-green-500' }
             ]" :key="idx"
                  class="rounded-2xl p-7 text-center hover:-translate-y-1 transition-all shadow-sm hover:shadow-lg scroll-animate"
@@ -758,36 +757,45 @@ onUnmounted(() => {
         </div>
       </section>
 
-      <!-- 回忆相册 - 可点击标题 -->
-      <section id="gallery" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
+      <!-- 在线考试 - 可点击标题 -->
+      <section id="exam" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
           <div
             class="text-center mb-12 scroll-animate cursor-pointer group"
-            @click="showPopup('gallery', $event)"
-            data-section="gallery"
+            @click="showPopup('exam', $event)"
+            data-section="exam"
           >
             <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-brand-500 transition-colors" :class="isDark ? 'text-white group-hover:text-brand-400' : 'text-gray-900 group-hover:text-brand-600'">
-              📸 回忆相册
+              📝 在线考试
               <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0121 0z"></path>
               </svg>
             </h2>
-            <p class="text-gray-500">用影像定格时光，让回忆触手可及</p>
+            <p class="text-gray-500">快速进入组卷、考试、错题复盘和成绩分析</p>
           </div>
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <div v-for="(photo, idx) in galleryPhotos" :key="idx"
-                 class="rounded-xl overflow-hidden transition-all hover:-translate-y-2 hover:shadow-xl cursor-pointer scroll-animate"
-                 :class="isDark ? 'bg-white/10' : 'bg-gray-50'"
-                 :style="{ transitionDelay: `${idx * 0.05}s` }">
-              <div class="h-40 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-5xl">{{ photo.icon }}</div>
-              <div class="p-4">
-                <h4 class="font-semibold mb-1" :class="isDark ? 'text-white' : 'text-gray-800'">{{ photo.title }}</h4>
-                <p class="text-xs text-gray-500">{{ photo.date }}</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <button
+              v-for="(card, idx) in examCards"
+              :key="card.title"
+              @click="navigateWithTransition(card.link)"
+              class="group text-left rounded-xl p-6 transition-all hover:-translate-y-2 hover:shadow-xl scroll-animate border"
+              :class="isDark ? 'bg-white/10 border-white/10 hover:border-brand-400/40' : 'bg-gray-50 border-gray-100 hover:border-brand-200'"
+              :style="{ transitionDelay: `${idx * 0.05}s` }"
+            >
+              <div class="flex items-start justify-between gap-4 mb-5">
+                <div class="w-12 h-12 rounded-xl bg-brand-500/10 text-3xl flex items-center justify-center">{{ card.icon }}</div>
+                <svg class="w-5 h-5 mt-1 text-gray-400 group-hover:text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
               </div>
-            </div>
+              <h4 class="font-semibold mb-2" :class="isDark ? 'text-white' : 'text-gray-800'">{{ card.title }}</h4>
+              <p class="text-sm leading-relaxed" :class="isDark ? 'text-gray-400' : 'text-gray-600'">{{ card.desc }}</p>
+            </button>
           </div>
+
           <div class="text-center mt-10 scroll-animate">
-            <button @click="viewMore" class="px-6 py-2 border border-gray-300 text-gray-600 rounded-full hover:border-brand-400 hover:text-brand-500 transition-all">查看全部相册 →</button>
+            <button @click="viewMore" class="px-6 py-2 border border-gray-300 text-gray-600 rounded-full hover:border-brand-400 hover:text-brand-500 transition-all">进入考试中心 →</button>
           </div>
         </div>
       </section>

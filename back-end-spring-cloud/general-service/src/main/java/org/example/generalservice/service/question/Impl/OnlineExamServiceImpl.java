@@ -3,6 +3,7 @@
  */
 package org.example.generalservice.service.question.Impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@DS("cot_learning")
 @RequiredArgsConstructor
 public class OnlineExamServiceImpl implements OnlineExamService {
 
