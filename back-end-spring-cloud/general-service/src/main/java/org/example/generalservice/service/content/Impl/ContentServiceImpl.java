@@ -75,6 +75,12 @@ public class ContentServiceImpl extends ServiceImpl<ContentMapper, Content> impl
             content.setCommentsCount(0L);
         }
 
+        LocalDateTime now = LocalDateTime.now();
+        if (content.getCreateTime() == null) {
+            content.setCreateTime(now);
+        }
+        content.setUpdateTime(now);
+
         // 设置基本字段
         content.setTitle(dto.getTitle());
         content.setSummary(dto.getSummary());

@@ -35,10 +35,6 @@ const fontPreviewClassMap = {
   'yunfeng-hanchan': 'font-yunfeng-hanchan'
 }
 const fontPreviewClass = (fontKey) => fontPreviewClassMap[fontKey] || ''
-const customColor = ref({
-  primary: getStoredThemeColor().primary,
-  secondary: getStoredThemeColor().secondary
-})
 const prefs = ref({
   notifyGrowth: true,
   notifyExam: true,
@@ -48,9 +44,6 @@ const prefs = ref({
 
 const STORAGE_PREFS = 'app_user_prefs'
 
-const previewStyle = computed(() => ({
-  background: `linear-gradient(135deg, ${customColor.value.primary}, ${customColor.value.secondary})`
-}))
 
 const load = async () => {
   const saved = localStorage.getItem(STORAGE_PREFS)
@@ -73,29 +66,14 @@ const setMode = (mode) => {
 
 const pickPreset = (preset) => {
   selectedPreset.value = preset.key
-  customColor.value = {
-    primary: preset.primary,
-    secondary: preset.secondary
-  }
-  setThemeColor({ preset: preset.key, primary: preset.primary, secondary: preset.secondary })
-  messageApi.success(`已切换为${preset.name}主题`)
+  setThemeColor(preset.key)
+  messageApi.success('已切换为' + preset.name + '主题')
 }
 
 const setDisplayFont = (fontKey) => {
   const font = setFont(fontKey)
   currentFont.value = font.key
   messageApi.success(`已切换为${font.name}`)
-}
-
-const saveCustomTheme = () => {
-  selectedPreset.value = 'custom'
-  setThemeColor({
-    preset: 'custom',
-    name: '自定义',
-    primary: customColor.value.primary,
-    secondary: customColor.value.secondary
-  })
-  messageApi.success('自定义主题色已应用')
 }
 
 const clearCache = () => {
@@ -147,7 +125,7 @@ onMounted(load)
             </div>
           </div>
 
-          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <button
               v-for="preset in THEME_COLOR_PRESETS"
               :key="preset.key"
@@ -156,33 +134,12 @@ onMounted(load)
               :class="selectedPreset === preset.key ? 'settings-preset-active' : ''"
               @click="pickPreset(preset)"
             >
-              <span class="settings-swatch" :style="{ background: `linear-gradient(135deg, ${preset.primary}, ${preset.secondary})` }" />
+              <span class="settings-swatch" :style="{ backgroundColor: preset.canvas, borderColor: preset.primary }" />
               <span class="font-bold">{{ preset.name }}</span>
             </button>
           </div>
 
-          <div class="grid gap-5 rounded-2xl border border-brand-100 bg-brand-50/50 p-4 dark:border-white/10 dark:bg-white/5 md:grid-cols-[1fr_auto] md:items-center">
-            <div class="space-y-4">
-              <div class="grid gap-4 sm:grid-cols-2">
-                <label class="settings-color-field">
-                  <span>主色</span>
-                  <input v-model="customColor.primary" type="color" />
-                  <code>{{ customColor.primary }}</code>
-                </label>
-                <label class="settings-color-field">
-                  <span>辅色</span>
-                  <input v-model="customColor.secondary" type="color" />
-                  <code>{{ customColor.secondary }}</code>
-                </label>
-              </div>
-              <button type="button" class="app-btn-primary text-sm" @click="saveCustomTheme">应用自定义主题色</button>
-            </div>
 
-            <div class="settings-theme-preview" :style="previewStyle">
-              <span>Preview</span>
-              <strong>拾光记</strong>
-            </div>
-          </div>
         </div>
 
         <div class="app-card-surface p-6 space-y-5">

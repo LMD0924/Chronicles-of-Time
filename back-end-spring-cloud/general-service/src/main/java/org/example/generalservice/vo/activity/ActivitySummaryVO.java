@@ -28,6 +28,24 @@ public class ActivitySummaryVO {
 
     private Integer medalScore;
 
+    private Integer level;
+
+    private String levelName;
+
+    private Integer growthExperience;
+
+    private Integer currentLevelExperience;
+
+    private Integer nextLevelExperience;
+
+    private Integer levelProgress;
+
+    private Long publishedArticleCount;
+
+    private Long completedPracticeCount;
+
+    private List<GrowthTaskVO> growthTasks = new ArrayList<>();
+
     private Boolean checkedInToday;
 
     private List<UserMedalVO> medals = new ArrayList<>();

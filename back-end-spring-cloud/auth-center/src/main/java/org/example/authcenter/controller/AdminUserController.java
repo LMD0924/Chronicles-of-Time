@@ -3,13 +3,13 @@ package org.example.authcenter.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.example.authcenter.dto.AdminUserDTO;
+import org.example.authcenter.mapper.AuthMapper;
 import org.example.authcenter.service.UserService;
 import org.example.authcenter.vo.PageVO;
 import org.example.authcenter.vo.UserVO;
 import org.example.commoncore.auth.RoleCodes;
 import org.example.commoncore.utils.JwtUtil;
 import org.example.commondb.utils.RestBean;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,10 +35,7 @@ public class AdminUserController {
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
-    private final RedisTemplate<String, String> redisTemplate;
-
-    private static final String ACCESS_TOKEN_PREFIX = "access_token:";
-    private static final String TOKEN_BLACKLIST_PREFIX = "blacklist:";
+    private final AuthMapper authMapper;
 
     @GetMapping
     public RestBean<PageVO<UserVO>> pageUsers(@RequestParam(required = false) String keyword,
@@ -118,8 +115,9 @@ public class AdminUserController {
         if (token == null || !jwtUtil.validateToken(token)) {
             return RestBean.fail(401, "未登录或Token无效");
         }
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(TOKEN_BLACKLIST_PREFIX + token))
-                || Boolean.FALSE.equals(redisTemplate.hasKey(ACCESS_TOKEN_PREFIX + token))) {
+        String sessionId = jwtUtil.getTokenId(token);
+        if (!jwtUtil.isAccessToken(token) || sessionId == null || sessionId.isBlank()
+                || authMapper.countActiveTokenSessions(jwtUtil.getUserIdFromToken(token), sessionId) == 0) {
             return RestBean.fail(401, "登录状态已失效");
         }
         List<String> roles = jwtUtil.getRolesFromToken(token);

@@ -42,7 +42,7 @@ public interface ICommentService {
      * @param contentId 内容ID
      * @return 评论列表
      */
-    List<Comment> getCommentList(Long contentId);
+    List<Comment> getCommentList(Long contentId, Long userId);
 
     /**
      * 分页获取内容的评论
@@ -60,7 +60,7 @@ public interface ICommentService {
      * @param id 评论ID
      * @return 是否成功
      */
-    boolean likeComment(Long id);
+    boolean likeComment(Long commentId, Long userId);
 
     /**
      * 取消点赞评论
@@ -68,5 +68,7 @@ public interface ICommentService {
      * @param id 评论ID
      * @return 是否成功
      */
-    boolean unlikeComment(Long id);
+    boolean unlikeComment(Long commentId, Long userId);
+
+    boolean isCommentLiked(Long commentId, Long userId);
 }

@@ -13,6 +13,7 @@ import org.example.universityservice.mapper.major.CourseCategoryMapper;
 import org.example.universityservice.service.major.CourseCategoryService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -76,6 +77,9 @@ public class CourseCategoryServiceImpl extends ServiceImpl<CourseCategoryMapper,
 
     @Override
     public boolean createCategory(CourseCategory category) {
+        if (category.getCreatedAt() == null) {
+            category.setCreatedAt(LocalDateTime.now());
+        }
         return categoryMapper.insert(category) > 0;
     }
 

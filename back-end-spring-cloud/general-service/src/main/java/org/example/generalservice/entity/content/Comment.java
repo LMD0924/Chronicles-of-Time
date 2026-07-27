@@ -5,6 +5,8 @@ package org.example.generalservice.entity.content;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -109,4 +111,7 @@ public class Comment {
      */
     @TableField(exist = false)
     private List<Comment> children;
+
+    @TableField(exist = false)
+    private Boolean liked;
 }

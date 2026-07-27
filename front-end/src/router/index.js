@@ -108,6 +108,11 @@ const router = createRouter({
       component: () => import('@/views/content/List.vue')
     },
     {
+      path:'/Archive',
+      name:'文章归档',
+      component: () => import('@/views/content/Archive.vue')
+    },
+    {
       path:'/View/:id',
       name:'查看',
       component: () => import('@/views/content/View.vue')

@@ -3,17 +3,27 @@
  */
 package org.example.generalservice.controller.content;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.commondb.utils.RestBean;
 import org.example.generalservice.dto.content.ContentSaveDTO;
 import org.example.generalservice.entity.content.Comment;
+import org.example.generalservice.entity.content.FavoriteRecord;
+import org.example.generalservice.entity.content.LikeRecord;
 import org.example.generalservice.entity.content.Content;
+import org.example.generalservice.mapper.content.CommentMapper;
+import org.example.generalservice.mapper.content.ContentMapper;
+import org.example.generalservice.mapper.content.FavoriteRecordMapper;
+import org.example.generalservice.mapper.content.LikeRecordMapper;
 import org.example.generalservice.service.content.*;
 import org.example.generalservice.vo.content.ContentKnowledgeGraph;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,94 +47,74 @@ public class ContentController {
     private final ILikeService likeService;
     private final IFavoriteService favoriteService;
     private final ICommentService commentService;
+    private final ContentMapper contentMapper;
+    private final LikeRecordMapper likeRecordMapper;
+    private final FavoriteRecordMapper favoriteRecordMapper;
+    private final CommentMapper commentMapper;
     // 注入知识图谱服务
     private final IContentKnowledgeGraphService contentKnowledgeGraphService;
 
-    /**
-     * 从请求头中获取当前用户ID
-     */
     private Long getCurrentUserId(HttpServletRequest request) {
         String userIdStr = request.getHeader("X-User-Id");
-        if (userIdStr == null) return null;
+        if (userIdStr == null) {
+            return null;
+        }
         try {
             return Long.parseLong(userIdStr);
-        } catch (Exception e) {
+        } catch (NumberFormatException exception) {
             return null;
         }
     }
 
-    // ==================== 内容管理 ====================
-
-    /**
-     * 保存内容（新增或更新）
-     * 图片URL由上传模块返回后传入
-     */
     @PostMapping("/save")
     public RestBean<Long> saveContent(@RequestBody ContentSaveDTO dto,
                                       @RequestAttribute(required = false) Long userId,
                                       HttpServletRequest request) {
-        log.info("========== 保存内容 ==========");
         try {
             Long currentUserId = userId != null ? userId : getCurrentUserId(request);
             if (currentUserId == null) {
-                return RestBean.fail("用户未登录");
+                return RestBean.fail("User is not logged in");
             }
-            Long contentId = contentService.saveContent(dto, currentUserId);
-            return RestBean.success(contentId);
-        } catch (Exception e) {
-            log.error("保存内容失败", e);
-            return RestBean.fail(e.getMessage());
+            return RestBean.success(contentService.saveContent(dto, currentUserId));
+        } catch (Exception exception) {
+            log.error("Failed to save content", exception);
+            return RestBean.fail(exception.getMessage());
         }
     }
 
-    /**
-     * 获取内容详情
-     */
     @GetMapping("/detail/{id}")
     public RestBean<Content> getContentDetail(@PathVariable Long id,
                                               @RequestAttribute(required = false) Long userId,
                                               HttpServletRequest request) {
-        log.info("========== 获取内容详情 ==========");
         try {
             Long currentUserId = userId != null ? userId : getCurrentUserId(request);
             Content content = contentService.getContentDetail(id, currentUserId);
-            if (content != null) {
-                return RestBean.success(content);
-            }
-            return RestBean.fail("内容不存在");
-        } catch (Exception e) {
-            log.error("获取内容详情失败", e);
-            return RestBean.fail(e.getMessage());
+            return content == null ? RestBean.fail("Content does not exist") : RestBean.success(content);
+        } catch (Exception exception) {
+            log.error("Failed to get content detail", exception);
+            return RestBean.fail(exception.getMessage());
         }
     }
 
-    /**
-     * 分页查询公开内容
-     */
     @GetMapping("/public/list")
-    public RestBean<com.baomidou.mybatisplus.extension.plugins.pagination.Page<Content>> getPublicContents(
+    public RestBean<Page<Content>> getPublicContents(
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String contentType,
             @RequestAttribute(required = false) Long userId,
             HttpServletRequest request) {
-        log.info("========== 查询公开内容 ==========");
         try {
             Long currentUserId = userId != null ? userId : getCurrentUserId(request);
-            var page = contentService.getPublicContents(pageNum, pageSize, category, contentType, currentUserId);
-            return RestBean.success(page);
-        } catch (Exception e) {
-            log.error("查询公开内容失败", e);
-            return RestBean.fail(e.getMessage());
+            return RestBean.success(contentService.getPublicContents(pageNum, pageSize, category, contentType, currentUserId));
+        } catch (Exception exception) {
+            log.error("Failed to get public contents", exception);
+            return RestBean.fail(exception.getMessage());
         }
     }
 
-    /**
-     * 查询当前登录用户的内容列表
-     */
     @GetMapping("/my/list")
-    public RestBean<com.baomidou.mybatisplus.extension.plugins.pagination.Page<Content>> getMyContents(
+    public RestBean<Page<Content>> getMyContents(
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize,
             @RequestParam(required = false) String category,
@@ -132,20 +122,182 @@ public class ContentController {
             @RequestParam(required = false) String keyword,
             @RequestAttribute(required = false) Long userId,
             HttpServletRequest request) {
-        log.info("========== 查询我的内容 ==========");
         try {
             Long currentUserId = userId != null ? userId : getCurrentUserId(request);
             if (currentUserId == null) {
-                return RestBean.fail("用户未登录");
+                return RestBean.fail("User is not logged in");
             }
-            var page = contentService.getMyContents(currentUserId, pageNum, pageSize, category, contentType, keyword);
-            return RestBean.success(page);
-        } catch (Exception e) {
-            log.error("查询我的内容失败", e);
-            return RestBean.fail(e.getMessage());
+            return RestBean.success(contentService.getMyContents(currentUserId, pageNum, pageSize, category, contentType, keyword));
+        } catch (Exception exception) {
+            log.error("Failed to get user contents", exception);
+            return RestBean.fail(exception.getMessage());
         }
     }
+    /**
+     * Lists published public articles for the timeline archive.
+     */
+    @GetMapping("/archive")
+    public RestBean<List<Content>> getContentArchive() {
+        List<Content> contents = contentMapper.selectList(new QueryWrapper<Content>()
+                .eq("status", 1)
+                .eq("visibility", 2)
+                .orderByDesc("publish_at")
+                .orderByDesc("created_at"));
+        return RestBean.success(contents);
+    }
+@GetMapping("/my/liked")
+    public RestBean<Page<Content>> getMyLikedContents(
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "20") Integer pageSize,
+            @RequestAttribute(required = false) Long userId,
+            HttpServletRequest request) {
+        Long currentUserId = userId != null ? userId : getCurrentUserId(request);
+        if (currentUserId == null) {
+            return RestBean.fail("用户未登录");
+        }
+        Page<LikeRecord> recordPage = likeRecordMapper.selectPage(new Page<>(normalizePage(pageNum), normalizePageSize(pageSize)),
+                new QueryWrapper<LikeRecord>()
+                        .eq("user_id", currentUserId)
+                        .eq("biz_type", "article")
+                        .eq("reaction_type", "like")
+                        .orderByDesc("created_at"));
+        return RestBean.success(buildContentPage(recordPage.getRecords().stream().map(LikeRecord::getContentId).toList(), recordPage));
+    }
 
+    /**
+     * 查询当前用户收藏的文章。
+     */
+    @GetMapping("/my/favorited")
+    public RestBean<Page<Content>> getMyFavoritedContents(
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "20") Integer pageSize,
+            @RequestAttribute(required = false) Long userId,
+            HttpServletRequest request) {
+        Long currentUserId = userId != null ? userId : getCurrentUserId(request);
+        if (currentUserId == null) {
+            return RestBean.fail("用户未登录");
+        }
+        Page<FavoriteRecord> recordPage = favoriteRecordMapper.selectPage(new Page<>(normalizePage(pageNum), normalizePageSize(pageSize)),
+                new QueryWrapper<FavoriteRecord>()
+                        .eq("user_id", currentUserId)
+                        .orderByDesc("created_at"));
+        return RestBean.success(buildContentPage(recordPage.getRecords().stream().map(FavoriteRecord::getContentId).toList(), recordPage));
+    }
+
+    /**
+     * 查询当前用户发表的评论。
+     */
+    @GetMapping("/my/comments")
+    public RestBean<Page<Comment>> getMyComments(
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "20") Integer pageSize,
+            @RequestAttribute(required = false) Long userId,
+            HttpServletRequest request) {
+        Long currentUserId = userId != null ? userId : getCurrentUserId(request);
+        if (currentUserId == null) {
+            return RestBean.fail("用户未登录");
+        }
+        Page<Comment> page = commentMapper.selectPage(new Page<>(normalizePage(pageNum), normalizePageSize(pageSize)),
+                new QueryWrapper<Comment>()
+                        .eq("user_id", currentUserId)
+                        .eq("status", 1)
+                        .orderByDesc("created_at"));
+        return RestBean.success(page);
+    }
+
+    private Page<Content> buildContentPage(List<Long> contentIds, Page<?> sourcePage) {
+        Page<Content> page = new Page<>(sourcePage.getCurrent(), sourcePage.getSize(), sourcePage.getTotal());
+        if (contentIds.isEmpty()) {
+            page.setRecords(List.of());
+            return page;
+        }
+        HashMap<Long, Content> contentById = new HashMap<>();
+        for (Content content : contentMapper.selectBatchIds(contentIds)) {
+            contentById.put(content.getId(), content);
+        }
+        List<Content> records = new ArrayList<>();
+        for (Long contentId : contentIds) {
+            Content content = contentById.get(contentId);
+            if (content != null) {
+                records.add(content);
+            }
+        }
+        page.setRecords(records);
+        return page;
+    }
+
+    private int normalizePage(Integer pageNum) {
+        return pageNum == null ? 1 : Math.max(1, pageNum);
+    }
+
+    private int normalizePageSize(Integer pageSize) {
+        return pageSize == null ? 20 : Math.min(100, Math.max(1, pageSize));
+    }
+    @GetMapping("/comment/list/{contentId}")
+    public RestBean<List<Comment>> getCommentList(@PathVariable Long contentId,
+                                                  @RequestAttribute(required = false) Long userId,
+                                                  HttpServletRequest request) {
+        Long currentUserId = userId != null ? userId : getCurrentUserId(request);
+        return RestBean.success(commentService.getCommentList(contentId, currentUserId));
+    }
+
+    @PostMapping("/comment/add")
+    public RestBean<Comment> addComment(@RequestBody Comment comment,
+                                        @RequestAttribute(required = false) Long userId,
+                                        HttpServletRequest request) {
+        Long currentUserId = userId != null ? userId : getCurrentUserId(request);
+        if (currentUserId == null) {
+            return RestBean.fail("User is not logged in");
+        }
+        if (comment.getContentId() == null || comment.getContent() == null || comment.getContent().isBlank()) {
+            return RestBean.fail("Comment content cannot be empty");
+        }
+        comment.setUserId(currentUserId);
+        if (!commentService.addComment(comment)) {
+            return RestBean.fail("Failed to add comment");
+        }
+        return RestBean.success(comment);
+    }
+
+    @DeleteMapping("/comment/{id}")
+    public RestBean<String> deleteComment(@PathVariable Long id,
+                                          @RequestAttribute(required = false) Long userId,
+                                          HttpServletRequest request) {
+        Long currentUserId = userId != null ? userId : getCurrentUserId(request);
+        if (currentUserId == null) {
+            return RestBean.fail("User is not logged in");
+        }
+        if (!commentService.deleteComment(id, currentUserId)) {
+            return RestBean.fail("Failed to delete comment");
+        }
+        return RestBean.success("Comment deleted");
+    }
+
+    @PostMapping("/comment/like")
+    public RestBean<String> likeComment(@RequestParam Long commentId,
+                                        @RequestAttribute(required = false) Long userId,
+                                        HttpServletRequest request) {
+        Long currentUserId = userId != null ? userId : getCurrentUserId(request);
+        if (currentUserId == null) {
+            return RestBean.fail("User is not logged in");
+        }
+        return commentService.likeComment(commentId, currentUserId)
+                ? RestBean.success("Comment liked")
+                : RestBean.fail("Comment is already liked");
+    }
+
+    @DeleteMapping("/comment/unlike")
+    public RestBean<String> unlikeComment(@RequestParam Long commentId,
+                                          @RequestAttribute(required = false) Long userId,
+                                          HttpServletRequest request) {
+        Long currentUserId = userId != null ? userId : getCurrentUserId(request);
+        if (currentUserId == null) {
+            return RestBean.fail("User is not logged in");
+        }
+        return commentService.unlikeComment(commentId, currentUserId)
+                ? RestBean.success("Comment unliked")
+                : RestBean.fail("Comment is not liked");
+    }
     /**
      * 查询用户的内容列表
      */

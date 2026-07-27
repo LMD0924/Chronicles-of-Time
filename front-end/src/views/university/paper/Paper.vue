@@ -74,6 +74,18 @@ const showPaperList = ref(false)
 const sidebarCollapsed = ref(false)
 const paperSearchKeyword = ref('')
 
+const samePaperId = (left, right) => String(left) === String(right)
+
+const syncPaperListTitle = () => {
+  const index = paperList.value.findIndex((paper) => samePaperId(paper.id, currentPaperId.value))
+  if (index !== -1) {
+    paperList.value[index].title = paperTitle.value || '未命名论文'
+  }
+  if (currentPaper.value) {
+    currentPaper.value.title = paperTitle.value
+  }
+}
+
 // 是否有未保存的内容
 const hasUnsavedChanges = computed(() => {
   return saveStatus.value === '未保存'
@@ -110,6 +122,12 @@ watch([paperTitle, paperContent, selectedDirections, supervisor, selectedCategor
   }
 })
 
+watch(paperTitle, () => {
+  if (currentPaperId.value) {
+    syncPaperListTitle()
+  }
+})
+
 // 防抖获取建议
 let suggestionDebounceTimer = null
 const debouncedGetSuggestions = () => {
@@ -142,11 +160,10 @@ const updateSaveStatus = (status) => {
 }
 
 // 保存论文
-const savePaper = () => {
-  if (!currentPaperId.value) return
+const savePaper = async () => {
+  if (!currentPaperId.value) return false
 
   updateSaveStatus('保存中')
-
   const paperData = {
     id: currentPaperId.value,
     title: paperTitle.value,
@@ -156,33 +173,39 @@ const savePaper = () => {
     category: selectedCategory.value
   }
 
-  request.put('/paper/update', paperData, (msg, data) => {
-    if (data) {
-      updateSaveStatus('已保存')
-      backupToLocal()
-      const index = paperList.value.findIndex(p => p.id === currentPaperId.value)
+  try {
+    const res = await request.put('/paper/update', paperData)
+    if (res.code === 200) {
+      syncPaperListTitle()
+      const index = paperList.value.findIndex((paper) => samePaperId(paper.id, currentPaperId.value))
       if (index !== -1) {
-        paperList.value[index].title = paperTitle.value
         paperList.value[index].updatedAt = new Date().toISOString()
       }
-    } else {
-      updateSaveStatus('保存失败')
-      setTimeout(() => {
-        if (saveStatus.value === '保存失败') {
-          savePaper()
-        }
-      }, 3000)
+      updateSaveStatus('已保存')
+      backupToLocal()
+      return true
     }
-  })
+  } catch (error) {
+    console.error('保存论文失败', error)
+  }
+
+  updateSaveStatus('保存失败')
+  setTimeout(() => {
+    if (saveStatus.value === '保存失败') {
+      savePaper()
+    }
+  }, 3000)
+  return false
 }
 
 // 手动保存
-const manualSave = () => {
+const manualSave = async () => {
   if (autoSaveTimer.value) {
     clearTimeout(autoSaveTimer.value)
   }
-  savePaper()
-  messageApi.success('已保存')
+  if (await savePaper()) {
+    messageApi.success('已保存')
+  }
 }
 
 // 备份到本地
@@ -242,7 +265,7 @@ const deletePaper = (id, event) => {
   }
 
   // 找到要删除的论文标题
-  const paperToDelete = paperList.value.find(p => p.id === id)
+  const paperToDelete = paperList.value.find(p => samePaperId(p.id, id))
   const paperTitle = paperToDelete?.title || '这篇论文'
 
   Modal.confirm({
@@ -258,7 +281,7 @@ const deletePaper = (id, event) => {
           messageApi.success('删除成功')
 
           // 从列表中移除
-          const index = paperList.value.findIndex(p => p.id === id)
+          const index = paperList.value.findIndex(p => samePaperId(p.id, id))
           if (index !== -1) {
             paperList.value.splice(index, 1)
           }
@@ -268,7 +291,7 @@ const deletePaper = (id, event) => {
           localStorage.removeItem(`paper_suggestions_${id}`)
 
           // 如果删除的是当前论文，切换到第一篇或清空
-          if (currentPaperId.value === id) {
+          if (samePaperId(currentPaperId.value, id)) {
             if (paperList.value.length > 0) {
               loadPaper(paperList.value[0].id)
             } else {

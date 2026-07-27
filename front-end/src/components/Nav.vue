@@ -2,7 +2,7 @@
   文件说明：拾光记前台应用通用组件页面组件，承载通用组件场景的界面展示、交互操作和数据承接。
 -->
 <template>
-  <nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" :class="[
+  <nav class="app-global-nav fixed top-0 left-0 right-0 z-50 transition-all duration-500" :class="[
     isScrolled
       ? isDark
         ? 'bg-black/95 backdrop-blur-xl border-b border-gray-800'
@@ -28,8 +28,8 @@
         </div>
 
         <!-- 中间导航菜单 -->
-        <div v-if="menuItems.length" class="flex items-center justify-center gap-2 rounded-full">
-          <template v-for="item in menuItems" :key="item.key">
+        <div v-if="resolvedMenuItems.length" class="nav-center-menu flex items-center justify-center gap-2">
+          <template v-for="item in resolvedMenuItems" :key="item.key">
             <!-- 有子菜单的项 -->
             <div v-if="item.children && item.children.length" class="relative submenu-container" @click.stop>
               <button
@@ -99,7 +99,31 @@
         </div>
 
         <!-- 右侧区域 -->
-        <div class="flex items-center gap-4 user-menu-container relative">
+        <div class="flex items-center gap-2.5 user-menu-container relative">
+          <button
+            class="nav-growth-chip"
+            type="button"
+            title="查看成长等级与每日任务"
+            @click="navigateWithTransition('/DailyCheckin')"
+          >
+            <span class="nav-growth-icon"><Trophy /></span>
+            <span class="nav-growth-copy">
+              <small>{{ growthSummary.levelName || '初见' }}</small>
+              <strong>Lv.{{ growthSummary.level || 1 }}</strong>
+            </span>
+            <span class="nav-growth-track"><i :style="{ width: `${growthSummary.levelProgress || 0}%` }"></i></span>
+          </button>
+
+          <button
+            class="nav-icon-action"
+            type="button"
+            title="在线聊天"
+            aria-label="打开在线聊天"
+            @click="navigateWithTransition('/Chat')"
+          >
+            <ChatDotRound />
+          </button>
+
           <!-- 用户信息 -->
           <div class="hidden md:flex items-center gap-2 cursor-pointer group" @click="toggleUserMenu">
             <div class="relative w-9 h-9 rounded-full overflow-hidden border-2 border-brand-200 group-hover:border-brand-400 transition-colors">
@@ -118,6 +142,14 @@
               <button @click="navigateWithTransition('/Resume')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
                 <span>👤</span>
                 <span>个人简历</span>
+              </button>
+              <button @click="navigateWithTransition('/DailyCheckin')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
+                <span>🌱</span>
+                <span>成长等级</span>
+              </button>
+              <button @click="navigateWithTransition('/Chat')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
+                <span>💬</span>
+                <span>在线聊天</span>
               </button>
               <button @click="navigateWithTransition('/Settings')" :class="[isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100', 'w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2']">
                 <span>⚙️</span>
@@ -154,9 +186,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import ThemeToggleButton from '@/components/ThemeToggleButton.vue'
+import { ChatDotRound, Trophy } from '@element-plus/icons-vue'
 import request from "@/utils/request.js";
 
 const props = defineProps({
@@ -213,6 +245,16 @@ const props = defineProps({
   }
 })
 
+const archiveMenuItem = { key: 'archive', label: '文章归档', icon: '🗓️', path: '/Archive' }
+
+const includesArchive = (items) => items.some((item) =>
+  item.path === '/Archive' || item.route === '/Archive' || item.to === '/Archive' || (item.children && includesArchive(item.children))
+)
+
+const resolvedMenuItems = computed(() => includesArchive(props.menuItems)
+  ? props.menuItems
+  : [...props.menuItems, archiveMenuItem]
+)
 const emit = defineEmits(['menuClick', 'logoClick', 'userClick'])
 
 const route = useRoute()
@@ -221,6 +263,7 @@ const isScrolled = ref(false)
 const openSubmenuKey = ref(null)
 const activeNav = ref('')
 const UserInfo = ref({})
+const growthSummary = ref({ level: 1, levelName: '初见', levelProgress: 0 })
 const showUserMenu = ref(false)
 
 const normalizePath = (path) => {
@@ -285,6 +328,15 @@ const getUserInfo = () => {
   })
 }
 
+const getGrowthSummary = async () => {
+  try {
+    const response = await request.get('/activity/summary')
+    growthSummary.value = { ...growthSummary.value, ...(response.data || {}) }
+  } catch {
+    // 导航仍可使用，成长服务不可用时展示默认等级。
+  }
+}
+
 // 统一导航入口
 const navigateWithTransition = (path) => {
   closeUserMenu()
@@ -341,7 +393,7 @@ const isNavItemActive = (item) => {
 
 // 更新当前激活的菜单项
 const updateActiveNav = () => {
-  for (const item of props.menuItems) {
+  for (const item of resolvedMenuItems.value) {
     if (isNavItemActive(item)) {
       activeNav.value = item.key
       return
@@ -392,6 +444,7 @@ const handleScroll = () => {
 
 onMounted(() => {
   getUserInfo()
+  getGrowthSummary()
   window.addEventListener('scroll', handleScroll)
   window.addEventListener('click', handleClickOutside)
   updateActiveNav()
@@ -412,5 +465,136 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 保持原有样式不变 */
+.app-global-nav {
+  animation: nav-arrive 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.nav-growth-chip,
+.nav-icon-action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--app-card-solid) 88%, var(--theme-primary) 12%);
+  color: var(--app-text-secondary);
+  box-shadow: 0 8px 22px -18px rgb(var(--theme-primary-rgb) / 0.72);
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms ease, box-shadow 320ms ease;
+}
+
+.nav-growth-chip {
+  min-width: 118px;
+  height: 42px;
+  gap: 8px;
+  padding: 5px 10px;
+  overflow: hidden;
+}
+
+.nav-growth-chip:hover,
+.nav-icon-action:hover {
+  border-color: color-mix(in srgb, var(--theme-primary) 58%, transparent);
+  box-shadow: 0 14px 28px -20px rgb(var(--theme-primary-rgb) / 0.9);
+  transform: translateY(-2px);
+}
+
+.nav-growth-chip:active,
+.nav-icon-action:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.nav-growth-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--theme-primary);
+  color: white;
+}
+
+.nav-growth-icon svg,
+.nav-icon-action svg {
+  width: 18px;
+  height: 18px;
+}
+
+.nav-growth-copy {
+  display: grid;
+  min-width: 44px;
+  text-align: left;
+}
+
+.nav-growth-copy small {
+  color: var(--app-text-muted);
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+.nav-growth-copy strong {
+  color: var(--app-text);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.nav-growth-track {
+  position: absolute;
+  right: 8px;
+  bottom: 4px;
+  left: 46px;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgb(var(--theme-primary-rgb) / 0.14);
+}
+
+.nav-growth-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--theme-primary);
+  transition: width 720ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-icon-action {
+  width: 42px;
+  height: 42px;
+  justify-content: center;
+}
+
+.nav-icon-action:hover svg {
+  animation: friendly-wiggle 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes nav-arrive {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes friendly-wiggle {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  35% { transform: rotate(-9deg) scale(1.08); }
+  70% { transform: rotate(7deg) scale(1.04); }
+}
+
+@media (max-width: 1180px) {
+  .nav-growth-copy,
+  .nav-growth-track {
+    display: none;
+  }
+
+  .nav-growth-chip {
+    min-width: 42px;
+    width: 42px;
+    justify-content: center;
+    padding: 5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-global-nav,
+  .nav-icon-action:hover svg {
+    animation: none;
+  }
+}
 </style>

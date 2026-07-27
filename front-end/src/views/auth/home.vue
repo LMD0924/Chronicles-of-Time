@@ -16,7 +16,8 @@ import {
 } from "@/utils/theme.js";
 import AdvancedPageTransition from '@/components/AdvancedPageTransition.vue';
 import request from "@/utils/request.js";
-import {message} from "ant-design-vue";
+import { message } from 'ant-design-vue'
+import { ChatDotRound, Trophy } from '@element-plus/icons-vue'
 
 // 页面过渡组件引用
 const transitionRef = ref(null);
@@ -284,6 +285,14 @@ const handleScroll = () => {
 }
 
 // 滚动到指定区域
+const handleHomeNavClick = (item) => {
+  if (item.link) {
+    navigateWithTransition(item.link)
+    return
+  }
+  scrollToSection(item.id)
+}
+
 const scrollToSection = (sectionId) => {
   const element = document.getElementById(sectionId)
   if (element) {
@@ -512,7 +521,7 @@ onUnmounted(() => {
                 <button
                   v-for="item in homeNavItems"
                   :key="item.id"
-                  @click="scrollToSection(item.id)"
+                  @click="handleHomeNavClick(item)"
                   class="relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group"
                   :class="[
                     activeNav === item.id
@@ -529,7 +538,27 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <div class="flex items-center gap-4 user-menu-container relative">
+            <div class="flex items-center gap-2.5 user-menu-container relative">
+              <div class="hidden md:flex items-center gap-2">
+                <button
+                  type="button"
+                  class="home-quick-link"
+                  title="成长等级与每日任务"
+                  @click="navigateWithTransition('/DailyCheckin')"
+                >
+                  <Trophy />
+                  <span>成长</span>
+                </button>
+                <button
+                  type="button"
+                  class="home-quick-link"
+                  title="在线聊天"
+                  @click="navigateWithTransition('/Chat')"
+                >
+                  <ChatDotRound />
+                  <span>聊天</span>
+                </button>
+              </div>
               <div class="hidden md:flex items-center gap-2 cursor-pointer group" @click="toggleUserMenu">
                 <div class="relative w-9 h-9 rounded-full overflow-hidden border-2 border-brand-200 group-hover:border-brand-400 transition-colors">
                   <img :src="UserInfo.avatar" alt="User Avatar">
@@ -561,11 +590,8 @@ onUnmounted(() => {
 
               <ThemeToggleButton />
 
-              <button :class="[isDark ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600', 'md:hidden w-9 h-9 rounded-lg flex items-center justify-center']">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-              </button>
+              <button type="button" class="home-mobile-link md:hidden" title="成长等级" @click="navigateWithTransition('/DailyCheckin')"><Trophy /></button>
+              <button type="button" class="home-mobile-link md:hidden" title="在线聊天" @click="navigateWithTransition('/Chat')"><ChatDotRound /></button>
             </div>
           </div>
         </div>
@@ -975,5 +1001,43 @@ onUnmounted(() => {
 
 .dark .floating-popup ::-webkit-scrollbar-thumb {
   background: #334155;
+}
+.home-quick-link,
+.home-mobile-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--app-card-solid) 90%, var(--theme-primary) 10%);
+  color: var(--app-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), border-color 200ms ease, box-shadow 260ms ease;
+}
+
+.home-quick-link {
+  min-height: 38px;
+  padding: 0 10px;
+}
+
+.home-mobile-link {
+  width: 38px;
+  height: 38px;
+}
+
+.home-quick-link svg,
+.home-mobile-link svg {
+  width: 17px;
+  height: 17px;
+  color: var(--theme-primary);
+}
+
+.home-quick-link:hover,
+.home-mobile-link:hover {
+  border-color: var(--theme-primary);
+  box-shadow: 0 12px 22px -18px rgb(var(--theme-primary-rgb) / 0.9);
+  transform: translateY(-2px);
 }
 </style>

@@ -46,10 +46,8 @@ public class ResumeServiceImpl extends ServiceImpl<ResumeMapper, Resume> impleme
      */
     @Override
     public ResumeComplete getCompleteResumeByUserId(Long userId) {
-        // 查询简历主表
-        QueryWrapper<Resume> resumeQueryWrapper = new QueryWrapper<>();
-        resumeQueryWrapper.eq("user_id", userId);
-        Resume resume = resumeMapper.selectOne(resumeQueryWrapper);
+        // 查询当前用户最新保存的简历主表。
+        Resume resume = findLatestByUserId(userId);
 
         if (resume == null) {
             return new ResumeComplete();
@@ -114,8 +112,15 @@ public class ResumeServiceImpl extends ServiceImpl<ResumeMapper, Resume> impleme
      */
     @Override
     public Resume getByUserId(Long userId) {
+        return findLatestByUserId(userId);
+    }
+
+    private Resume findLatestByUserId(Long userId) {
         QueryWrapper<Resume> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", userId);
+        queryWrapper.eq("user_id", userId)
+                .orderByDesc("updated_at")
+                .orderByDesc("id")
+                .last("LIMIT 1");
         return resumeMapper.selectOne(queryWrapper);
     }
 }

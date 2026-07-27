@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { Bell, ChatDotRound, Plus, Promotion, Refresh, Search, UserFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import Nav from '@/components/Nav.vue'
 import request from '@/utils/request.js'
@@ -19,6 +20,8 @@ const groupResults = ref([])
 const createGroupVisible = ref(false)
 const groupForm = ref({ name: '', announcement: '', searchable: true })
 const loadingMessages = ref(false)
+const messagesLoaded = ref(false)
+const refreshingMessages = ref(false)
 const listTimer = ref(null)
 const msgTimer = ref(null)
 const messageListRef = ref(null)
@@ -33,7 +36,7 @@ const activeTitle = computed(() => active.value?.title || '选择会话')
 const activeSubTitle = computed(() => {
   if (!active.value) return '选择好友或群聊后开始沟通'
   if (active.value.conversationType === 'GROUP') return `群号 ${active.value.groupNo || active.value.targetId}`
-  return '单向好友聊天'
+  return '好友私聊'
 })
 
 const totalUnread = computed(() => conversations.value.reduce((sum, item) => sum + (item.unreadCount || 0), 0))
@@ -102,7 +105,9 @@ const createGroup = async () => {
 
 const openConversation = async (item) => {
   active.value = item
-  await fetchMessages()
+  messages.value = []
+  messagesLoaded.value = false
+  await fetchMessages({ showLoading: true, scrollToLatest: true })
 }
 
 const openFriend = (friend) => {
@@ -123,24 +128,48 @@ const openGroup = (group) => {
   })
 }
 
-const fetchMessages = async () => {
-  if (!active.value) return
-  loadingMessages.value = true
-  try {
-    const res = await request.get('/chat/messages', {
-      conversationType: active.value.conversationType,
-      targetId: active.value.targetId,
-      limit: 80,
-    })
-    messages.value = res.data || []
-    await markRead()
-    await nextTick()
-    scrollBottom()
-  } finally {
-    loadingMessages.value = false
-  }
+const hasMessageChanges = (nextMessages, currentMessages) => {
+  if (nextMessages.length !== currentMessages.length) return true
+  return nextMessages.some((message, index) => {
+    const current = currentMessages[index]
+    return !current
+      || message.id !== current.id
+      || message.content !== current.content
+      || message.readCount !== current.readCount
+      || message.unreadCount !== current.unreadCount
+  })
 }
 
+const fetchMessages = async ({ showLoading = false, scrollToLatest = false } = {}) => {
+  if (!active.value || refreshingMessages.value) return
+  const conversation = { ...active.value }
+  refreshingMessages.value = true
+  if (showLoading) loadingMessages.value = true
+  try {
+    const res = await request.get('/chat/messages', {
+      conversationType: conversation.conversationType,
+      targetId: conversation.targetId,
+      limit: 80,
+    })
+    if (!sameConversation(conversation)) return
+
+    const nextMessages = res.data || []
+    const changed = hasMessageChanges(nextMessages, messages.value)
+    if (changed) messages.value = nextMessages
+    messagesLoaded.value = true
+
+    if (changed && nextMessages.some(message => !message.mine && message.unreadCount > 0)) {
+      await markRead(nextMessages)
+    }
+    if (changed && scrollToLatest) {
+      await nextTick()
+      scrollBottom()
+    }
+  } finally {
+    if (showLoading) loadingMessages.value = false
+    refreshingMessages.value = false
+  }
+}
 const sendMessage = async () => {
   if (!active.value) return ElMessage.warning('请先选择会话')
   const content = messageText.value.trim()
@@ -153,17 +182,17 @@ const sendMessage = async () => {
     content,
   })
   messageText.value = ''
-  await fetchMessages()
+  await fetchMessages({ scrollToLatest: true })
   await fetchConversations()
 }
 
-const markRead = async () => {
-  if (!active.value || !messages.value.length) return
+const markRead = async (messageList) => {
+  if (!active.value || !messageList.length) return
   await request.post('/chat/messages/read', {
     conversationType: active.value.conversationType,
     groupId: active.value.conversationType === 'GROUP' ? active.value.targetId : null,
     friendId: active.value.conversationType === 'PRIVATE' ? active.value.targetId : null,
-    messageIds: messages.value.map(item => item.id),
+    messageIds: messageList.map(item => item.id),
   })
   fetchConversations()
 }
@@ -195,18 +224,25 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white" :class="{ dark: isDark }">
+  <div class="app-shell app-page-bg min-h-screen" :class="{ dark: isDark }">
     <Nav :isDark="isDark" :menuItems="menuItems" />
 
     <main class="mx-auto grid h-screen max-w-7xl grid-rows-[auto_1fr] px-4 pb-5 pt-24 sm:px-6 lg:px-8">
-      <section class="mb-4 flex flex-col gap-3 rounded-2xl border border-white/70 bg-white/90 p-4 shadow-sm dark:border-white/10 dark:bg-slate-900/90 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 class="text-2xl font-bold">在线聊天</h1>
-          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">支持群号入群、账号加好友、群聊已读和好友已读。</p>
+      <section class="chat-toolbar">
+        <div class="chat-title">
+          <span class="chat-title-icon"><ChatDotRound /></span>
+          <div>
+            <span class="toolbar-kicker">Conversation</span>
+            <h1>在线聊天</h1>
+            <p>和好友保持联系，也可以通过群号找到学习伙伴。</p>
+          </div>
         </div>
-        <div class="flex items-center gap-3">
-          <span class="rounded-full bg-rose-100 px-3 py-1 text-sm font-medium text-rose-700">未读 {{ totalUnread }}</span>
-          <button class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500" @click="createGroupVisible = true">创建群聊</button>
+        <div class="toolbar-actions">
+          <span class="unread-summary"><Bell /> 未读 {{ totalUnread }}</span>
+          <button class="create-group-button" type="button" @click="createGroupVisible = true">
+            <Plus />
+            <span>创建群聊</span>
+          </button>
         </div>
       </section>
 
@@ -215,7 +251,7 @@ onUnmounted(() => {
           <div class="space-y-3 border-b border-slate-100 p-4 dark:border-white/10">
             <div class="flex gap-2">
               <input v-model="userKeyword" class="search-input" placeholder="搜索用户账号/昵称" @keyup.enter="searchUsers">
-              <button class="search-btn" @click="searchUsers">查找</button>
+              <button class="search-btn" type="button" title="查找用户" aria-label="查找用户" @click="searchUsers"><Search /></button>
             </div>
             <div v-if="userResults.length" class="result-list">
               <button v-for="user in userResults" :key="user.id" class="result-item" @click="addFriend(user)">
@@ -226,7 +262,7 @@ onUnmounted(() => {
 
             <div class="flex gap-2">
               <input v-model="groupKeyword" class="search-input" placeholder="搜索群号加入" @keyup.enter="searchGroups">
-              <button class="search-btn" @click="searchGroups">搜群</button>
+              <button class="search-btn" type="button" title="搜索群聊" aria-label="搜索群聊" @click="searchGroups"><Search /></button>
             </div>
             <div v-if="groupResults.length" class="result-list">
               <button v-for="group in groupResults" :key="group.id" class="result-item" @click="joinGroup(group)">
@@ -245,7 +281,7 @@ onUnmounted(() => {
               :class="{ active: sameConversation(item) }"
               @click="openConversation(item)"
             >
-              <div class="avatar">{{ item.conversationType === 'GROUP' ? '群' : (item.title || '友').slice(0, 1) }}</div>
+              <div class="avatar"><ChatDotRound v-if="item.conversationType === 'GROUP'" /><UserFilled v-else /></div>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center justify-between gap-2">
                   <strong>{{ item.title }}</strong>
@@ -280,11 +316,11 @@ onUnmounted(() => {
               <h2>{{ activeTitle }}</h2>
               <p>{{ activeSubTitle }}</p>
             </div>
-            <button v-if="active" class="rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10" @click="fetchMessages">刷新</button>
+            <button v-if="active" class="icon-refresh" type="button" title="刷新消息" aria-label="刷新消息" @click="fetchMessages"><Refresh /></button>
           </header>
 
           <div ref="messageListRef" class="message-list">
-            <div v-if="!active" class="empty-state">选择一个好友或群聊开始聊天</div>
+            <div v-if="!active" class="empty-state"><ChatDotRound /><strong>选择一个会话</strong><span>从好友或群聊中开始一段交流</span></div>
             <div v-else-if="loadingMessages" class="empty-state">消息加载中...</div>
             <div v-else-if="!messages.length" class="empty-state">还没有消息</div>
             <template v-else>
@@ -306,7 +342,7 @@ onUnmounted(() => {
 
           <footer class="chat-input">
             <textarea v-model="messageText" rows="3" placeholder="输入消息，Enter 发送，Shift+Enter 换行" @keydown.enter.exact.prevent="sendMessage"></textarea>
-            <button @click="sendMessage">发送</button>
+            <button type="button" title="发送消息" @click="sendMessage"><Promotion /><span>发送</span></button>
           </footer>
         </section>
       </section>
@@ -328,146 +364,276 @@ onUnmounted(() => {
         </label>
       </div>
       <template #footer>
-        <button class="rounded-lg border px-4 py-2" @click="createGroupVisible = false">取消</button>
-        <button class="rounded-lg bg-blue-600 px-4 py-2 text-white" @click="createGroup">创建</button>
+        <button class="dialog-secondary" type="button" @click="createGroupVisible = false">取消</button>
+        <button class="dialog-primary" type="button" @click="createGroup"><Plus /> 创建</button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <style scoped>
+.chat-toolbar,
+.chat-title,
+.toolbar-actions,
+.unread-summary,
+.create-group-button,
+.chat-head,
+.message-meta,
+.chat-input button,
+.dialog-primary,
+.conversation-item,
+.plain-item,
+.result-item {
+  display: flex;
+  align-items: center;
+}
+
+.chat-toolbar {
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 16px;
+  animation: chat-rise 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.chat-title {
+  gap: 12px;
+}
+
+.chat-title-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--theme-primary);
+  color: white;
+  box-shadow: 0 14px 26px -18px rgb(var(--theme-primary-rgb) / 0.9);
+}
+
+.chat-title-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.toolbar-kicker {
+  color: var(--theme-primary);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.chat-title h1 {
+  color: var(--app-text);
+  font-size: 25px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.chat-title p {
+  margin-top: 3px;
+  color: var(--app-text-muted);
+  font-size: 13px;
+}
+
+.toolbar-actions {
+  gap: 10px;
+}
+
+.unread-summary,
+.create-group-button,
+.dialog-primary,
+.dialog-secondary {
+  min-height: 40px;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.unread-summary {
+  gap: 6px;
+  border: 1px solid var(--app-border);
+  background: var(--app-card-solid);
+  color: var(--app-text-secondary);
+}
+
+.unread-summary svg,
+.create-group-button svg,
+.dialog-primary svg {
+  width: 16px;
+  height: 16px;
+}
+
+.create-group-button,
+.dialog-primary {
+  gap: 7px;
+  border: 1px solid var(--theme-primary);
+  background: var(--theme-primary);
+  color: white;
+  box-shadow: 0 12px 24px -18px rgb(var(--theme-primary-rgb) / 0.9);
+  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 280ms ease;
+}
+
+.create-group-button:hover,
+.dialog-primary:hover {
+  box-shadow: 0 16px 28px -18px rgb(var(--theme-primary-rgb) / 0.95);
+  transform: translateY(-2px);
+}
+
 .chat-shell {
   display: grid;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  border-radius: 18px;
-  background: white;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
-  grid-template-columns: 360px minmax(0, 1fr);
-}
-
-.dark .chat-shell {
-  border-color: rgba(255, 255, 255, 0.08);
-  background: #0f172a;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: var(--app-card-solid);
+  box-shadow: var(--app-elevation-float);
+  grid-template-columns: 340px minmax(0, 1fr);
+  animation: chat-rise 620ms 70ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .chat-side {
   min-height: 0;
   overflow-y: auto;
-  border-right: 1px solid #e2e8f0;
+  border-right: 1px solid var(--app-border);
+  background: color-mix(in srgb, var(--app-card-solid) 94%, var(--theme-primary) 6%);
 }
 
-.dark .chat-side {
-  border-color: rgba(255, 255, 255, 0.08);
+.search-input,
+.dialog-input,
+.chat-input textarea {
+  width: 100%;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: var(--app-card-solid);
+  color: var(--app-text);
+  outline: none;
+  transition: border-color 200ms ease, box-shadow 240ms ease;
 }
 
 .search-input,
 .dialog-input {
-  width: 100%;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  background: white;
   padding: 9px 11px;
-  outline: none;
 }
 
-.dark .search-input,
-.dark .dialog-input {
-  border-color: rgba(255, 255, 255, 0.14);
-  background: #1e293b;
-  color: white;
+.search-input:focus,
+.dialog-input:focus,
+.chat-input textarea:focus {
+  border-color: var(--theme-primary);
+  box-shadow: 0 0 0 3px rgb(var(--theme-primary-rgb) / 0.12);
 }
 
-.search-btn {
-  flex: 0 0 auto;
-  border-radius: 10px;
-  background: #2563eb;
-  padding: 0 12px;
-  color: white;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.result-list {
+.search-btn,
+.icon-refresh {
   display: grid;
-  gap: 6px;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: rgb(var(--theme-primary-rgb) / 0.09);
+  color: var(--theme-primary);
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), background 200ms ease;
+}
+
+.search-btn:hover,
+.icon-refresh:hover {
+  background: rgb(var(--theme-primary-rgb) / 0.16);
+  transform: translateY(-2px) rotate(-3deg);
+}
+
+.search-btn svg,
+.icon-refresh svg {
+  width: 17px;
+  height: 17px;
+}
+
+.result-list,
+.side-section,
+.chat-input {
+  display: grid;
+  gap: 8px;
 }
 
 .result-item,
 .plain-item,
 .conversation-item {
   width: 100%;
-  border-radius: 12px;
-  padding: 10px;
+  border-radius: 8px;
   text-align: left;
-  transition: background 0.18s ease;
+  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), background 200ms ease, box-shadow 280ms ease;
 }
 
 .result-item,
 .plain-item {
-  display: flex;
   justify-content: space-between;
   gap: 10px;
-  background: #f8fafc;
+  border: 1px solid transparent;
+  background: rgb(var(--theme-primary-rgb) / 0.055);
+  padding: 10px;
 }
 
-.dark .result-item,
-.dark .plain-item {
-  background: #1e293b;
+.result-item:hover,
+.plain-item:hover {
+  border-color: var(--app-border);
+  background: rgb(var(--theme-primary-rgb) / 0.1);
+  transform: translateX(3px);
 }
 
 .result-item small,
 .plain-item small,
 .conversation-item small {
-  color: #94a3b8;
-  font-size: 12px;
+  color: var(--app-text-muted);
+  font-size: 11px;
 }
 
 .side-section {
-  display: grid;
-  gap: 8px;
   padding: 14px;
 }
 
 .side-title {
-  color: #64748b;
-  font-size: 12px;
+  color: var(--app-text-muted);
+  font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
 }
 
 .conversation-item {
-  display: flex;
-  align-items: center;
   gap: 10px;
+  border: 1px solid transparent;
+  padding: 10px;
 }
 
 .conversation-item:hover,
 .conversation-item.active {
-  background: #eff6ff;
-}
-
-.dark .conversation-item:hover,
-.dark .conversation-item.active {
-  background: #1e3a8a;
+  border-color: var(--app-border);
+  background: rgb(var(--theme-primary-rgb) / 0.1);
+  box-shadow: 0 10px 20px -18px rgb(var(--theme-primary-rgb) / 0.7);
+  transform: translateX(3px);
 }
 
 .avatar {
   display: grid;
-  width: 40px;
-  height: 40px;
-  flex: 0 0 40px;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
   place-items: center;
-  border-radius: 12px;
-  background: #dbeafe;
-  color: #1d4ed8;
-  font-weight: 800;
+  border-radius: 8px;
+  background: rgb(var(--theme-primary-rgb) / 0.13);
+  color: var(--theme-primary);
+}
+
+.avatar svg {
+  width: 18px;
+  height: 18px;
 }
 
 .conversation-item strong {
   display: block;
   overflow: hidden;
+  color: var(--app-text);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -475,7 +641,7 @@ onUnmounted(() => {
 .conversation-item p {
   overflow: hidden;
   margin-top: 2px;
-  color: #64748b;
+  color: var(--app-text-muted);
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -483,13 +649,14 @@ onUnmounted(() => {
 
 .unread {
   display: grid;
-  min-width: 22px;
-  height: 22px;
+  min-width: 20px;
+  height: 20px;
   place-items: center;
-  border-radius: 999px;
-  background: #ef4444;
+  border-radius: 7px;
+  background: var(--theme-secondary);
   color: white;
-  font-size: 12px;
+  font-size: 11px;
+  animation: unread-pop 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .chat-main {
@@ -499,45 +666,57 @@ onUnmounted(() => {
 }
 
 .chat-head {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 16px 18px;
-}
-
-.dark .chat-head {
-  border-color: rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--app-border);
+  padding: 15px 18px;
 }
 
 .chat-head h2 {
-  font-size: 18px;
+  color: var(--app-text);
+  font-size: 17px;
   font-weight: 800;
 }
 
 .chat-head p {
   margin-top: 2px;
-  color: #64748b;
-  font-size: 13px;
+  color: var(--app-text-muted);
+  font-size: 12px;
 }
 
 .message-list {
   min-height: 0;
   overflow-y: auto;
-  padding: 18px;
+  padding: 20px;
+  scroll-behavior: smooth;
 }
 
 .empty-state {
   display: grid;
   height: 100%;
-  min-height: 320px;
+  min-height: 300px;
   place-items: center;
-  color: #94a3b8;
+  align-content: center;
+  gap: 8px;
+  color: var(--app-text-muted);
+}
+
+.empty-state svg {
+  width: 34px;
+  color: var(--theme-primary);
+}
+
+.empty-state strong {
+  color: var(--app-text-secondary);
+}
+
+.empty-state span {
+  font-size: 12px;
 }
 
 .message-row {
   display: flex;
   margin-bottom: 12px;
+  animation: message-arrive 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .message-row.mine {
@@ -546,30 +725,30 @@ onUnmounted(() => {
 
 .message-bubble {
   max-width: min(620px, 76%);
-  border-radius: 14px;
-  background: #f1f5f9;
+  border: 1px solid var(--app-border);
+  border-radius: 8px 8px 8px 3px;
+  background: color-mix(in srgb, var(--app-card-solid) 92%, var(--theme-primary) 8%);
   padding: 10px 12px;
+  box-shadow: 0 10px 22px -20px rgb(15 23 42 / 0.4);
 }
 
 .message-row.mine .message-bubble {
-  background: #dbeafe;
-}
-
-.dark .message-bubble {
-  background: #1e293b;
-}
-
-.dark .message-row.mine .message-bubble {
-  background: #1d4ed8;
+  border-color: transparent;
+  border-radius: 8px 8px 3px 8px;
+  background: var(--theme-primary);
+  color: white;
 }
 
 .message-meta {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
   gap: 14px;
-  color: #64748b;
-  font-size: 12px;
+  color: var(--app-text-muted);
+  font-size: 11px;
+}
+
+.message-row.mine .message-meta,
+.message-row.mine .read-line {
+  color: rgb(255 255 255 / 0.72);
 }
 
 .message-bubble p {
@@ -580,44 +759,68 @@ onUnmounted(() => {
 
 .read-line {
   margin-top: 6px;
-  color: #94a3b8;
-  font-size: 11px;
+  color: var(--app-text-muted);
+  font-size: 10px;
   text-align: right;
 }
 
 .chat-input {
-  display: grid;
-  gap: 10px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--app-border);
   padding: 14px;
 }
 
-.dark .chat-input {
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
 .chat-input textarea {
-  width: 100%;
   resize: none;
-  border: 1px solid #cbd5e1;
-  border-radius: 12px;
   padding: 11px;
-  outline: none;
-}
-
-.dark .chat-input textarea {
-  border-color: rgba(255, 255, 255, 0.14);
-  background: #1e293b;
-  color: white;
 }
 
 .chat-input button {
   justify-self: end;
-  border-radius: 10px;
-  background: #2563eb;
-  padding: 9px 22px;
+  gap: 7px;
+  min-height: 40px;
+  border-radius: 8px;
+  background: var(--theme-primary);
+  padding: 0 18px;
   color: white;
   font-weight: 800;
+  box-shadow: 0 12px 24px -18px rgb(var(--theme-primary-rgb) / 0.9);
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 260ms ease;
+}
+
+.chat-input button:hover {
+  box-shadow: 0 16px 28px -18px rgb(var(--theme-primary-rgb) / 0.95);
+  transform: translateY(-2px);
+}
+
+.chat-input button:active {
+  transform: scale(0.96);
+}
+
+.chat-input button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.dialog-secondary {
+  border: 1px solid var(--app-border);
+  background: var(--app-card-solid);
+  color: var(--app-text-secondary);
+}
+
+@keyframes chat-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes message-arrive {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes unread-pop {
+  0% { opacity: 0; transform: scale(0.62); }
+  70% { transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 @media (max-width: 960px) {
@@ -628,7 +831,52 @@ onUnmounted(() => {
   .chat-side {
     max-height: 42vh;
     border-right: 0;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--app-border);
+  }
+}
+
+@media (max-width: 640px) {
+  .chat-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .toolbar-actions,
+  .create-group-button {
+    width: 100%;
+  }
+
+  .toolbar-actions {
+    align-items: stretch;
+  }
+
+  .create-group-button {
+    justify-content: center;
+  }
+
+  .unread-summary {
+    white-space: nowrap;
+  }
+
+  .message-bubble {
+    max-width: 88%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-toolbar,
+  .chat-shell,
+  .message-row,
+  .unread {
+    animation: none;
+  }
+
+  .conversation-item:hover,
+  .result-item:hover,
+  .plain-item:hover,
+  .create-group-button:hover,
+  .chat-input button:hover {
+    transform: none;
   }
 }
 </style>

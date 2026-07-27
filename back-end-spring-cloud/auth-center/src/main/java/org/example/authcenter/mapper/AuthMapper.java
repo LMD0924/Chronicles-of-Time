@@ -9,8 +9,10 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 import org.example.authcenter.entity.User;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -40,4 +42,14 @@ public interface AuthMapper extends BaseMapper<User> {
 
     @Delete("DELETE FROM iam_user_role WHERE user_id = #{userId}")
     int deleteUserRoles(@Param("userId") Long userId);
+
+    @Insert("INSERT INTO iam_refresh_token (id, user_id, token_jti, expires_at) VALUES (#{id}, #{userId}, #{tokenJti}, #{expiresAt})")
+    int insertTokenSession(@Param("id") Long id, @Param("userId") Long userId,
+                           @Param("tokenJti") String tokenJti, @Param("expiresAt") Date expiresAt);
+
+    @Select("SELECT COUNT(1) FROM iam_refresh_token WHERE user_id = #{userId} AND token_jti = #{tokenJti} AND revoked_at IS NULL AND expires_at > NOW()")
+    int countActiveTokenSessions(@Param("userId") Long userId, @Param("tokenJti") String tokenJti);
+
+    @Update("UPDATE iam_refresh_token SET revoked_at = NOW() WHERE user_id = #{userId} AND token_jti = #{tokenJti} AND revoked_at IS NULL")
+    int revokeTokenSession(@Param("userId") Long userId, @Param("tokenJti") String tokenJti);
 }

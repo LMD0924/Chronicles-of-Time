@@ -41,6 +41,7 @@ const isDark = ref(getStoredTheme() === ThemeType.DARK)
 
 const article = ref({
   id: null,
+  authorId: null,
   title: '',
   summary: '',
   content: '',
@@ -124,21 +125,22 @@ const getArticleDetail = async () => {
       const data = res.data
       const isLiked = data.isLiked === true || data.isLiked === 1 || data.isLiked === 'true' || data.isLiked === '1'
       const isFavorited = data.isFavorited === true || data.isFavorited === 1 || data.isFavorited === 'true' || data.isFavorited === '1'
+      const author = data.author || {}
 
       article.value = {
         id: data.id,
         title: data.title,
-        authorId:String(data.userId),
+        authorId: data.userId == null ? null : String(data.userId),
         summary: data.summary || '',
         content: data.content,
         category: data.category,
         tags: data.tags ? data.tags.split(',') : [],
         coverImage: data.coverImage || '',
-        author: data.author || {
-          id: data.userId,
-          name: data.userName || '匿名用户',
-          avatar: data.userAvatar || '/default-avatar.png',
-          introduction: data.userIntroduction || '这个人很懒，什么也没留下。'
+        author: {
+          id: author.id ?? data.userId,
+          name: author.name || author.username || data.authorName || '匿名用户',
+          avatar: author.avatar || data.authorAvatar || '/default-avatar.png',
+          introduction: author.introduction || data.authorIntroduction || ''
         },
         likeCount: data.likesCount || 0,
         favoriteCount: data.favoritesCount || 0,
@@ -205,9 +207,40 @@ const submitComment = async () => {
   }
 }
 
+const canReplyToComment = (comment) => {
+  const currentUserId = UserInfo.value?.id
+  return currentUserId != null && comment?.userId != null && String(currentUserId) !== String(comment.userId)
+}
+
+const isCommentLiked = (comment) => comment?.liked === true || comment?.liked === 1 || comment?.liked === 'true' || comment?.liked === '1'
+
+const handleCommentLike = async (comment) => {
+  if (!comment?.id) return
+  const liked = isCommentLiked(comment)
+  try {
+    const res = liked
+      ? await request.delete('/content/comment/unlike', { commentId: comment.id })
+      : await request.post('/content/comment/like', {}, { commentId: comment.id })
+    if (res.code === 200) {
+      comment.liked = !liked
+      const likesCount = Number(comment.likesCount || 0)
+      comment.likesCount = Math.max(0, likesCount + (liked ? -1 : 1))
+    } else {
+      messageApi.error(res.message || '点赞操作失败')
+    }
+  } catch (error) {
+    console.error('评论点赞失败', error)
+    messageApi.error('点赞操作失败，请稍后重试')
+  }
+}
+
 const replyToComment = (comment) => {
+  if (!canReplyToComment(comment)) {
+    messageApi.warning('不能回复自己的评论')
+    return
+  }
   replyTo.value = comment
-  commentInput.value = `@${comment.userName} `
+  commentInput.value = `@${comment.userName || '用户'} `
   const inputEl = document.querySelector('.comment-input')
   inputEl?.focus()
 }
@@ -280,12 +313,8 @@ const scrollToSection = (sectionId) => {
 
 const isOwnArticle = computed(() => {
   const userId = UserInfo.value?.id
-  const authorId = article.value.author?.id || article.value.userId
-
-  console.log('我的ID（原始）', userId)
-  console.log('作者ID（原始）', authorId)
-
-  return userId && authorId && String(userId) == String(authorId)
+  const authorId = article.value.authorId
+  return userId != null && authorId != null && String(userId) === String(authorId)
 })
 
 // ==============================================
@@ -416,8 +445,6 @@ const getUserInfo = async () => {
     const res = await request.get('/user/getUserById')
     if (res.code === 200 && res.data) {
       UserInfo.value = res.data
-      console.log("当前用户ID:", UserInfo.value.id)
-      console.log("文章作者ID:", article.value.author.userId)
     }
   } catch (err) {
     console.error('获取用户信息失败', err)
@@ -581,9 +608,10 @@ watch(() => article.value.content, () => {
                   <div class="flex items-center justify-between flex-wrap gap-4">
                     <div class="flex items-center gap-3">
                       <img :src="article.author.avatar || '/default-avatar.png'" alt="头像" class="w-10 h-10 rounded-full object-cover">
-                      <div>
-                        <div class="font-medium text-sm">{{ article.author.name }}</div>
-                        <div class="text-xs text-gray-400">{{ article.author.introduction }}</div>
+                      <div class="min-w-0">
+                        <div class="text-xs text-gray-400 mb-0.5">作者</div>
+                        <div class="font-medium text-sm truncate">{{ article.author.name }}</div>
+                        <div v-if="article.author.introduction" class="text-xs text-gray-400 truncate">{{ article.author.introduction }}</div>
                       </div>
                     </div>
 
@@ -640,7 +668,7 @@ watch(() => article.value.content, () => {
 
             <div class="lg:col-span-3 xl:col-span-2">
               <div class="sticky top-24">
-                <div id="comments" class="rounded-xl p-4" :class="isDark ? 'bg-gray-900/50' : 'bg-white shadow-sm'">
+                <div id="comments" class="rounded-lg border p-4" :class="isDark ? 'bg-gray-900/50 border-gray-800' : 'bg-white border-gray-100 shadow-sm'">
                   <div class="flex items-center justify-between mb-4 pb-2 border-b" :class="isDark ? 'border-gray-800' : 'border-gray-200'">
                     <div class="flex items-center gap-2">
                       <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -660,7 +688,7 @@ watch(() => article.value.content, () => {
                       v-model="commentInput"
                       placeholder="写下你的想法..."
                       rows="3"
-                      class="comment-input w-full p-3 rounded-lg text-sm outline-none resize-none"
+                      class="comment-input w-full p-3 rounded-lg border text-sm outline-none resize-none transition-colors"
                       :class="isDark ? 'bg-gray-800 text-gray-200 border-gray-700' : 'bg-gray-50 text-gray-800 border-gray-200'"
                     ></textarea>
                     <div class="flex justify-end mt-2">
@@ -686,34 +714,39 @@ watch(() => article.value.content, () => {
                   </div>
 
                   <div v-else class="space-y-4 max-h-[500px] overflow-y-auto pr-1">
-                    <div v-for="comment in comments" :key="comment.id" class="comment-item">
+                    <div v-for="comment in comments" :key="comment.id" class="comment-item rounded-lg border p-3 transition-colors" :class="isDark ? 'border-gray-800 bg-gray-900/30 hover:bg-gray-800/60' : 'border-gray-100 bg-gray-50/70 hover:bg-white'">
                       <div class="flex gap-2">
-                        <img :src="comment.userAvatar || '/default-avatar.png'" alt="头像" class="w-7 h-7 rounded-full flex-shrink-0">
+                        <img :src="comment.userAvatar || '/default-avatar.png'" alt="头像" class="w-8 h-8 rounded-full ring-2 ring-brand-100 dark:ring-brand-950 flex-shrink-0">
                         <div class="flex-1">
                           <div class="flex items-center gap-2 flex-wrap mb-1">
                             <span class="text-sm font-medium">{{ comment.userName }}</span>
-                            <span class="text-xs text-gray-400">{{ formatDate(comment.createdAt) }}</span>
+                            <span class="text-xs text-gray-400">{{ formatDate(comment.createTime) }}</span>
                           </div>
-                          <p class="text-sm leading-relaxed mb-1" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+                          <p class="text-sm leading-6 mb-2" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
                             {{ comment.content }}
                           </p>
-                          <button @click="replyToComment(comment)" class="text-xs text-gray-400 hover:text-brand-600">
-                            回复
-                          </button>
+                          <div class="flex items-center gap-3">
+                            <button v-if="canReplyToComment(comment)" @click="replyToComment(comment)" class="text-xs text-gray-400 transition-colors hover:text-brand-600">回复</button>
+                            <button @click="handleCommentLike(comment)" class="text-xs transition-colors" :class="isCommentLiked(comment) ? 'text-red-500' : 'text-gray-400 hover:text-red-500'">赞 {{ comment.likesCount || 0 }}</button>
+                          </div>
 
-                          <div v-if="comment.children && comment.children.length" class="mt-3 pl-3 border-l-2" :class="isDark ? 'border-gray-800' : 'border-gray-100'">
-                            <div v-for="reply in comment.children" :key="reply.id" class="mb-3">
+                          <div v-if="comment.children && comment.children.length" class="mt-3 ml-1 space-y-2 border-l-2 pl-3" :class="isDark ? 'border-gray-800' : 'border-gray-100'">
+                            <div v-for="reply in comment.children" :key="reply.id" class="rounded-md px-2.5 py-2" :class="isDark ? 'bg-gray-800/60' : 'bg-white'">
                               <div class="flex gap-2">
-                                <img :src="reply.userAvatar || '/default-avatar.png'" alt="头像" class="w-6 h-6 rounded-full flex-shrink-0">
+                                <img :src="reply.userAvatar || '/default-avatar.png'" alt="头像" class="w-6 h-6 rounded-full ring-1 ring-brand-100 dark:ring-brand-950 flex-shrink-0">
                                 <div class="flex-1">
                                   <div class="flex items-center gap-2 flex-wrap mb-1">
-                                    <span class="text-xs font-medium">{{ reply.userName }}</span>
-                                    <span class="text-xs text-gray-400">{{ formatDate(reply.createdAt) }}</span>
+                                    <span class="text-xs font-semibold" :class="isDark ? 'text-gray-200' : 'text-gray-700'">{{ reply.userName }}</span>
+                                    <span class="text-xs text-gray-400">{{ formatDate(reply.createTime) }}</span>
                                   </div>
                                   <p class="text-xs leading-relaxed" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
-                                    <span v-if="reply.replyToUserName" class="text-brand-600">@{{ reply.replyToUserName }} </span>
+                                    <span v-if="reply.replyToUserName" class="mr-1 font-medium text-brand-600 dark:text-brand-400">@{{ reply.replyToUserName }}</span>
                                     {{ reply.content }}
                                   </p>
+                                  <div class="flex items-center gap-3 mt-2">
+                                    <button v-if="canReplyToComment(reply)" @click="replyToComment(reply)" class="text-xs text-gray-400 transition-colors hover:text-brand-600">回复</button>
+                                    <button @click="handleCommentLike(reply)" class="text-xs transition-colors" :class="isCommentLiked(reply) ? 'text-red-500' : 'text-gray-400 hover:text-red-500'">赞 {{ reply.likesCount || 0 }}</button>
+                                  </div>
                                 </div>
                               </div>
                             </div>

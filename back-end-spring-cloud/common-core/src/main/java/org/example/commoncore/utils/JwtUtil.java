@@ -25,6 +25,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -73,12 +74,15 @@ public class JwtUtil {
     }
 
     public String generateRefreshToken(String username, Long userId) {
+        return generateRefreshToken(username, userId, UUID.randomUUID().toString());
+    }
+
+    public String generateRefreshToken(String username, Long userId, String sessionId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("type", "refresh");
-        return createToken(claims, username, refreshExpiration);
+        return createToken(claims, username, refreshExpiration, sessionId);
     }
-
     public String generateAccessTokenWithRememberMe(String username, Long userId, String role, Boolean rememberMe) {
         Set<String> roles = new LinkedHashSet<>();
         if (role != null && !role.isBlank()) {
@@ -100,12 +104,42 @@ public class JwtUtil {
         return createToken(claims, username, expireTime);
     }
 
+    public String generateAccessTokenWithRememberMe(String username, Long userId, Collection<String> roles,
+                                                    Collection<String> permissions, Boolean rememberMe, String sessionId) {
+        Map<String, Object> claims = new HashMap<>();
+        List<String> roleList = cleanList(roles);
+        claims.put("userId", userId);
+        claims.put("role", roleList.isEmpty() ? "USER" : roleList.get(0));
+        claims.put("roles", roleList.isEmpty() ? List.of("USER") : roleList);
+        claims.put("permissions", cleanList(permissions));
+        claims.put("type", "access");
+        Long expireTime = Boolean.TRUE.equals(rememberMe) ? refreshExpiration : expiration;
+        return createToken(claims, username, expireTime, sessionId);
+    }
+
+    public String generateAccessToken(String username, Long userId, Collection<String> roles,
+                                      Collection<String> permissions, String sessionId) {
+        Map<String, Object> claims = new HashMap<>();
+        List<String> roleList = cleanList(roles);
+        claims.put("userId", userId);
+        claims.put("role", roleList.isEmpty() ? "USER" : roleList.get(0));
+        claims.put("roles", roleList.isEmpty() ? List.of("USER") : roleList);
+        claims.put("permissions", cleanList(permissions));
+        claims.put("type", "access");
+        return createToken(claims, username, expiration, sessionId);
+    }
+
     private String createToken(Map<String, Object> claims, String subject, Long expirationTime) {
+        return createToken(claims, subject, expirationTime, UUID.randomUUID().toString());
+    }
+
+    private String createToken(Map<String, Object> claims, String subject, Long expirationTime, String tokenId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationTime);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
+                .setId(tokenId)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -113,7 +147,7 @@ public class JwtUtil {
     }
 
     /**
-     * 只负责 JWT 格式、签名和过期时间校验；是否注销或在线由 Redis 会话状态判断。
+     * 校验 JWT 格式、签名和过期时间。
      */
     public Boolean validateToken(String token) {
         try {
@@ -165,6 +199,14 @@ public class JwtUtil {
         return "refresh".equals(claims.get("type"));
     }
 
+    public Boolean isAccessToken(String token) {
+        final Claims claims = getAllClaimsFromToken(token);
+        return "access".equals(claims.get("type"));
+    }
+
+    public String getTokenId(String token) {
+        return getAllClaimsFromToken(token).getId();
+    }
     private Claims getAllClaimsFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())

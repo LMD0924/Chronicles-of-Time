@@ -11,6 +11,7 @@ import org.example.authcenter.vo.LoginVO;
 import org.example.commondb.enums.ResultCodeEnum;
 import org.springframework.dao.DuplicateKeyException;
 import org.example.commondb.utils.RestBean;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
 /*
@@ -90,7 +91,10 @@ public class AuthController {
      * 验证Token（供网关调用）
      */
     @GetMapping("/verify")
-    public RestBean<Object> verify(@RequestParam String token) {
-        return authService.verifyToken(token);
+    public RestBean<Object> verify(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return RestBean.fail(401, "无效的访问令牌");
+        }
+        return authService.verifyToken(authHeader.substring(7));
     }
 }

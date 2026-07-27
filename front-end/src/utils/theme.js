@@ -7,11 +7,14 @@ export const ThemeType = {
 };
 
 export const THEME_COLOR_PRESETS = [
-  { key: 'pink-purple', name: '玫紫', primary: '#c026d3', secondary: '#6d28d9' },
-  { key: 'rose-violet', name: '蔷薇', primary: '#db2777', secondary: '#7c3aed' },
-  { key: 'cyan-purple', name: '青紫', primary: '#0891b2', secondary: '#7e22ce' },
-  { key: 'orange-pink', name: '暖粉', primary: '#ea580c', secondary: '#db2777' },
-  { key: 'blue-violet', name: '蓝紫', primary: '#2563eb', secondary: '#7c3aed' }
+  { key: 'mist-sand', name: '雾沙', primary: '#74858a', secondary: '#bd8e63', canvas: '#f2efe7', surface: '#fbfaf6', darkCanvas: '#151a1b', darkSurface: '#202829' },
+  { key: 'polar-blue', name: '极夜冰蓝', primary: '#3d6f8f', secondary: '#9bc8cd', canvas: '#edf4f3', surface: '#fbfdfc', darkCanvas: '#091727', darkSurface: '#10243a' },
+  { key: 'deep-teal', name: '深海青', primary: '#176b6a', secondary: '#3e7184', canvas: '#e9f1ef', surface: '#fbfdfc', darkCanvas: '#081d22', darkSurface: '#102a2d' },
+  { key: 'noir-plum', name: '黑梅', primary: '#4c3154', secondary: '#9b8d99', canvas: '#f0eef0', surface: '#fbfafb', darkCanvas: '#151017', darkSurface: '#251c29' },
+  { key: 'moonstone', name: '月岩', primary: '#425d6e', secondary: '#8a98a3', canvas: '#eef0ee', surface: '#fcfdfc', darkCanvas: '#0f1821', darkSurface: '#1a2731' },
+  { key: 'dusk-rose', name: '暮色', primary: '#9a6263', secondary: '#4e7392', canvas: '#f4ebea', surface: '#fdfafa', darkCanvas: '#24223b', darkSurface: '#332a42' },
+  { key: 'orchid-slate', name: '兰灰', primary: '#a97eaa', secondary: '#596a85', canvas: '#f5eff5', surface: '#fdfafd', darkCanvas: '#20233b', darkSurface: '#30344e' },
+  { key: 'moss-field', name: '苔原', primary: '#3f704c', secondary: '#9ca071', canvas: '#f3f1de', surface: '#fcfcf6', darkCanvas: '#0c2119', darkSurface: '#1c3227' }
 ];
 
 const THEME_STORAGE_KEY = 'app_theme';
@@ -106,22 +109,9 @@ const getPresetByKey = (key) => {
 };
 
 const normalizeThemeColor = (value) => {
-  if (typeof value === 'string') {
-    const preset = getPresetByKey(value);
-    return { ...preset };
-  }
-
-  const preset = value?.preset ? getPresetByKey(value.preset) : DEFAULT_THEME_COLOR;
-  const primary = normalizeHex(value?.primary, preset.primary);
-  const secondary = normalizeHex(value?.secondary, preset.secondary);
-
-  return {
-    key: value?.preset || preset.key,
-    name: value?.name || preset.name,
-    preset: value?.preset || preset.key,
-    primary,
-    secondary
-  };
+  const key = typeof value === 'string' ? value : value?.preset || value?.key;
+  const preset = getPresetByKey(key);
+  return { ...preset, preset: preset.key };
 };
 
 const normalizeFont = (value) => {
@@ -193,6 +183,12 @@ export const applyThemeColor = (themeColor = getStoredThemeColor()) => {
   const secondaryPalette = createPalette(normalized.secondary);
   const primaryRgb = rgbChannels(hexToRgb(normalized.primary));
   const secondaryRgb = rgbChannels(hexToRgb(normalized.secondary));
+
+  root.dataset.appTheme = normalized.key;
+  root.style.setProperty('--app-light-canvas', normalized.canvas);
+  root.style.setProperty('--app-light-surface', normalized.surface);
+  root.style.setProperty('--app-dark-canvas', normalized.darkCanvas);
+  root.style.setProperty('--app-dark-surface', normalized.darkSurface);
 
   root.style.setProperty('--theme-primary', normalized.primary);
   root.style.setProperty('--theme-secondary', normalized.secondary);

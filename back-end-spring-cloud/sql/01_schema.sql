@@ -230,6 +230,7 @@ CREATE TABLE IF NOT EXISTS resume (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   deleted_at DATETIME DEFAULT NULL,
   PRIMARY KEY (id),
+  UNIQUE KEY uk_resume_user (user_id),
   KEY idx_resume_user_status (user_id, status),
   KEY idx_resume_public (is_public, updated_at)
 ) ENGINE=InnoDB COMMENT='Resume master table';

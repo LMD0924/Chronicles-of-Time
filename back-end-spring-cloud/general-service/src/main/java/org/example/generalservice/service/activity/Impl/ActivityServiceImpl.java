@@ -10,13 +10,16 @@ import org.example.generalservice.dto.activity.MedalRuleDTO;
 import org.example.generalservice.entity.activity.MedalRule;
 import org.example.generalservice.entity.activity.UserActivityStats;
 import org.example.generalservice.entity.activity.UserMedal;
+import org.example.generalservice.entity.content.Content;
 import org.example.generalservice.mapper.activity.MedalRuleMapper;
 import org.example.generalservice.mapper.activity.UserActivityStatsMapper;
 import org.example.generalservice.mapper.activity.UserMedalMapper;
+import org.example.generalservice.mapper.content.ContentMapper;
 import org.example.generalservice.service.activity.ActivityService;
 import org.example.generalservice.vo.UserVO;
 import org.example.generalservice.vo.activity.ActivitySummaryVO;
 import org.example.generalservice.vo.activity.AdminActivityUserVO;
+import org.example.generalservice.vo.activity.GrowthTaskVO;
 import org.example.generalservice.vo.activity.UserMedalVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +41,8 @@ import java.util.stream.Collectors;
 public class ActivityServiceImpl implements ActivityService {
 
     private static final int DEFAULT_ONLINE_WINDOW_MINUTES = 5;
+    private static final int[] LEVEL_THRESHOLDS = {0, 120, 300, 600, 1000, 1600, 2400, 3600};
+    private static final String[] LEVEL_NAMES = {"初见", "拾光", "笃行", "进阶", "闪耀", "星河", "远航", "时光大师"};
     private static final Map<String, Function<UserActivityStats, Integer>> RULE_VALUE_GETTERS = Map.of(
             "LOGIN_DAYS", s -> value(s.getTotalLoginDays()),
             "STREAK_DAYS", s -> value(s.getContinuousLoginDays()),
@@ -49,6 +54,8 @@ public class ActivityServiceImpl implements ActivityService {
     private final UserActivityStatsMapper statsMapper;
     private final MedalRuleMapper medalRuleMapper;
     private final UserMedalMapper userMedalMapper;
+    private final ContentMapper contentMapper;
+    private final LearningProgressQueryService learningProgressQueryService;
     private final UserServiceClient userServiceClient;
 
     @Override
@@ -257,6 +264,20 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     private ActivitySummaryVO buildSummary(UserActivityStats stats) {
+        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+        long publishedArticleCount = countPublishedArticles(stats.getUserId(), null);
+        long completedPracticeCount = learningProgressQueryService.countCompletedPractices(stats.getUserId(), null);
+        long todayArticleCount = countPublishedArticles(stats.getUserId(), todayStart);
+        long todayPracticeCount = learningProgressQueryService.countCompletedPractices(stats.getUserId(), todayStart);
+        int growthExperience = calculateGrowthExperience(stats, publishedArticleCount, completedPracticeCount);
+        int levelIndex = resolveLevelIndex(growthExperience);
+        int currentThreshold = LEVEL_THRESHOLDS[levelIndex];
+        int nextThreshold = levelIndex == LEVEL_THRESHOLDS.length - 1
+                ? currentThreshold + 1000
+                : LEVEL_THRESHOLDS[levelIndex + 1];
+        int levelProgress = Math.min(100, Math.max(0,
+                (growthExperience - currentThreshold) * 100 / Math.max(1, nextThreshold - currentThreshold)));
+
         ActivitySummaryVO vo = new ActivitySummaryVO();
         vo.setUserId(stats.getUserId());
         vo.setTotalLoginDays(value(stats.getTotalLoginDays()));
@@ -267,7 +288,17 @@ public class ActivityServiceImpl implements ActivityService {
         vo.setLastCheckinDate(stats.getLastCheckinDate());
         vo.setLastSeenAt(stats.getLastSeenAt());
         vo.setMedalScore(value(stats.getMedalScore()));
+        vo.setLevel(levelIndex + 1);
+        vo.setLevelName(LEVEL_NAMES[levelIndex]);
+        vo.setGrowthExperience(growthExperience);
+        vo.setCurrentLevelExperience(currentThreshold);
+        vo.setNextLevelExperience(nextThreshold);
+        vo.setLevelProgress(levelProgress);
+        vo.setPublishedArticleCount(publishedArticleCount);
+        vo.setCompletedPracticeCount(completedPracticeCount);
         vo.setCheckedInToday(LocalDate.now().equals(stats.getLastCheckinDate()));
+        vo.setGrowthTasks(buildGrowthTasks(vo.getCheckedInToday(), todayArticleCount, todayPracticeCount,
+                value(stats.getTodayOnlineSeconds())));
         vo.setMedals(userMedalMapper.selectList(new LambdaQueryWrapper<UserMedal>()
                         .eq(UserMedal::getUserId, stats.getUserId())
                         .orderByDesc(UserMedal::getAwardedAt))
@@ -275,6 +306,50 @@ public class ActivityServiceImpl implements ActivityService {
                 .map(this::toMedalVO)
                 .collect(Collectors.toList()));
         return vo;
+    }
+
+    private long countPublishedArticles(Long userId, LocalDateTime since) {
+        LambdaQueryWrapper<Content> wrapper = new LambdaQueryWrapper<Content>()
+                .eq(Content::getUserId, userId)
+                .eq(Content::getStatus, 1);
+        if (since != null) {
+            wrapper.ge(Content::getPublishTime, since);
+        }
+        return contentMapper.selectCount(wrapper);
+    }
+
+
+    private int calculateGrowthExperience(UserActivityStats stats, long articleCount, long practiceCount) {
+        long experience = (long) value(stats.getTotalLoginDays()) * 20
+                + (long) value(stats.getMaxContinuousLoginDays()) * 10
+                + value(stats.getTotalOnlineSeconds()) / 1800 * 5
+                + articleCount * 40
+                + practiceCount * 25;
+        return (int) Math.min(Integer.MAX_VALUE, experience);
+    }
+
+    private int resolveLevelIndex(int experience) {
+        for (int index = LEVEL_THRESHOLDS.length - 1; index >= 0; index--) {
+            if (experience >= LEVEL_THRESHOLDS[index]) {
+                return index;
+            }
+        }
+        return 0;
+    }
+
+    private List<GrowthTaskVO> buildGrowthTasks(boolean checkedInToday, long articleCount,
+                                                  long practiceCount, long todayOnlineSeconds) {
+        int onlineMinutes = (int) (todayOnlineSeconds / 60);
+        return List.of(
+                new GrowthTaskVO("checkin", "每日打卡", "留下今天的成长足迹", "CalendarCheck",
+                        checkedInToday ? 1 : 0, 1, 20, checkedInToday, "/DailyCheckin"),
+                new GrowthTaskVO("publish", "发表文章", "把一次思考整理成文字", "EditPen",
+                        (int) articleCount, 1, 40, articleCount >= 1, "/Publish"),
+                new GrowthTaskVO("practice", "完成练习", "完成一次在线练习或考试", "MagicStick",
+                        (int) practiceCount, 1, 25, practiceCount >= 1, "/StudyDashboard?tab=practice"),
+                new GrowthTaskVO("online", "专注在线", "累计在线学习 30 分钟", "Timer",
+                        Math.min(onlineMinutes, 30), 30, 5, onlineMinutes >= 30, "/GrowthHub")
+        );
     }
 
     private UserMedalVO toMedalVO(UserMedal medal) {

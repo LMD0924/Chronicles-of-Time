@@ -3,6 +3,7 @@
  */
 package org.example.authcenter.service.Impl;
 
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,14 +18,13 @@ import org.example.commoncore.auth.RoleCodes;
 import org.example.commoncore.utils.JwtUtil;
 import org.example.commondb.utils.RestBean;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.UUID;
 
 /**
  * 类说明：当前类是业务服务模块的组成部分，与控制层、服务层、数据层或配置层协作，保障拾光记业务闭环可维护。
@@ -36,12 +36,7 @@ public class AuthServiceImpl extends ServiceImpl<AuthMapper, User> implements Au
 
     private final AuthMapper authMapper;
     private final JwtUtil jwtUtil;
-    private final RedisTemplate<String, String> redisTemplate;
     private final PasswordEncoder passwordEncoder;
-
-    private static final String ACCESS_TOKEN_PREFIX = "access_token:";
-    private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
-    private static final String TOKEN_BLACKLIST_PREFIX = "blacklist:";
 
     @Override
     public LoginVO login(AuthDTO authDTO) {
@@ -60,31 +55,7 @@ public class AuthServiceImpl extends ServiceImpl<AuthMapper, User> implements Au
             throw new RuntimeException("密码错误");
         }
 
-
-
-        // 权限随 token 一起返回给前端，后台管理端可据此控制菜单和按钮级权限。
-        List<String> roles = loadRoles(user.getId());
-        List<String> permissions = loadPermissions(user.getId());
-        String accessToken = jwtUtil.generateAccessTokenWithRememberMe(user.getUsername(), user.getId(), roles, permissions, authDTO.getRememberMe());
-        String refreshToken = jwtUtil.generateRefreshToken(user.getUsername(), user.getId());
-
-        Long expiration = jwtUtil.getRemainingTime(accessToken);
-
-
-        // Redis 中保存 access token 的剩余有效期，网关会以此判断会话是否仍在线。
-        redisTemplate.opsForValue().set(ACCESS_TOKEN_PREFIX + accessToken, user.getId().toString(), expiration, TimeUnit.MILLISECONDS);
-        redisTemplate.opsForValue().set(REFRESH_TOKEN_PREFIX + user.getId(), refreshToken, 7, TimeUnit.DAYS);
-
-        UserVO userVO = buildUserVO(user, roles, permissions);
-        return LoginVO.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .expiresIn(expiration / 1000)
-                .roles(roles)
-                .permissions(permissions)
-                .userInfo(userVO)
-                .build();
+        return issueTokens(user, loadRoles(user.getId()), loadPermissions(user.getId()), authDTO.getRememberMe());
     }
 
     @Override
@@ -118,20 +89,16 @@ public class AuthServiceImpl extends ServiceImpl<AuthMapper, User> implements Au
         return inserted;
     }
 
-
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public LoginVO refreshToken(String refreshToken) {
-        if (!jwtUtil.validateToken(refreshToken)) {
+        if (!jwtUtil.validateToken(refreshToken) || !jwtUtil.isRefreshToken(refreshToken)) {
             throw new RuntimeException("无效的刷新令牌");
         }
-        if (!jwtUtil.isRefreshToken(refreshToken)) {
-            throw new RuntimeException("令牌类型错误");
-        }
 
-        String username = jwtUtil.getUsernameFromToken(refreshToken);
         Long userId = jwtUtil.getUserIdFromToken(refreshToken);
-        String storedRefreshToken = redisTemplate.opsForValue().get(REFRESH_TOKEN_PREFIX + userId);
-        if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
+        String sessionId = jwtUtil.getTokenId(refreshToken);
+        if (StringUtils.isBlank(sessionId) || authMapper.countActiveTokenSessions(userId, sessionId) == 0) {
             throw new RuntimeException("刷新令牌已失效，请重新登录");
         }
 
@@ -140,48 +107,36 @@ public class AuthServiceImpl extends ServiceImpl<AuthMapper, User> implements Au
             throw new RuntimeException("用户不存在或已被禁用");
         }
 
-        List<String> roles = loadRoles(userId);
-        List<String> permissions = loadPermissions(userId);
-        String newAccessToken = jwtUtil.generateAccessToken(username, userId, roles, permissions);
-        Long expiration = jwtUtil.getRemainingTime(newAccessToken);
-        redisTemplate.opsForValue().set(ACCESS_TOKEN_PREFIX + newAccessToken, userId.toString(), expiration, TimeUnit.MILLISECONDS);
-
-        return LoginVO.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .expiresIn(expiration / 1000)
-                .roles(roles)
-                .permissions(permissions)
-                .userInfo(buildUserVO(user, roles, permissions))
-                .build();
+        authMapper.revokeTokenSession(userId, sessionId);
+        return issueTokens(user, loadRoles(userId), loadPermissions(userId), false);
     }
-
 
     @Override
     public void logout(String accessToken, Long userId) {
-        redisTemplate.delete(REFRESH_TOKEN_PREFIX + userId);
-        Long remainingTime = jwtUtil.getRemainingTime(accessToken);
-        if (remainingTime > 0) {
-            redisTemplate.opsForValue().set(TOKEN_BLACKLIST_PREFIX + accessToken, userId.toString(), remainingTime, TimeUnit.MILLISECONDS);
+        if (!jwtUtil.validateToken(accessToken) || !jwtUtil.isAccessToken(accessToken)
+                || !userId.equals(jwtUtil.getUserIdFromToken(accessToken))) {
+            throw new RuntimeException("无效的访问令牌");
         }
-        redisTemplate.delete(ACCESS_TOKEN_PREFIX + accessToken);
+        String sessionId = jwtUtil.getTokenId(accessToken);
+        if (StringUtils.isBlank(sessionId)) {
+            throw new RuntimeException("无效的访问令牌");
+        }
+        authMapper.revokeTokenSession(userId, sessionId);
         log.info("用户登出成功: userId={}", userId);
     }
 
     @Override
     public RestBean<Object> verifyToken(String token) {
-        if (!jwtUtil.validateToken(token)) {
+        if (!jwtUtil.validateToken(token) || !jwtUtil.isAccessToken(token)) {
             return RestBean.fail(401, "Token无效或已过期");
-        }
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(TOKEN_BLACKLIST_PREFIX + token))) {
-            return RestBean.fail(401, "Token已被注销");
-        }
-        if (Boolean.FALSE.equals(redisTemplate.hasKey(ACCESS_TOKEN_PREFIX + token))) {
-            return RestBean.fail(401, "Token已失效");
         }
 
         Long userId = jwtUtil.getUserIdFromToken(token);
+        String sessionId = jwtUtil.getTokenId(token);
+        if (StringUtils.isBlank(sessionId) || authMapper.countActiveTokenSessions(userId, sessionId) == 0) {
+            return RestBean.fail(401, "Token已失效");
+        }
+
         String username = jwtUtil.getUsernameFromToken(token);
         List<String> roles = jwtUtil.getRolesFromToken(token);
         List<String> permissions = jwtUtil.getPermissionsFromToken(token);
@@ -192,6 +147,28 @@ public class AuthServiceImpl extends ServiceImpl<AuthMapper, User> implements Au
                 "permissions", permissions,
                 "valid", true
         ));
+    }
+
+    private LoginVO issueTokens(User user, List<String> roles, List<String> permissions, Boolean rememberMe) {
+        String sessionId = UUID.randomUUID().toString();
+        String accessToken = jwtUtil.generateAccessTokenWithRememberMe(
+                user.getUsername(), user.getId(), roles, permissions, rememberMe, sessionId);
+        String refreshToken = jwtUtil.generateRefreshToken(user.getUsername(), user.getId(), sessionId);
+        if (authMapper.insertTokenSession(IdWorker.getId(), user.getId(), sessionId,
+                jwtUtil.getExpirationDateFromToken(refreshToken)) != 1) {
+            throw new RuntimeException("登录会话创建失败");
+        }
+
+        Long expiration = jwtUtil.getRemainingTime(accessToken);
+        return LoginVO.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(expiration / 1000)
+                .roles(roles)
+                .permissions(permissions)
+                .userInfo(buildUserVO(user, roles, permissions))
+                .build();
     }
 
     private List<String> loadRoles(Long userId) {

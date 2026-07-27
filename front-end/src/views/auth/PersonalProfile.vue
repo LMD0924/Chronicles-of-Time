@@ -139,14 +139,13 @@ const fetchMyArticles = async () => {
 const fetchLikedArticles = async () => {
   likesLoading.value = true
   try {
-    const res = await request.get('/content/user/liked', {
-      userId: userInfo.value.id,
+    const res = await request.get('/content/my/liked', {
       pageNum: 1,
       pageSize: 20
     })
     if (res.code === 200) {
-      likedArticles.value = res.data || []
-      stats.value.totalLikes = likedArticles.value.length
+      likedArticles.value = res.data?.records || res.data || []
+      stats.value.totalLikes = res.data?.total ?? likedArticles.value.length
     }
   } catch (error) {
     console.error('获取点赞列表失败', error)
@@ -159,14 +158,13 @@ const fetchLikedArticles = async () => {
 const fetchFavoritedArticles = async () => {
   favoritesLoading.value = true
   try {
-    const res = await request.get('/content/user/favorited', {
-      userId: userInfo.value.id,
+    const res = await request.get('/content/my/favorited', {
       pageNum: 1,
       pageSize: 20
     })
     if (res.code === 200) {
-      favoritedArticles.value = res.data || []
-      stats.value.totalFavorites = favoritedArticles.value.length
+      favoritedArticles.value = res.data?.records || res.data || []
+      stats.value.totalFavorites = res.data?.total ?? favoritedArticles.value.length
     }
   } catch (error) {
     console.error('获取收藏列表失败', error)
@@ -179,13 +177,13 @@ const fetchFavoritedArticles = async () => {
 const fetchMyComments = async () => {
   commentsLoading.value = true
   try {
-    const res = await request.get('/content/comment/user/' + userInfo.value.id, {
+    const res = await request.get('/content/my/comments', {
       pageNum: 1,
       pageSize: 20
     })
     if (res.code === 200) {
-      myComments.value = res.data || []
-      stats.value.totalComments = myComments.value.length
+      myComments.value = res.data?.records || res.data || []
+      stats.value.totalComments = res.data?.total ?? myComments.value.length
     }
   } catch (error) {
     console.error('获取评论列表失败', error)

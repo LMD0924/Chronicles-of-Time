@@ -4,6 +4,8 @@
 package org.example.universityservice.entity.paper;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 @TableName("thesis_paper")
 public class Paper {
 
+    @JsonSerialize(using = ToStringSerializer.class)
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;                // 主键ID
 

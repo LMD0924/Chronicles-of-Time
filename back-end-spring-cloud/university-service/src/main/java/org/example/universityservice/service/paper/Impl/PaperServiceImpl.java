@@ -15,6 +15,7 @@ import org.example.universityservice.vo.paper.PaperVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -44,8 +45,11 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper> implements
     @Override
     public boolean createPaper(PaperVO paperVO, Long userId) {
         Paper paper = new Paper();
-        BeanUtils.copyProperties(paperVO, paper);
+        BeanUtils.copyProperties(paperVO, paper, "id", "userId", "createdAt", "updatedAt");
+        LocalDateTime now = LocalDateTime.now();
         paper.setUserId(userId);
+        paper.setCreatedAt(now);
+        paper.setUpdatedAt(now);
         int result = paperMapper.insert(paper);
         return result > 0;
     }
@@ -56,7 +60,8 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper> implements
         if (existingPaper == null) {
             return false;
         }
-        BeanUtils.copyProperties(paperVO, existingPaper, "id", "userId", "createdAt");
+        BeanUtils.copyProperties(paperVO, existingPaper, "id", "userId", "createdAt", "updatedAt");
+        existingPaper.setUpdatedAt(LocalDateTime.now());
         int result = paperMapper.updateById(existingPaper);
         return result > 0;
     }

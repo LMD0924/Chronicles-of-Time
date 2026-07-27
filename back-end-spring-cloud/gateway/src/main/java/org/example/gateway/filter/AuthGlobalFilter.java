@@ -10,11 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -33,13 +33,12 @@ import java.util.stream.Collectors;
 public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
     private final JwtUtil jwtUtil;
-    private final ReactiveRedisTemplate<String, String> redisTemplate;
 
     @Value("${auth.white-list:/api/auth/login,/api/auth/register,/api/auth/refresh,/api/actuator/health}")
     private String whiteListRaw;
 
-    private static final String ACCESS_TOKEN_PREFIX = "access_token:";
-    private static final String TOKEN_BLACKLIST_PREFIX = "blacklist:";
+    @Value("${auth.verify-url:http://localhost:8080/api/auth/verify}")
+    private String verifyUrl;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -50,7 +49,6 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
 
-
         String token = extractToken(request);
         if (token == null) {
             return unauthorized(exchange, "未提供认证Token");
@@ -58,45 +56,42 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         if (token.chars().filter(ch -> ch == '.').count() != 2) {
             return unauthorized(exchange, "Token格式错误");
         }
-        if (!jwtUtil.validateToken(token)) {
+        if (!jwtUtil.validateToken(token) || !jwtUtil.isAccessToken(token)) {
             return unauthorized(exchange, "Token无效或已过期");
         }
 
+        return isTokenSessionActive(token).flatMap(active -> {
+            if (!active) {
+                return unauthorized(exchange, "Token已失效");
+            }
 
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            String username = jwtUtil.getUsernameFromToken(token);
+            String role = jwtUtil.getRoleFromToken(token);
+            String roles = String.join(",", jwtUtil.getRolesFromToken(token));
+            String permissions = String.join(",", jwtUtil.getPermissionsFromToken(token));
 
-        // Redis 同时承担黑名单和在线 token 校验，支持服务端主动踢下线和注销后即时失效。
-        return redisTemplate.hasKey(TOKEN_BLACKLIST_PREFIX + token)
-                .flatMap(isBlacklisted -> {
-                    if (Boolean.TRUE.equals(isBlacklisted)) {
-                        return unauthorized(exchange, "Token已被注销");
-                    }
-                    return redisTemplate.hasKey(ACCESS_TOKEN_PREFIX + token)
-                            .flatMap(exists -> {
-                                if (Boolean.FALSE.equals(exists)) {
-                                    return unauthorized(exchange, "Token已失效");
-                                }
+            ServerHttpRequest mutatedRequest = request.mutate()
+                    .header("X-User-Id", String.valueOf(userId))
+                    .header("X-Username", username)
+                    .header("X-User-Role", role)
+                    .header("X-User-Roles", roles)
+                    .header("X-User-Permissions", permissions)
+                    .header("X-Auth-Token", token)
+                    .build();
+            log.debug("认证通过: userId={}, username={}, roles={}, path={}", userId, username, roles, path);
+            return chain.filter(exchange.mutate().request(mutatedRequest).build());
+        });
+    }
 
-                                Long userId = jwtUtil.getUserIdFromToken(token);
-                                String username = jwtUtil.getUsernameFromToken(token);
-                                String role = jwtUtil.getRoleFromToken(token);
-                                String roles = String.join(",", jwtUtil.getRolesFromToken(token));
-                                String permissions = String.join(",", jwtUtil.getPermissionsFromToken(token));
-
-
-
-                                // 将用户身份透传给下游服务，下游可通过请求头构造 AuthContext。
-                                ServerHttpRequest mutatedRequest = request.mutate()
-                                        .header("X-User-Id", String.valueOf(userId))
-                                        .header("X-Username", username)
-                                        .header("X-User-Role", role)
-                                        .header("X-User-Roles", roles)
-                                        .header("X-User-Permissions", permissions)
-                                        .header("X-Auth-Token", token)
-                                        .build();
-                                log.debug("认证通过: userId={}, username={}, roles={}, path={}", userId, username, roles, path);
-                                return chain.filter(exchange.mutate().request(mutatedRequest).build());
-                            });
-                });
+    private Mono<Boolean> isTokenSessionActive(String token) {
+        return WebClient.create(verifyUrl)
+                .get()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .retrieve()
+                .bodyToMono(TokenVerificationResponse.class)
+                .map(response -> response.code() == 200)
+                .onErrorReturn(false);
     }
 
     private boolean isWhiteListed(String path) {
@@ -136,5 +131,8 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
     @Override
     public int getOrder() {
         return -100;
+    }
+
+    private record TokenVerificationResponse(int code) {
     }
 }

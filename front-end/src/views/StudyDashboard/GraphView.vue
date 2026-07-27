@@ -51,21 +51,9 @@ const tabs = computed(() => [
 // 导航菜单配置
 const menuItems = [
   {
-    key: 'CourseSelection',
-    label: '明确目标',
-    icon: '🎯',
-    path: '/CourseSelection'
-  },
-  {
-    key: 'Volunteer',
-    label: '规划未来',
-    icon: '🎓',
-    path: '/Volunteer'
-  },
-  {
     key: 'StudyDashboard',
-    label: '温故而知新',
-    icon: '📚',
+    label: '在线考试',
+    icon: '📝',
     children: [
       { key: 'practice', label: '实战练习', icon: '⚡', path: '/StudyDashboard?tab=practice' },
       { key: 'mistake', label: '错题本', icon: '📖', path: '/StudyDashboard?tab=mistake' },

@@ -33,8 +33,7 @@ const activeTab = ref(route.query.tab || 'combo')
 const menuItems = [
   { key: 'hub', label: '高中中心', icon: '🏫', path: '/HighSchoolHub' },
   { key: 'selection', label: '选科', icon: '📚', path: '/CourseSelection' },
-  { key: 'volunteer', label: '志愿', icon: '🎓', path: '/Volunteer' },
-  { key: 'study', label: '学习', icon: '⚡', path: '/StudyDashboard?tab=practice' },
+  { key: 'volunteer', label: '志愿', icon: '🎓', path: '/Volunteer' }
 ]
 
 const currentComponent = computed(() => {

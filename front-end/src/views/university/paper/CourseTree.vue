@@ -35,6 +35,34 @@ const [messageApi, contextHolder] = message.useMessage();
 const { isDark } = useTheme()
 const isScrolled = ref(false)
 
+const normalizeId = (value) => value == null ? value : String(value)
+
+const normalizeMajor = (major) => ({
+  ...major,
+  id: normalizeId(major.id)
+})
+
+const normalizeCategory = (category) => ({
+  ...category,
+  id: normalizeId(category.id),
+  majorId: normalizeId(category.majorId),
+  parentId: normalizeId(category.parentId)
+})
+
+const normalizeCourse = (course) => ({
+  ...course,
+  id: normalizeId(course.id),
+  majorId: normalizeId(course.majorId),
+  categoryId: normalizeId(course.categoryId)
+})
+
+const normalizeStudentCourse = (studentCourse) => ({
+  ...studentCourse,
+  id: normalizeId(studentCourse.id),
+  courseId: normalizeId(studentCourse.courseId),
+  majorId: normalizeId(studentCourse.majorId)
+})
+
 // 数据
 const majors = ref([])
 const currentMajorId = ref(null)
@@ -132,7 +160,7 @@ const getMajors = async () => {
     const res = await request.get('/university/major/list')
     console.log('专业列表:', res)
     if (res.code === 200 && res.data && res.data.length > 0) {
-      majors.value = res.data
+      majors.value = res.data.map(normalizeMajor)
       currentMajorId.value = majors.value[0].id
       await loadAllData()
     }
@@ -167,7 +195,7 @@ const loadCategories = async () => {
     const res = await request.get('/course-category/list', { majorId: currentMajorId.value })
     console.log('分类接口返回:', res)
     if (res.code === 200) {
-      categories.value = res.data || []
+      categories.value = (res.data || []).map(normalizeCategory)
     }
   } catch (error) {
     console.error('获取分类失败', error)
@@ -182,7 +210,7 @@ const loadCourses = async () => {
     const res = await request.get('/course/list', { majorId: currentMajorId.value })
     console.log('课程接口返回:', res)
     if (res.code === 200) {
-      courses.value = res.data || []
+      courses.value = (res.data || []).map(normalizeCourse)
     }
   } catch (error) {
     console.error('获取课程失败', error)
@@ -196,7 +224,7 @@ const loadStudentCourses = async () => {
     const res = await request.get('/student-course/list')
     console.log('选课接口返回:', res)
     if (res.code === 200) {
-      studentCourses.value = res.data || []
+      studentCourses.value = (res.data || []).map(normalizeStudentCourse)
     }
   } catch (error) {
     console.error('获取选课信息失败', error)
@@ -367,7 +395,7 @@ const getChartTheme = () => ({
 // 打开专业详情（从后端获取）
 const openMajorDetail = async (majorIdStr) => {
   // 从majorIdStr中提取实际的majorId（格式为'major-1'）
-  const majorId = parseInt(majorIdStr.split('-')[1])
+  const majorId = String(majorIdStr).replace(/^major-/, '')
   console.log('点击专业节点，majorId:', majorId)
 
   try {
@@ -434,7 +462,7 @@ const renderTree = () => {
       symbolSize: 14,
       roam: true,
       expandAndCollapse: true,
-      initialTreeDepth: 2,
+      initialTreeDepth: -1,
       animation: true,
       animationDuration: 400,
       lineStyle: { color: theme.line, width: 1.5, curveness: 0.5 },
@@ -487,8 +515,8 @@ const openCourseDetail = async (courseId) => {
   try {
     const res = await request.get(`/course/${courseId}`)
     if (res.code === 200) {
-      formData.value = res.data
-      courseForm.value = { ...res.data }
+      formData.value = normalizeCourse(res.data)
+      courseForm.value = { ...normalizeCourse(res.data) }
       const sc = studentCourses.value.find(s => s.courseId === courseId)
       studentCourseInfo.value = sc || null
       scoreInput.value = sc?.score || ''
