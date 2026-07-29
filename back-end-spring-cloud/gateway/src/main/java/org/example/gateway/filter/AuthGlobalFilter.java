@@ -116,6 +116,9 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
                 return authHeader.substring(7);
             }
         }
+        if ("/api/ws/chat".equals(request.getURI().getPath())) {
+            return request.getQueryParams().getFirst("access_token");
+        }
         return null;
     }
 

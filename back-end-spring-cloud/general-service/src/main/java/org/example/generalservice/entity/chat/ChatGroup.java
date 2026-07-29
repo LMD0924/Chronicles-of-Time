@@ -13,20 +13,14 @@ public class ChatGroup {
 
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
-
     private String groupNo;
-
     private String name;
-
     private String announcement;
-
     private Long ownerId;
-
     private Integer memberCount;
-
     private Boolean searchable;
-
+    private Boolean mutedAll;
+    private Long pinnedMessageId;
     private LocalDateTime createdAt;
-
     private LocalDateTime updatedAt;
 }

@@ -4,8 +4,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.example.commondb.utils.RestBean;
 import org.example.generalservice.dto.chat.CreateGroupDTO;
+import org.example.generalservice.dto.chat.GroupModerationDTO;
 import org.example.generalservice.dto.chat.ReadMessageDTO;
 import org.example.generalservice.dto.chat.SendMessageDTO;
+import org.example.generalservice.dto.chat.UpdateFriendRemarkDTO;
 import org.example.generalservice.service.chat.ChatService;
 import org.example.generalservice.vo.chat.*;
 import org.springframework.web.bind.annotation.*;
@@ -50,6 +52,21 @@ public class ChatController {
         return RestBean.success(chatService.friends(userId));
     }
 
+    @PutMapping("/friends/{friendId}/remark")
+    public RestBean<FriendVO> updateFriendRemark(@PathVariable Long friendId,
+                                                  @RequestBody(required = false) UpdateFriendRemarkDTO dto,
+                                                  HttpServletRequest request) {
+        Long userId = currentUserId(request);
+        if (userId == null) {
+            return RestBean.fail(401, "User is not logged in");
+        }
+        try {
+            return RestBean.success("Remark updated", chatService.updateFriendRemark(userId, friendId, dto));
+        } catch (IllegalArgumentException exception) {
+            return RestBean.fail(400, exception.getMessage());
+        }
+    }
+
     @PostMapping("/groups")
     public RestBean<GroupVO> createGroup(@RequestBody CreateGroupDTO dto, HttpServletRequest request) {
         Long userId = currentUserId(request);
@@ -91,6 +108,91 @@ public class ChatController {
             return RestBean.success("已加入群聊", chatService.joinGroup(userId, groupNo));
         } catch (IllegalArgumentException e) {
             return RestBean.fail(400, e.getMessage());
+        }
+    }
+
+    @GetMapping("/groups/{groupId}/members")
+    public RestBean<List<GroupMemberVO>> groupMembers(@PathVariable Long groupId, HttpServletRequest request) {
+        Long userId = currentUserId(request);
+        if (userId == null) return RestBean.fail(401, "User is not logged in");
+        try {
+            return RestBean.success(chatService.groupMembers(userId, groupId));
+        } catch (IllegalArgumentException exception) {
+            return RestBean.fail(400, exception.getMessage());
+        }
+    }
+
+    @PostMapping("/groups/{groupId}/members")
+    public RestBean<GroupVO> inviteGroupMember(@PathVariable Long groupId, @RequestBody GroupModerationDTO dto,
+                                                HttpServletRequest request) {
+        Long userId = currentUserId(request);
+        if (userId == null) return RestBean.fail(401, "User is not logged in");
+        try {
+            return RestBean.success(chatService.inviteGroupMember(userId, groupId, dto));
+        } catch (IllegalArgumentException exception) {
+            return RestBean.fail(400, exception.getMessage());
+        }
+    }
+
+    @DeleteMapping("/groups/{groupId}/members/{targetUserId}")
+    public RestBean<Boolean> removeGroupMember(@PathVariable Long groupId, @PathVariable Long targetUserId,
+                                                HttpServletRequest request) {
+        Long userId = currentUserId(request);
+        if (userId == null) return RestBean.fail(401, "User is not logged in");
+        try {
+            return RestBean.success(chatService.removeGroupMember(userId, groupId, targetUserId));
+        } catch (IllegalArgumentException exception) {
+            return RestBean.fail(400, exception.getMessage());
+        }
+    }
+
+    @PutMapping("/groups/{groupId}/members/{targetUserId}/role")
+    public RestBean<GroupMemberVO> updateGroupMemberRole(@PathVariable Long groupId, @PathVariable Long targetUserId,
+                                                          @RequestBody GroupModerationDTO dto,
+                                                          HttpServletRequest request) {
+        Long userId = currentUserId(request);
+        if (userId == null) return RestBean.fail(401, "User is not logged in");
+        try {
+            return RestBean.success(chatService.updateGroupMemberRole(userId, groupId, targetUserId, dto));
+        } catch (IllegalArgumentException exception) {
+            return RestBean.fail(400, exception.getMessage());
+        }
+    }
+
+    @PutMapping("/groups/{groupId}/members/{targetUserId}/mute")
+    public RestBean<GroupMemberVO> muteGroupMember(@PathVariable Long groupId, @PathVariable Long targetUserId,
+                                                    @RequestBody(required = false) GroupModerationDTO dto,
+                                                    HttpServletRequest request) {
+        Long userId = currentUserId(request);
+        if (userId == null) return RestBean.fail(401, "User is not logged in");
+        try {
+            return RestBean.success(chatService.muteGroupMember(userId, groupId, targetUserId, dto));
+        } catch (IllegalArgumentException exception) {
+            return RestBean.fail(400, exception.getMessage());
+        }
+    }
+
+    @PutMapping("/groups/{groupId}/mute-all")
+    public RestBean<GroupVO> setGroupMutedAll(@PathVariable Long groupId, @RequestBody(required = false) GroupModerationDTO dto,
+                                               HttpServletRequest request) {
+        Long userId = currentUserId(request);
+        if (userId == null) return RestBean.fail(401, "User is not logged in");
+        try {
+            return RestBean.success(chatService.setGroupMutedAll(userId, groupId, dto));
+        } catch (IllegalArgumentException exception) {
+            return RestBean.fail(400, exception.getMessage());
+        }
+    }
+
+    @PutMapping("/groups/{groupId}/pinned-message")
+    public RestBean<GroupVO> pinGroupMessage(@PathVariable Long groupId, @RequestBody(required = false) GroupModerationDTO dto,
+                                              HttpServletRequest request) {
+        Long userId = currentUserId(request);
+        if (userId == null) return RestBean.fail(401, "User is not logged in");
+        try {
+            return RestBean.success(chatService.pinGroupMessage(userId, groupId, dto));
+        } catch (IllegalArgumentException exception) {
+            return RestBean.fail(400, exception.getMessage());
         }
     }
 

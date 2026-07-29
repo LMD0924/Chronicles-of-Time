@@ -13,16 +13,11 @@ public class ChatGroupMember {
 
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
-
     private Long groupId;
-
     private Long userId;
-
     private String role;
-
     private String status;
-
+    private LocalDateTime mutedUntil;
     private LocalDateTime joinedAt;
-
     private LocalDateTime lastReadAt;
 }

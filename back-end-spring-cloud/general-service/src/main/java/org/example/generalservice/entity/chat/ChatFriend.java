@@ -18,6 +18,8 @@ public class ChatFriend {
 
     private Long friendId;
 
+    private String remark;
+
     private String status;
 
     private LocalDateTime createdAt;

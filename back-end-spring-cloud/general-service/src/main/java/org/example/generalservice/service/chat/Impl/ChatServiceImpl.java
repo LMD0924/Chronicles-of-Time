@@ -6,12 +6,18 @@ import org.example.commoncore.utils.MyBeanUtils;
 import org.example.commondb.utils.RestBean;
 import org.example.generalservice.client.UserServiceClient;
 import org.example.generalservice.dto.chat.CreateGroupDTO;
+import org.example.generalservice.dto.chat.GroupModerationDTO;
 import org.example.generalservice.dto.chat.ReadMessageDTO;
 import org.example.generalservice.dto.chat.SendMessageDTO;
+import org.example.generalservice.dto.chat.UpdateFriendRemarkDTO;
 import org.example.generalservice.entity.chat.*;
 import org.example.generalservice.mapper.chat.*;
+import org.example.generalservice.service.activity.ActivityService;
 import org.example.generalservice.service.chat.ChatService;
 import org.example.generalservice.vo.UserVO;
+import org.example.generalservice.vo.activity.ActivitySummaryVO;
+import org.example.generalservice.websocket.chat.ChatMessageCreatedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.example.generalservice.vo.chat.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +35,10 @@ public class ChatServiceImpl implements ChatService {
     private static final String PRIVATE = "PRIVATE";
     private static final String GROUP = "GROUP";
     private static final String ACTIVE = "ACTIVE";
+    private static final String OWNER = "OWNER";
+    private static final String ADMIN = "ADMIN";
+    private static final String MEMBER = "MEMBER";
+    private static final int MAX_GROUP_ADMINS = 5;
 
     private final ChatFriendMapper friendMapper;
     private final ChatGroupMapper groupMapper;
@@ -36,6 +46,8 @@ public class ChatServiceImpl implements ChatService {
     private final ChatMessageMapper messageMapper;
     private final ChatMessageReadMapper readMapper;
     private final UserServiceClient userServiceClient;
+    private final ApplicationEventPublisher eventPublisher;
+    private final ActivityService activityService;
 
     @Override
     public List<ChatUserVO> searchUsers(Long currentUserId, String keyword) {
@@ -84,6 +96,27 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public FriendVO updateFriendRemark(Long currentUserId, Long friendId, UpdateFriendRemarkDTO dto) {
+        requireFriend(currentUserId, friendId);
+        String remark = dto == null ? null : dto.getRemark();
+        if (remark != null && remark.trim().length() > 40) {
+            throw new IllegalArgumentException("Remark cannot exceed 40 characters");
+        }
+        ChatFriend relation = friendMapper.selectOne(new LambdaQueryWrapper<ChatFriend>()
+                .eq(ChatFriend::getUserId, currentUserId)
+                .eq(ChatFriend::getFriendId, friendId)
+                .last("LIMIT 1"));
+        if (relation == null) {
+            throw new IllegalArgumentException("Friendship does not exist");
+        }
+        relation.setRemark(StringUtils.hasText(remark) ? remark.trim() : null);
+        relation.setUpdatedAt(LocalDateTime.now());
+        friendMapper.updateById(relation);
+        return toFriendVO(relation);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public GroupVO createGroup(Long currentUserId, CreateGroupDTO dto) {
         if (dto == null || !StringUtils.hasText(dto.getName())) {
             throw new IllegalArgumentException("群名称不能为空");
@@ -95,6 +128,7 @@ public class ChatServiceImpl implements ChatService {
         group.setOwnerId(currentUserId);
         group.setMemberCount(1);
         group.setSearchable(dto.getSearchable() == null || dto.getSearchable());
+        group.setMutedAll(false);
         group.setCreatedAt(LocalDateTime.now());
         group.setUpdatedAt(LocalDateTime.now());
         groupMapper.insert(group);
@@ -140,6 +174,7 @@ public class ChatServiceImpl implements ChatService {
             existing.setStatus(ACTIVE);
             existing.setJoinedAt(LocalDateTime.now());
             existing.setLastReadAt(LocalDateTime.now());
+            existing.setMutedUntil(null);
             memberMapper.updateById(existing);
         }
         return toGroupVO(group, currentUserId);
@@ -174,6 +209,134 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
+    public List<GroupMemberVO> groupMembers(Long currentUserId, Long groupId) {
+        requireGroupMember(groupId, currentUserId);
+        return memberMapper.selectList(new LambdaQueryWrapper<ChatGroupMember>()
+                        .eq(ChatGroupMember::getGroupId, groupId)
+                        .eq(ChatGroupMember::getStatus, ACTIVE)
+                        .orderByDesc(ChatGroupMember::getRole)
+                        .orderByAsc(ChatGroupMember::getJoinedAt))
+                .stream()
+                .map(this::toGroupMemberVO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public GroupVO inviteGroupMember(Long currentUserId, Long groupId, GroupModerationDTO dto) {
+        ChatGroup group = requireGroup(groupId);
+        requireGroupManager(groupId, currentUserId);
+        Long targetUserId = dto == null ? null : dto.getUserId();
+        if (targetUserId == null || loadUser(targetUserId) == null) {
+            throw new IllegalArgumentException("User does not exist");
+        }
+        ChatGroupMember member = findGroupMember(groupId, targetUserId);
+        if (member != null && ACTIVE.equals(member.getStatus())) {
+            throw new IllegalArgumentException("User is already in this group");
+        }
+        if (member == null) {
+            member = new ChatGroupMember();
+            member.setGroupId(groupId);
+            member.setUserId(targetUserId);
+            member.setRole(MEMBER);
+            member.setStatus(ACTIVE);
+            member.setJoinedAt(LocalDateTime.now());
+            member.setLastReadAt(LocalDateTime.now());
+            memberMapper.insert(member);
+        } else {
+            member.setRole(MEMBER);
+            member.setStatus(ACTIVE);
+            member.setMutedUntil(null);
+            member.setJoinedAt(LocalDateTime.now());
+            member.setLastReadAt(LocalDateTime.now());
+            memberMapper.updateById(member);
+        }
+        refreshMemberCount(group);
+        return toGroupVO(group, currentUserId);
+    }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean removeGroupMember(Long currentUserId, Long groupId, Long targetUserId) {
+        ChatGroup group = requireGroup(groupId);
+        ChatGroupMember operator = requireGroupManager(groupId, currentUserId);
+        ChatGroupMember member = findGroupMember(groupId, targetUserId);
+        assertCanManageTarget(group, operator, member);
+        member.setStatus("REMOVED");
+        member.setMutedUntil(null);
+        memberMapper.updateById(member);
+        refreshMemberCount(group);
+        return true;
+    }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public GroupMemberVO muteGroupMember(Long currentUserId, Long groupId, Long targetUserId, GroupModerationDTO dto) {
+        ChatGroup group = requireGroup(groupId);
+        ChatGroupMember operator = requireGroupManager(groupId, currentUserId);
+        ChatGroupMember member = findGroupMember(groupId, targetUserId);
+        assertCanManageTarget(group, operator, member);
+        int minutes = dto == null || dto.getMuteMinutes() == null ? 0 : dto.getMuteMinutes();
+        if (minutes < 0 || minutes > 10080) {
+            throw new IllegalArgumentException("Mute duration must be between 0 and 10080 minutes");
+        }
+        member.setMutedUntil(minutes == 0 ? null : LocalDateTime.now().plusMinutes(minutes));
+        memberMapper.updateById(member);
+        return toGroupMemberVO(member);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public GroupMemberVO updateGroupMemberRole(Long currentUserId, Long groupId, Long targetUserId, GroupModerationDTO dto) {
+        ChatGroup group = requireGroupOwner(groupId, currentUserId);
+        ChatGroupMember member = findGroupMember(groupId, targetUserId);
+        if (member == null || !ACTIVE.equals(member.getStatus()) || Objects.equals(group.getOwnerId(), targetUserId)) {
+            throw new IllegalArgumentException("Group member cannot be changed");
+        }
+        String role = dto == null || !StringUtils.hasText(dto.getRole()) ? MEMBER : dto.getRole().trim().toUpperCase(Locale.ROOT);
+        if (!Set.of(ADMIN, MEMBER).contains(role)) {
+            throw new IllegalArgumentException("Unsupported group role");
+        }
+        if (ADMIN.equals(role) && !ADMIN.equals(member.getRole())) {
+            long adminCount = memberMapper.selectCount(new LambdaQueryWrapper<ChatGroupMember>()
+                    .eq(ChatGroupMember::getGroupId, groupId)
+                    .eq(ChatGroupMember::getStatus, ACTIVE)
+                    .eq(ChatGroupMember::getRole, ADMIN));
+            if (adminCount >= MAX_GROUP_ADMINS) {
+                throw new IllegalArgumentException("A group can have at most 5 administrators");
+            }
+        }
+        member.setRole(role);
+        memberMapper.updateById(member);
+        return toGroupMemberVO(member);
+    }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public GroupVO setGroupMutedAll(Long currentUserId, Long groupId, GroupModerationDTO dto) {
+        ChatGroup group = requireGroupOwner(groupId, currentUserId);
+        group.setMutedAll(dto != null && Boolean.TRUE.equals(dto.getEnabled()));
+        group.setUpdatedAt(LocalDateTime.now());
+        groupMapper.updateById(group);
+        return toGroupVO(group, currentUserId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public GroupVO pinGroupMessage(Long currentUserId, Long groupId, GroupModerationDTO dto) {
+        ChatGroup group = requireGroupOwner(groupId, currentUserId);
+        Long messageId = dto == null ? null : dto.getMessageId();
+        if (messageId != null) {
+            ChatMessage message = messageMapper.selectById(messageId);
+            if (message == null || !GROUP.equals(message.getConversationType())
+                    || !Objects.equals(groupId, message.getGroupId()) || message.getRecalledAt() != null) {
+                throw new IllegalArgumentException("Message cannot be pinned");
+            }
+        }
+        group.setPinnedMessageId(messageId);
+        group.setUpdatedAt(LocalDateTime.now());
+        groupMapper.updateById(group);
+        return toGroupVO(group, currentUserId);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public MessageVO sendMessage(Long currentUserId, SendMessageDTO dto) {
         if (dto == null || !StringUtils.hasText(dto.getContent())) {
@@ -181,7 +344,7 @@ public class ChatServiceImpl implements ChatService {
         }
         String type = normalizeType(dto.getConversationType());
         if (GROUP.equals(type)) {
-            requireGroupMember(dto.getGroupId(), currentUserId);
+            requireGroupCanSend(dto.getGroupId(), currentUserId);
         } else {
             requireFriend(currentUserId, dto.getReceiverId());
         }
@@ -191,12 +354,19 @@ public class ChatServiceImpl implements ChatService {
         message.setGroupId(GROUP.equals(type) ? dto.getGroupId() : null);
         message.setSenderId(currentUserId);
         message.setReceiverId(PRIVATE.equals(type) ? dto.getReceiverId() : null);
-        message.setContentType(StringUtils.hasText(dto.getContentType()) ? dto.getContentType() : "TEXT");
+        String contentType = StringUtils.hasText(dto.getContentType())
+                ? dto.getContentType().trim().toUpperCase(Locale.ROOT) : "TEXT";
+        if (!Set.of("TEXT", "IMAGE", "FILE", "EMOJI").contains(contentType)) {
+            throw new IllegalArgumentException("Unsupported message type");
+        }
+        message.setContentType(contentType);
         message.setContent(dto.getContent().trim());
         message.setCreatedAt(LocalDateTime.now());
         messageMapper.insert(message);
         markMessageRead(message.getId(), currentUserId);
-        return toMessageVO(message, currentUserId);
+        MessageVO result = toMessageVO(message, currentUserId);
+        eventPublisher.publishEvent(new ChatMessageCreatedEvent(realtimeDeliveries(message)));
+        return result;
     }
 
     @Override
@@ -253,8 +423,11 @@ public class ChatServiceImpl implements ChatService {
             ConversationVO vo = new ConversationVO();
             vo.setConversationType(PRIVATE);
             vo.setTargetId(friend.getFriendId());
-            vo.setTitle(displayName(friend.getName(), friend.getUsername(), friend.getFriendId()));
+            vo.setTitle(displayNameWithRemark(friend.getRemark(), friend.getName(), friend.getUsername(), friend.getFriendId()));
             vo.setAvatar(friend.getAvatar());
+            vo.setRemark(friend.getRemark());
+            vo.setLevel(friend.getLevel());
+            vo.setLevelName(friend.getLevelName());
             vo.setUnreadCount(friend.getUnreadCount());
             vo.setLastMessage(friend.getLastMessage());
             vo.setLastMessageAt(friend.getLastMessageAt());
@@ -266,6 +439,14 @@ public class ChatServiceImpl implements ChatService {
             vo.setTargetId(group.getId());
             vo.setTitle(group.getName());
             vo.setGroupNo(group.getGroupNo());
+            vo.setOwnerId(group.getOwnerId());
+            vo.setOwnerName(group.getOwnerName());
+            vo.setRole(group.getRole());
+            vo.setMutedUntil(group.getMutedUntil());
+            vo.setMutedAll(group.getMutedAll());
+            vo.setPinnedMessageId(group.getPinnedMessageId());
+            vo.setPinnedMessage(group.getPinnedMessage());
+            vo.setPinnedMessageSenderName(group.getPinnedMessageSenderName());
             vo.setUnreadCount(group.getUnreadCount());
             vo.setLastMessage(group.getLastMessage());
             vo.setLastMessageAt(group.getLastMessageAt());
@@ -338,6 +519,29 @@ public class ChatServiceImpl implements ChatService {
         friendMapper.updateById(relation);
     }
 
+    private Map<Long, MessageVO> realtimeDeliveries(ChatMessage message) {
+        Set<Long> recipients = new HashSet<>();
+        if (GROUP.equals(message.getConversationType())) {
+            memberMapper.selectList(new LambdaQueryWrapper<ChatGroupMember>()
+                            .eq(ChatGroupMember::getGroupId, message.getGroupId())
+                            .eq(ChatGroupMember::getStatus, ACTIVE))
+                    .stream()
+                    .map(ChatGroupMember::getUserId)
+                    .filter(Objects::nonNull)
+                    .forEach(recipients::add);
+        } else {
+            recipients.add(message.getSenderId());
+            recipients.add(message.getReceiverId());
+        }
+        return recipients.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(
+                        userId -> userId,
+                        userId -> toMessageVO(message, userId),
+                        (first, second) -> first,
+                        LinkedHashMap::new));
+    }
+
     private void requireFriend(Long currentUserId, Long friendId) {
         if (friendId == null) {
             throw new IllegalArgumentException("好友不能为空");
@@ -351,7 +555,7 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private void requireGroupMember(Long groupId, Long userId) {
+    private ChatGroupMember requireGroupMember(Long groupId, Long userId) {
         if (groupId == null) {
             throw new IllegalArgumentException("群聊不能为空");
         }
@@ -362,8 +566,97 @@ public class ChatServiceImpl implements ChatService {
         if (count == 0) {
             throw new IllegalArgumentException("未加入该群聊");
         }
+        return findGroupMember(groupId, userId);
     }
 
+    private ChatGroupMember findGroupMember(Long groupId, Long userId) {
+        return memberMapper.selectOne(new LambdaQueryWrapper<ChatGroupMember>()
+                .eq(ChatGroupMember::getGroupId, groupId)
+                .eq(ChatGroupMember::getUserId, userId)
+                .last("LIMIT 1"));
+    }
+
+    private ChatGroup requireGroup(Long groupId) {
+        ChatGroup group = groupMapper.selectById(groupId);
+        if (group == null) {
+            throw new IllegalArgumentException("Group does not exist");
+        }
+        return group;
+    }
+
+    private ChatGroup requireGroupOwner(Long groupId, Long userId) {
+        ChatGroup group = requireGroup(groupId);
+        if (!Objects.equals(group.getOwnerId(), userId)) {
+            throw new IllegalArgumentException("Only the group owner can perform this action");
+        }
+        return group;
+    }
+
+    private ChatGroupMember requireGroupManager(Long groupId, Long userId) {
+        ChatGroupMember member = requireGroupMember(groupId, userId);
+        if (!OWNER.equals(member.getRole()) && !ADMIN.equals(member.getRole())) {
+            throw new IllegalArgumentException("Only the group owner or administrators can perform this action");
+        }
+        return member;
+    }
+
+    private void assertCanManageTarget(ChatGroup group, ChatGroupMember operator, ChatGroupMember target) {
+        if (target == null || !ACTIVE.equals(target.getStatus())) {
+            throw new IllegalArgumentException("Group member does not exist");
+        }
+        if (Objects.equals(group.getOwnerId(), target.getUserId())) {
+            throw new IllegalArgumentException("The group owner cannot be managed");
+        }
+        if (ADMIN.equals(operator.getRole()) && ADMIN.equals(target.getRole())) {
+            throw new IllegalArgumentException("Administrators cannot manage other administrators");
+        }
+    }
+
+    private void requireGroupCanSend(Long groupId, Long userId) {
+        ChatGroupMember member = requireGroupMember(groupId, userId);
+        if ("OWNER".equals(member.getRole())) {
+            return;
+        }
+        ChatGroup group = groupMapper.selectById(groupId);
+        if (group != null && Boolean.TRUE.equals(group.getMutedAll())) {
+            throw new IllegalArgumentException("The group is muted by its owner");
+        }
+        if (member.getMutedUntil() != null && member.getMutedUntil().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("You are muted in this group");
+        }
+    }
+
+    private void refreshMemberCount(ChatGroup group) {
+        group.setMemberCount(memberMapper.selectCount(new LambdaQueryWrapper<ChatGroupMember>()
+                .eq(ChatGroupMember::getGroupId, group.getId())
+                .eq(ChatGroupMember::getStatus, ACTIVE)).intValue());
+        group.setUpdatedAt(LocalDateTime.now());
+        groupMapper.updateById(group);
+    }
+
+    private GroupMemberVO toGroupMemberVO(ChatGroupMember member) {
+        GroupMemberVO vo = new GroupMemberVO();
+        vo.setUserId(member.getUserId());
+        vo.setRole(member.getRole());
+        vo.setMutedUntil(member.getMutedUntil());
+        try {
+            ActivitySummaryVO summary = activityService.summary(member.getUserId());
+            vo.setLevel(summary.getLevel());
+            vo.setLevelName(summary.getLevelName());
+            vo.setLevelProgress(summary.getLevelProgress());
+        } catch (Exception ignored) {
+            vo.setLevel(1);
+            vo.setLevelName("Newcomer");
+            vo.setLevelProgress(0);
+        }
+        UserVO user = loadUser(member.getUserId());
+        if (user != null) {
+            vo.setUsername(user.getUsername());
+            vo.setName(user.getName());
+            vo.setAvatar(user.getAvatar());
+        }
+        return vo;
+    }
     private List<ChatMessage> resolveMessagesForRead(Long currentUserId, ReadMessageDTO dto) {
         String type = normalizeType(dto.getConversationType());
         LambdaQueryWrapper<ChatMessage> wrapper = new LambdaQueryWrapper<>();
@@ -402,6 +695,7 @@ public class ChatServiceImpl implements ChatService {
         vo.setId(relation.getId());
         vo.setUserId(relation.getUserId());
         vo.setFriendId(relation.getFriendId());
+        vo.setRemark(relation.getRemark());
         vo.setStatus(relation.getStatus());
         UserVO user = loadUser(relation.getFriendId());
         if (user != null) {
@@ -409,9 +703,10 @@ public class ChatServiceImpl implements ChatService {
             vo.setName(user.getName());
             vo.setAvatar(user.getAvatar());
         }
+        fillFriendLevel(vo);
         ChatMessage latest = latestPrivateMessage(relation.getUserId(), relation.getFriendId());
         if (latest != null) {
-            vo.setLastMessage(latest.getContent());
+            vo.setLastMessage(messagePreview(latest));
             vo.setLastMessageAt(latest.getCreatedAt());
             vo.setLastMessageRead(readMapper.selectCount(new LambdaQueryWrapper<ChatMessageRead>()
                     .eq(ChatMessageRead::getMessageId, latest.getId())
@@ -431,14 +726,29 @@ public class ChatServiceImpl implements ChatService {
                     .last("LIMIT 1"));
             vo.setJoined(member != null && ACTIVE.equals(member.getStatus()));
             vo.setRole(member == null ? null : member.getRole());
+            vo.setMutedUntil(member == null ? null : member.getMutedUntil());
             vo.setUnreadCount(unreadGroupCount(userId, group.getId()));
         } else {
             vo.setJoined(false);
             vo.setUnreadCount(0);
         }
+        UserVO owner = loadUser(group.getOwnerId());
+        if (owner != null) {
+            vo.setOwnerName(displayName(owner.getName(), owner.getUsername(), owner.getId()));
+            vo.setOwnerAvatar(owner.getAvatar());
+        }
+        if (group.getPinnedMessageId() != null) {
+            ChatMessage pinned = messageMapper.selectById(group.getPinnedMessageId());
+            if (pinned != null && pinned.getRecalledAt() == null) {
+                vo.setPinnedMessage(messagePreview(pinned));
+                UserVO pinnedSender = loadUser(pinned.getSenderId());
+                vo.setPinnedMessageSenderName(pinnedSender == null ? null
+                        : displayName(pinnedSender.getName(), pinnedSender.getUsername(), pinnedSender.getId()));
+            }
+        }
         ChatMessage latest = latestGroupMessage(group.getId());
         if (latest != null) {
-            vo.setLastMessage(latest.getContent());
+            vo.setLastMessage(messagePreview(latest));
             vo.setLastMessageAt(latest.getCreatedAt());
         }
         return vo;
@@ -447,6 +757,10 @@ public class ChatServiceImpl implements ChatService {
     private MessageVO toMessageVO(ChatMessage message, Long currentUserId) {
         MessageVO vo = new MessageVO();
         MyBeanUtils.copyNonNullProperties(message, vo);
+        if (GROUP.equals(message.getConversationType()) && message.getGroupId() != null) {
+            ChatGroupMember senderMember = findGroupMember(message.getGroupId(), message.getSenderId());
+            vo.setSenderRole(senderMember == null ? null : senderMember.getRole());
+        }
         UserVO sender = loadUser(message.getSenderId());
         if (sender != null) {
             vo.setSenderName(displayName(sender.getName(), sender.getUsername(), sender.getId()));
@@ -548,6 +862,31 @@ public class ChatServiceImpl implements ChatService {
             groupNo = String.valueOf(100000 + new Random().nextInt(900000));
         } while (groupMapper.selectCount(new LambdaQueryWrapper<ChatGroup>().eq(ChatGroup::getGroupNo, groupNo)) > 0);
         return groupNo;
+    }
+
+    private void fillFriendLevel(FriendVO vo) {
+        try {
+            ActivitySummaryVO summary = activityService.summary(vo.getFriendId());
+            vo.setLevel(summary.getLevel());
+            vo.setLevelName(summary.getLevelName());
+        } catch (Exception ignored) {
+            vo.setLevel(1);
+            vo.setLevelName("Newcomer");
+        }
+    }
+
+    private String messagePreview(ChatMessage message) {
+        if ("FILE".equalsIgnoreCase(message.getContentType())) {
+            return "[File]";
+        }
+        if ("IMAGE".equalsIgnoreCase(message.getContentType())) {
+            return "[Image]";
+        }
+        return message.getContent();
+    }
+
+    private String displayNameWithRemark(String remark, String name, String username, Long id) {
+        return StringUtils.hasText(remark) ? remark : displayName(name, username, id);
     }
 
     private String displayName(String name, String username, Long id) {

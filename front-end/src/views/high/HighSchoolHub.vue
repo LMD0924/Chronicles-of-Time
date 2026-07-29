@@ -12,6 +12,8 @@ import SubjectRadarPanel from '@/views/high/features/SubjectRadarPanel.vue'
 import ReviewPlan from '@/views/high/features/ReviewPlan.vue'
 import QualityRecords from '@/views/high/features/QualityRecords.vue'
 import StrongBaseChecklist from '@/views/high/features/StrongBaseChecklist.vue'
+import MockExamDiagnostic from '@/views/high/features/MockExamDiagnostic.vue'
+import GaokaoTimeline from '@/views/high/features/GaokaoTimeline.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,7 +23,9 @@ const tabs = [
   { key: 'combo', label: '选科组合', icon: '🌳' },
   { key: 'target', label: '目标院校', icon: '🎯' },
   { key: 'radar', label: '学科雷达', icon: '📡' },
+  { key: 'diagnostic', label: '模考诊断', icon: '📊' },
   { key: 'plan', label: '复习计划', icon: '📆' },
+  { key: 'timeline', label: '高考时间线', icon: '🗓️' },
   { key: 'quality', label: '综评记录', icon: '📝' },
   { key: 'strong', label: '强基清单', icon: '✅' },
 
@@ -41,7 +45,9 @@ const currentComponent = computed(() => {
     combo: SubjectComboTree,
     target: TargetUniversityPath,
     radar: SubjectRadarPanel,
+    diagnostic: MockExamDiagnostic,
     plan: ReviewPlan,
+    timeline: GaokaoTimeline,
     quality: QualityRecords,
     strong: StrongBaseChecklist,
 

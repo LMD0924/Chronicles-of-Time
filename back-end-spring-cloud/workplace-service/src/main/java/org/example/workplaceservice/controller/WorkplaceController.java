@@ -14,6 +14,9 @@ import org.example.workplaceservice.entity.CareerTask;
 import org.example.workplaceservice.entity.InterviewPrep;
 import org.example.workplaceservice.entity.WorkReview;
 import org.example.workplaceservice.service.WorkplaceService;
+import org.example.workplaceservice.service.InterviewSimulationService;
+import org.example.workplaceservice.dto.InterviewTurnRequest;
+import org.example.workplaceservice.dto.InterviewTurnResponse;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,6 +38,7 @@ import java.util.Map;
 public class WorkplaceController {
 
     private final WorkplaceService workplaceService;
+    private final InterviewSimulationService interviewSimulationService;
 
     @GetMapping("/dashboard")
     public RestBean<Map<String, Object>> dashboard(HttpServletRequest request) {
@@ -91,6 +95,16 @@ public class WorkplaceController {
     @PostMapping("/interviews")
     public RestBean<InterviewPrep> saveInterview(@RequestBody InterviewPrep interview, HttpServletRequest request) {
         return RestBean.success("保存成功", workplaceService.saveInterview(interview, current(request)));
+    }
+
+    @PostMapping("/ai-interview/turn")
+    public RestBean<InterviewTurnResponse> interviewTurn(@RequestBody(required = false) InterviewTurnRequest request,
+                                                          HttpServletRequest servletRequest) {
+        AuthUser user = current(servletRequest);
+        if (user == null || !user.isLogin()) {
+            return RestBean.fail(401, "User is not logged in");
+        }
+        return RestBean.success(interviewSimulationService.turn(request));
     }
 
     @GetMapping("/reviews")

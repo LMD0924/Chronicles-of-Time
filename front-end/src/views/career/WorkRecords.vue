@@ -1,11 +1,13 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useRouter } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
 import Nav from '@/components/Nav.vue'
 import request from '@/utils/request'
 
 const { isDark } = useTheme()
+const router = useRouter()
 
 const loading = ref(false)
 const dashboard = ref({})
@@ -290,7 +292,7 @@ onMounted(loadAll)
 
           <div class="space-y-6">
             <div class="app-card-surface p-5">
-              <div class="mb-4 flex items-center justify-between"><h2 class="text-lg font-bold">面试准备</h2><button type="button" class="app-btn-secondary !px-3 !py-2" @click="interviewForm = emptyInterview()">新面试</button></div>
+              <div class="mb-4 flex items-center justify-between"><h2 class="text-lg font-bold">面试准备</h2><button type="button" class="app-btn-secondary !px-3 !py-2" @click="interviewForm = emptyInterview()">新面试</button><button type="button" class="app-btn-primary !px-3 !py-2" @click="router.push('/InterviewLab')">AI 模拟面试</button></div>
               <div class="grid gap-3 md:grid-cols-2"><input v-model="interviewForm.companyName" class="field" placeholder="公司" /><input v-model="interviewForm.positionName" class="field" placeholder="岗位" /><input v-model="interviewForm.interviewRound" class="field" placeholder="轮次" /><input v-model="interviewForm.interviewDate" class="field" type="date" /><select v-model="interviewForm.status" class="field"><option value="PREPARING">准备中</option><option value="WAITING">等待反馈</option><option value="PASSED">通过</option><option value="FAILED">未通过</option></select><input v-model.number="interviewForm.confidenceScore" class="field" min="0" max="100" type="number" placeholder="信心分" /><textarea v-model="interviewForm.preparationNotes" class="field min-h-16 md:col-span-2" placeholder="准备笔记" /></div>
               <button type="button" class="app-btn-primary mt-4 w-full" @click="saveInterview">保存面试</button>
               <div class="mt-5 space-y-3"><article v-for="item in interviews.slice(0, 5)" :key="item.id" class="list-row"><div><h3 class="font-semibold">{{ item.companyName }} · {{ item.positionName }}</h3><p class="mt-1 text-sm text-zinc-500">{{ item.interviewRound }} · {{ item.interviewDate || '-' }} · {{ statusText[item.status] || item.status }}</p></div><button type="button" class="mini-btn" @click="editInterview(item)">编辑</button></article><p v-if="!interviews.length" class="empty-text">还没有面试记录。</p></div>

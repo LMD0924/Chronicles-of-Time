@@ -13,6 +13,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
+@ComponentScan(basePackages = {"org.example.generalservice", "org.example.commoncore"})
 @MapperScan(basePackages = {
         "org.example.generalservice.mapper",
         "org.example.highservice.mapper",

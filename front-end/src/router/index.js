@@ -68,6 +68,11 @@ const router = createRouter({
       component: () => import('@/views/career/WorkRecords.vue')
     },
     {
+      path:'/InterviewLab',
+      name:'在线模拟面试',
+      component: () => import('@/views/career/InterviewLab.vue')
+    },
+    {
       path:'/AdvanceRecords',
       name:'进阶之路',
       component: () => import('@/views/career/AdvanceRecords.vue')

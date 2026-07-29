@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
-import { Bell, ChatDotRound, Plus, Promotion, Refresh, Search, UserFilled } from '@element-plus/icons-vue'
+import { Bell, ChatDotRound, Document, EditPen, FolderOpened, Picture, Plus, Promotion, Refresh, Search, UserFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import Nav from '@/components/Nav.vue'
 import request from '@/utils/request.js'
@@ -22,9 +22,23 @@ const groupForm = ref({ name: '', announcement: '', searchable: true })
 const loadingMessages = ref(false)
 const messagesLoaded = ref(false)
 const refreshingMessages = ref(false)
-const listTimer = ref(null)
-const msgTimer = ref(null)
+const chatSocket = ref(null)
+const socketStatus = ref('connecting')
+const reconnectTimer = ref(null)
 const messageListRef = ref(null)
+const fileInputRef = ref(null)
+const remarkEditorVisible = ref(false)
+const remarkText = ref('')
+const uploading = ref(false)
+const uploadProgress = ref(0)
+const groupManageVisible = ref(false)
+const groupMembers = ref([])
+const groupMemberKeyword = ref('')
+const groupMemberResults = ref([])
+const emojiPickerVisible = ref(false)
+const emojis = ['😀', '😁', '😂', '😍', '🤔', '👍', '👏', '🎉', '💪', '🔥', '📚', '✨']
+let socketStopped = false
+let reconnectAttempt = 0
 
 const menuItems = [
   { key: 'chat', label: '在线聊天', icon: '💬', path: '/Chat' },
@@ -40,14 +54,133 @@ const activeSubTitle = computed(() => {
 })
 
 const totalUnread = computed(() => conversations.value.reduce((sum, item) => sum + (item.unreadCount || 0), 0))
+const activeLevelText = computed(() => active.value?.conversationType === 'PRIVATE'
+  ? `Lv.${active.value.level || 1}${active.value.levelName ? ` · ${active.value.levelName}` : ''}` : '')
+const isGroupOwner = computed(() => active.value?.conversationType === 'GROUP' && active.value?.role === 'OWNER')
+const isGroupManager = computed(() => active.value?.conversationType === 'GROUP'
+  && ['OWNER', 'ADMIN'].includes(active.value?.role))
+const activeMuted = computed(() => active.value?.conversationType === 'GROUP' && active.value?.role !== 'OWNER'
+  && (active.value?.mutedAll || (active.value?.mutedUntil && new Date(active.value.mutedUntil) > new Date())))
+const canSend = computed(() => !activeMuted.value)
+const socketStatusText = computed(() => ({
+  connected: '实时已连接',
+  reconnecting: '正在重连',
+  connecting: '正在连接',
+  disconnected: '连接已断开',
+}[socketStatus.value] || '正在连接'))
 
+const conversationSignature = (item) => [
+  item.conversationType,
+  item.targetId,
+  item.title,
+  item.lastMessage,
+  item.lastMessageAt,
+  item.unreadCount,
+].map(value => String(value ?? '')).join('|')
+
+const hasCollectionChanges = (nextItems, currentItems, signature) => {
+  if (nextItems.length !== currentItems.length) return true
+  return nextItems.some((item, index) => signature(item) !== signature(currentItems[index] || {}))
+}
+
+const getAccessToken = () => sessionStorage.getItem('token') || localStorage.getItem('token')
+
+const websocketUrl = () => {
+  const apiOrigin = import.meta.env.VITE_GATEWAY_ORIGIN || 'http://localhost:8500'
+  const wsOrigin = apiOrigin.replace(/^http/, 'ws').replace(/\/$/, '')
+  return `${wsOrigin}/api/ws/chat?access_token=${encodeURIComponent(getAccessToken())}`
+}
+
+const isNearBottom = () => !messageListRef.value
+  || messageListRef.value.scrollHeight - messageListRef.value.scrollTop - messageListRef.value.clientHeight < 80
+
+const isMessageForActiveConversation = (message) => {
+  if (!active.value || !message) return false
+  if (message.conversationType === 'GROUP') {
+    return String(message.groupId) === String(active.value.targetId)
+  }
+  const peerId = message.mine ? message.receiverId : message.senderId
+  return active.value.conversationType === 'PRIVATE' && String(peerId) === String(active.value.targetId)
+}
+
+const appendRealtimeMessage = async (message) => {
+  if (!message) return
+  fetchConversations()
+  if (!isMessageForActiveConversation(message)) return
+
+  const existing = messages.value.findIndex(item => String(item.id) === String(message.id))
+  if (existing >= 0) {
+    Object.assign(messages.value[existing], message)
+    return
+  }
+
+  const shouldStickToBottom = isNearBottom()
+  messages.value = [...messages.value, message]
+  messagesLoaded.value = true
+  if (!message.mine) {
+    markRead([message])
+  }
+  if (shouldStickToBottom) {
+    await nextTick()
+    scrollBottom()
+  }
+}
+
+const handleSocketMessage = (event) => {
+  try {
+    const payload = JSON.parse(event.data)
+    if (payload.type === 'CHAT_MESSAGE') {
+      appendRealtimeMessage(payload.data)
+    }
+  } catch {
+    // Ignore malformed websocket payloads and keep REST refresh available.
+  }
+}
+
+const scheduleReconnect = () => {
+  if (socketStopped || reconnectTimer.value) return
+  socketStatus.value = 'reconnecting'
+  const delay = Math.min(10000, 1000 * 2 ** reconnectAttempt)
+  reconnectAttempt = Math.min(reconnectAttempt + 1, 4)
+  reconnectTimer.value = window.setTimeout(() => {
+    reconnectTimer.value = null
+    connectChatSocket()
+  }, delay)
+}
+
+const connectChatSocket = () => {
+  const token = getAccessToken()
+  if (!token || socketStopped) {
+    socketStatus.value = 'disconnected'
+    return
+  }
+
+  socketStatus.value = reconnectAttempt ? 'reconnecting' : 'connecting'
+  const socket = new WebSocket(websocketUrl())
+  chatSocket.value = socket
+  socket.onopen = () => {
+    if (chatSocket.value !== socket) return
+    reconnectAttempt = 0
+    socketStatus.value = 'connected'
+  }
+  socket.onmessage = handleSocketMessage
+  socket.onerror = () => socket.close()
+  socket.onclose = () => {
+    if (chatSocket.value !== socket) return
+    chatSocket.value = null
+    if (!socketStopped) scheduleReconnect()
+  }
+}
 const fetchAll = async () => {
   await Promise.all([fetchConversations(), fetchFriends(), fetchGroups()])
 }
 
 const fetchConversations = async () => {
   const res = await request.get('/chat/conversations')
-  conversations.value = res.data || []
+  const nextConversations = res.data || []
+  if (hasCollectionChanges(nextConversations, conversations.value, conversationSignature)) {
+    conversations.value = nextConversations
+  }
 }
 
 const fetchFriends = async () => {
@@ -110,17 +243,25 @@ const openConversation = async (item) => {
   await fetchMessages({ showLoading: true, scrollToLatest: true })
 }
 
+const friendDisplayName = (friend) => friend?.remark || friend?.name || friend?.username || `用户${friend?.friendId || ''}`
+
 const openFriend = (friend) => {
   openConversation({
     conversationType: 'PRIVATE',
     targetId: friend.friendId,
-    title: friend.name || friend.username || `用户${friend.friendId}`,
+    title: friendDisplayName(friend),
     avatar: friend.avatar,
+    remark: friend.remark,
+    username: friend.username,
+    name: friend.name,
+    level: friend.level,
+    levelName: friend.levelName,
   })
 }
 
 const openGroup = (group) => {
   openConversation({
+    ...group,
     conversationType: 'GROUP',
     targetId: group.id,
     title: group.name,
@@ -133,13 +274,22 @@ const hasMessageChanges = (nextMessages, currentMessages) => {
   return nextMessages.some((message, index) => {
     const current = currentMessages[index]
     return !current
-      || message.id !== current.id
+      || String(message.id) !== String(current.id)
       || message.content !== current.content
-      || message.readCount !== current.readCount
-      || message.unreadCount !== current.unreadCount
+      || message.senderId !== current.senderId
+      || message.createdAt !== current.createdAt
   })
 }
 
+const syncMessageReadState = (nextMessages) => {
+  const nextById = new Map(nextMessages.map(message => [String(message.id), message]))
+  messages.value.forEach((message) => {
+    const next = nextById.get(String(message.id))
+    if (!next) return
+    message.readCount = next.readCount
+    message.unreadCount = next.unreadCount
+  })
+}
 const fetchMessages = async ({ showLoading = false, scrollToLatest = false } = {}) => {
   if (!active.value || refreshingMessages.value) return
   const conversation = { ...active.value }
@@ -155,7 +305,11 @@ const fetchMessages = async ({ showLoading = false, scrollToLatest = false } = {
 
     const nextMessages = res.data || []
     const changed = hasMessageChanges(nextMessages, messages.value)
-    if (changed) messages.value = nextMessages
+    if (changed) {
+      messages.value = nextMessages
+    } else {
+      syncMessageReadState(nextMessages)
+    }
     messagesLoaded.value = true
 
     if (changed && nextMessages.some(message => !message.mine && message.unreadCount > 0)) {
@@ -170,20 +324,190 @@ const fetchMessages = async ({ showLoading = false, scrollToLatest = false } = {
     refreshingMessages.value = false
   }
 }
+const sendChatPayload = async ({ contentType, content }, conversation = active.value) => {
+  if (!conversation) return
+  const res = await request.post('/chat/messages', {
+    conversationType: conversation.conversationType,
+    groupId: conversation.conversationType === 'GROUP' ? conversation.targetId : null,
+    receiverId: conversation.conversationType === 'PRIVATE' ? conversation.targetId : null,
+    contentType,
+    content,
+  })
+  await appendRealtimeMessage(res.data)
+}
+
 const sendMessage = async () => {
   if (!active.value) return ElMessage.warning('请先选择会话')
   const content = messageText.value.trim()
   if (!content) return
-  await request.post('/chat/messages', {
-    conversationType: active.value.conversationType,
-    groupId: active.value.conversationType === 'GROUP' ? active.value.targetId : null,
-    receiverId: active.value.conversationType === 'PRIVATE' ? active.value.targetId : null,
-    contentType: 'TEXT',
-    content,
-  })
+  await sendChatPayload({ contentType: 'TEXT', content })
   messageText.value = ''
-  await fetchMessages({ scrollToLatest: true })
-  await fetchConversations()
+}
+
+const attachmentData = (message) => {
+  try {
+    const data = JSON.parse(message.content)
+    return data && data.url ? data : { name: '附件', url: message.content, size: 0 }
+  } catch {
+    return { name: '附件', url: message.content, size: 0 }
+  }
+}
+
+const formatFileSize = (size) => {
+  if (!size) return ''
+  if (size < 1024 * 1024) return `${Math.max(1, Math.round(size / 1024))} KB`
+  return `${(size / 1024 / 1024).toFixed(1)} MB`
+}
+
+const chooseFile = () => fileInputRef.value?.click()
+
+const uploadAttachment = async (event) => {
+  const file = event.target.files?.[0]
+  event.target.value = ''
+  if (!file || !active.value || uploading.value) return
+
+  const conversation = { ...active.value }
+  const isImage = file.type.startsWith('image/')
+  uploading.value = true
+  uploadProgress.value = 0
+  try {
+    const uploadRes = await request.upload(isImage ? '/upload/image' : '/upload/file', file, (progress) => {
+      uploadProgress.value = progress
+    })
+    const data = uploadRes.data
+    await sendChatPayload({
+      contentType: isImage ? 'IMAGE' : 'FILE',
+      content: JSON.stringify({
+        name: data.originalFilename || file.name,
+        url: data.url,
+        size: data.fileSize || file.size,
+        thumbnailUrl: data.thumbnailUrl || '',
+      }),
+    }, conversation)
+  } finally {
+    uploading.value = false
+    uploadProgress.value = 0
+  }
+}
+
+const openRemarkEditor = () => {
+  if (!active.value || active.value.conversationType !== 'PRIVATE') return
+  remarkText.value = active.value.remark || ''
+  remarkEditorVisible.value = true
+}
+
+const saveRemark = async () => {
+  if (!active.value) return
+  const friendId = active.value.targetId
+  const res = await request.put(`/chat/friends/${friendId}/remark`, { remark: remarkText.value })
+  const updated = res.data
+  const title = friendDisplayName(updated)
+  friends.value = friends.value.map(item => String(item.friendId) === String(friendId) ? { ...item, ...updated } : item)
+  conversations.value = conversations.value.map(item => item.conversationType === 'PRIVATE' && String(item.targetId) === String(friendId)
+    ? { ...item, title, remark: updated.remark, level: updated.level, levelName: updated.levelName, avatar: updated.avatar }
+    : item)
+  active.value = { ...active.value, title, remark: updated.remark, level: updated.level, levelName: updated.levelName, avatar: updated.avatar }
+  remarkEditorVisible.value = false
+  ElMessage.success('备注已更新')
+}
+
+const fetchGroupMembers = async () => {
+  if (!active.value || active.value.conversationType !== 'GROUP') return
+  const res = await request.get(`/chat/groups/${active.value.targetId}/members`)
+  groupMembers.value = res.data || []
+}
+
+const openGroupManage = async () => {
+  if (!isGroupManager.value) return
+  groupManageVisible.value = true
+  groupMemberKeyword.value = ''
+  groupMemberResults.value = []
+  await fetchGroupMembers()
+}
+
+const searchGroupMemberCandidates = async () => {
+  const keyword = groupMemberKeyword.value.trim()
+  if (!keyword) {
+    groupMemberResults.value = []
+    return
+  }
+  const res = await request.get('/chat/users/search', { keyword })
+  const memberIds = new Set(groupMembers.value.map(member => String(member.userId)))
+  groupMemberResults.value = (res.data || []).filter(user => !memberIds.has(String(user.id)))
+}
+
+const syncGroupState = async (group) => {
+  if (!group) return
+  groups.value = groups.value.map(item => String(item.id) === String(group.id) ? { ...item, ...group } : item)
+  conversations.value = conversations.value.map(item => item.conversationType === 'GROUP' && String(item.targetId) === String(group.id)
+    ? { ...item, ...group, targetId: group.id, title: group.name }
+    : item)
+  if (active.value?.conversationType === 'GROUP' && String(active.value.targetId) === String(group.id)) {
+    active.value = {
+      ...active.value,
+      ...group,
+      targetId: group.id,
+      title: group.name,
+      pinnedMessageId: group.pinnedMessageId || null,
+      pinnedMessage: group.pinnedMessage || null,
+      pinnedMessageSenderName: group.pinnedMessageSenderName || null,
+    }
+  }
+}
+
+const inviteGroupMember = async (user) => {
+  const res = await request.post(`/chat/groups/${active.value.targetId}/members`, { userId: user.id })
+  await syncGroupState(res.data)
+  await fetchGroupMembers()
+  groupMemberResults.value = []
+  groupMemberKeyword.value = ''
+  ElMessage.success('已邀请成员入群')
+}
+
+const removeGroupMember = async (member) => {
+  await request.delete(`/chat/groups/${active.value.targetId}/members/${member.userId}`)
+  await fetchGroupMembers()
+  await fetchAll()
+  ElMessage.success('成员已移出群聊')
+}
+
+const muteGroupMember = async (member, minutes) => {
+  await request.put(`/chat/groups/${active.value.targetId}/members/${member.userId}/mute`, { muteMinutes: minutes })
+  await fetchGroupMembers()
+  ElMessage.success(minutes ? `已禁言 ${minutes} 分钟` : '已解除禁言')
+}
+
+const toggleGroupMuteAll = async () => {
+  const res = await request.put(`/chat/groups/${active.value.targetId}/mute-all`, { enabled: !active.value.mutedAll })
+  await syncGroupState(res.data)
+  ElMessage.success(res.data.mutedAll ? '已开启全员禁言' : '已解除全员禁言')
+}
+
+const pinGroupMessage = async (messageId) => {
+  const res = await request.put(`/chat/groups/${active.value.targetId}/pinned-message`, { messageId })
+  await syncGroupState(res.data)
+  ElMessage.success('消息已置顶')
+}
+
+const unpinGroupMessage = async () => {
+  const res = await request.put(`/chat/groups/${active.value.targetId}/pinned-message`, { messageId: null })
+  await syncGroupState(res.data)
+  ElMessage.success('已取消置顶')
+}
+
+const isMemberMuted = member => member?.mutedUntil && new Date(member.mutedUntil) > new Date()
+const canManageMember = member => isGroupOwner.value || (isGroupManager.value && member.role === 'MEMBER')
+
+const updateGroupMemberRole = async (member, role) => {
+  await request.put(`/chat/groups/${active.value.targetId}/members/${member.userId}/role`, { role })
+  await fetchGroupMembers()
+  ElMessage.success(role === 'ADMIN' ? '已设为管理员' : '已取消管理员')
+}
+
+const sendEmoji = async (emoji) => {
+  if (!active.value || !canSend.value) return
+  await sendChatPayload({ contentType: 'EMOJI', content: emoji })
+  emojiPickerVisible.value = false
 }
 
 const markRead = async (messageList) => {
@@ -210,16 +534,19 @@ const sameConversation = (item) => active.value
 const formatTime = (value) => value ? value.replace('T', ' ').slice(5, 16) : ''
 
 onMounted(() => {
+  socketStopped = false
   fetchAll()
-  listTimer.value = setInterval(fetchConversations, 10000)
-  msgTimer.value = setInterval(() => {
-    if (active.value) fetchMessages()
-  }, 5000)
+  connectChatSocket()
 })
 
 onUnmounted(() => {
-  clearInterval(listTimer.value)
-  clearInterval(msgTimer.value)
+  socketStopped = true
+  if (reconnectTimer.value) {
+    clearTimeout(reconnectTimer.value)
+  }
+  reconnectTimer.value = null
+  chatSocket.value?.close()
+  chatSocket.value = null
 })
 </script>
 
@@ -238,6 +565,7 @@ onUnmounted(() => {
           </div>
         </div>
         <div class="toolbar-actions">
+          <span class="socket-status" :class="`is-${socketStatus}`"><i></i>{{ socketStatusText }}</span>
           <span class="unread-summary"><Bell /> 未读 {{ totalUnread }}</span>
           <button class="create-group-button" type="button" @click="createGroupVisible = true">
             <Plus />
@@ -281,7 +609,11 @@ onUnmounted(() => {
               :class="{ active: sameConversation(item) }"
               @click="openConversation(item)"
             >
-              <div class="avatar"><ChatDotRound v-if="item.conversationType === 'GROUP'" /><UserFilled v-else /></div>
+              <div class="avatar">
+                <ChatDotRound v-if="item.conversationType === 'GROUP'" />
+                <img v-else-if="item.avatar" :src="item.avatar" :alt="item.title" />
+                <UserFilled v-else />
+              </div>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center justify-between gap-2">
                   <strong>{{ item.title }}</strong>
@@ -295,9 +627,16 @@ onUnmounted(() => {
 
           <div class="side-section">
             <div class="side-title">好友</div>
-            <button v-for="friend in friends" :key="friend.friendId" class="plain-item" @click="openFriend(friend)">
-              <span>{{ friend.name || friend.username || friend.friendId }}</span>
-              <small v-if="friend.unreadCount">{{ friend.unreadCount }} 未读</small>
+            <button v-for="friend in friends" :key="friend.friendId" class="plain-item friend-item" @click="openFriend(friend)">
+              <span class="avatar small-avatar">
+                <img v-if="friend.avatar" :src="friend.avatar" :alt="friendDisplayName(friend)">
+                <UserFilled v-else />
+              </span>
+              <span class="friend-copy">
+                <strong>{{ friendDisplayName(friend) }}</strong>
+                <small>@{{ friend.username || friend.friendId }} · Lv.{{ friend.level || 1 }}{{ friend.levelName ? ` ${friend.levelName}` : '' }}</small>
+              </span>
+              <small v-if="friend.unreadCount" class="friend-unread">{{ friend.unreadCount }}</small>
             </button>
           </div>
 
@@ -312,25 +651,60 @@ onUnmounted(() => {
 
         <section class="chat-main">
           <header class="chat-head">
-            <div>
-              <h2>{{ activeTitle }}</h2>
-              <p>{{ activeSubTitle }}</p>
+            <div class="active-profile">
+              <div v-if="active" class="avatar active-avatar">
+                <ChatDotRound v-if="active.conversationType === 'GROUP'" />
+                <img v-else-if="active.avatar" :src="active.avatar" :alt="activeTitle">
+                <UserFilled v-else />
+              </div>
+              <div>
+                <div class="active-name-row">
+                  <h2>{{ activeTitle }}</h2>
+                  <span v-if="activeLevelText" class="level-badge">{{ activeLevelText }}</span>
+                </div>
+                <p>{{ activeSubTitle }}</p>
+              </div>
             </div>
-            <button v-if="active" class="icon-refresh" type="button" title="刷新消息" aria-label="刷新消息" @click="fetchMessages"><Refresh /></button>
+            <div class="head-actions">
+              <button v-if="isGroupManager" class="icon-refresh" type="button" title="群管理" aria-label="群管理" @click="openGroupManage"><UserFilled /></button>
+              <button v-if="active?.conversationType === 'PRIVATE'" class="icon-refresh" type="button" title="修改好友备注" aria-label="修改好友备注" @click="openRemarkEditor"><EditPen /></button>
+              <button v-if="active" class="icon-refresh" type="button" title="刷新消息" aria-label="刷新消息" @click="fetchMessages"><Refresh /></button>
+            </div>
           </header>
 
+          <div v-if="active?.conversationType === 'GROUP' && active.pinnedMessage" class="pinned-message">
+            <strong>置顶</strong>
+            <span>{{ active.pinnedMessageSenderName ? `${active.pinnedMessageSenderName}: ` : '' }}{{ active.pinnedMessage }}</span>
+            <button v-if="isGroupOwner" type="button" title="取消置顶" @click="unpinGroupMessage">取消</button>
+          </div>
+          <div v-if="activeMuted" class="mute-notice">当前群聊已限制发言</div>
           <div ref="messageListRef" class="message-list">
             <div v-if="!active" class="empty-state"><ChatDotRound /><strong>选择一个会话</strong><span>从好友或群聊中开始一段交流</span></div>
             <div v-else-if="loadingMessages" class="empty-state">消息加载中...</div>
             <div v-else-if="!messages.length" class="empty-state">还没有消息</div>
             <template v-else>
               <div v-for="msg in messages" :key="msg.id" class="message-row" :class="{ mine: msg.mine }">
+                <div class="message-avatar avatar">
+                  <img v-if="msg.senderAvatar" :src="msg.senderAvatar" :alt="msg.senderName || '用户头像'">
+                  <UserFilled v-else />
+                </div>
                 <div class="message-bubble">
                   <div class="message-meta">
-                    <span>{{ msg.senderName || `用户${msg.senderId}` }}</span>
+                    <span>{{ msg.senderName || `用户${msg.senderId}` }} <em v-if="msg.senderRole === 'OWNER'" class="owner-badge">群主</em><em v-else-if="msg.senderRole === 'ADMIN'" class="admin-badge">管理员</em></span>
                     <small>{{ formatTime(msg.createdAt) }}</small>
                   </div>
-                  <p>{{ msg.content }}</p>
+                  <p v-if="msg.contentType === 'TEXT'">{{ msg.content }}</p>
+                  <p v-else-if="msg.contentType === 'EMOJI'" class="message-emoji">{{ msg.content }}</p>
+                  <a v-else-if="msg.contentType === 'IMAGE'" class="message-image" :href="attachmentData(msg).url" target="_blank" rel="noopener">
+                    <img :src="attachmentData(msg).thumbnailUrl || attachmentData(msg).url" :alt="attachmentData(msg).name">
+                  </a>
+                  <a v-else class="message-file" :href="attachmentData(msg).url" target="_blank" rel="noopener">
+                    <Document />
+                    <span><strong>{{ attachmentData(msg).name }}</strong><small>{{ formatFileSize(attachmentData(msg).size) || '点击下载' }}</small></span>
+                  </a>
+                  <div v-if="isGroupOwner && active?.conversationType === 'GROUP'" class="message-admin-action">
+                    <button type="button" title="置顶此消息" @click="pinGroupMessage(msg.id)">置顶</button>
+                  </div>
                   <div class="read-line">
                     <span v-if="active.conversationType === 'GROUP'">已读 {{ msg.readCount || 0 }} / 未读 {{ msg.unreadCount || 0 }}</span>
                     <span v-else>{{ msg.unreadCount === 0 ? '对方已读' : '送达' }}</span>
@@ -341,8 +715,21 @@ onUnmounted(() => {
           </div>
 
           <footer class="chat-input">
-            <textarea v-model="messageText" rows="3" placeholder="输入消息，Enter 发送，Shift+Enter 换行" @keydown.enter.exact.prevent="sendMessage"></textarea>
-            <button type="button" title="发送消息" @click="sendMessage"><Promotion /><span>发送</span></button>
+            <textarea v-model="messageText" rows="3" :disabled="uploading || !canSend" :placeholder="canSend ? '输入消息，Enter 发送，Shift+Enter 换行' : '当前无法发言'" @keydown.enter.exact.prevent="sendMessage"></textarea>
+            <div class="input-tools">
+              <input ref="fileInputRef" class="hidden-file-input" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar" @change="uploadAttachment">
+              <div class="emoji-picker-wrap">
+                <button class="emoji-toggle" type="button" :disabled="!active || uploading || !canSend" title="发送表情" aria-label="发送表情" @click="emojiPickerVisible = !emojiPickerVisible">☺</button>
+                <div v-if="emojiPickerVisible" class="emoji-picker">
+                  <button v-for="emoji in emojis" :key="emoji" type="button" @click="sendEmoji(emoji)">{{ emoji }}</button>
+                </div>
+              </div>
+              <button class="attachment-button" type="button" :disabled="!active || uploading || !canSend" title="发送图片或文件" aria-label="发送图片或文件" @click="chooseFile">
+                <Picture v-if="!uploading" /><FolderOpened v-else />
+                <span>{{ uploading ? `上传中 ${uploadProgress}%` : '附件' }}</span>
+              </button>
+              <button type="button" :disabled="!active || uploading || !canSend" title="发送消息" @click="sendMessage"><Promotion /><span>发送</span></button>
+            </div>
           </footer>
         </section>
       </section>
@@ -368,6 +755,48 @@ onUnmounted(() => {
         <button class="dialog-primary" type="button" @click="createGroup"><Plus /> 创建</button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="groupManageVisible" title="群管理" width="620px">
+      <div class="group-manage-panel">
+        <div class="group-manage-top">
+          <div><strong>{{ active?.title }}</strong><small>群主：{{ active?.ownerName || active?.ownerId }}</small></div>
+          <button v-if="isGroupOwner" class="dialog-secondary" type="button" @click="toggleGroupMuteAll">{{ active?.mutedAll ? '解除全员禁言' : '开启全员禁言' }}</button>
+        </div>
+        <div class="member-invite">
+          <input v-model="groupMemberKeyword" class="dialog-input" placeholder="搜索用户后邀请入群" @keyup.enter="searchGroupMemberCandidates">
+          <button class="dialog-primary" type="button" @click="searchGroupMemberCandidates"><Search /> 搜索</button>
+        </div>
+        <div v-if="groupMemberResults.length" class="manage-result-list">
+          <div v-for="user in groupMemberResults" :key="user.id" class="manage-member-row">
+            <span>{{ user.name || user.username }} <small>@{{ user.username }}</small></span>
+            <button class="dialog-secondary" type="button" @click="inviteGroupMember(user)"><Plus /> 邀请</button>
+          </div>
+        </div>
+        <div class="manage-member-list">
+          <div v-for="member in groupMembers" :key="member.userId" class="manage-member-row">
+            <span class="avatar small-avatar"><img v-if="member.avatar" :src="member.avatar" :alt="member.name || member.username"><UserFilled v-else /></span>
+            <span class="manage-member-name"><strong>{{ member.name || member.username || member.userId }}</strong><small>@{{ member.username || member.userId }} · Lv.{{ member.level || 1 }}{{ member.levelName ? ` ${member.levelName}` : '' }} · {{ member.role === 'OWNER' ? '群主' : member.role === 'ADMIN' ? '管理员' : isMemberMuted(member) ? '禁言中' : '成员' }}</small></span>
+            <template v-if="canManageMember(member) && member.role !== 'OWNER'">
+              <button v-if="isGroupOwner" class="dialog-secondary" type="button" @click="updateGroupMemberRole(member, member.role === 'ADMIN' ? 'MEMBER' : 'ADMIN')">{{ member.role === 'ADMIN' ? '取消管理员' : '设为管理员' }}</button>
+              <button class="dialog-secondary" type="button" @click="muteGroupMember(member, isMemberMuted(member) ? 0 : 60)">{{ isMemberMuted(member) ? '解除禁言' : '禁言 1 小时' }}</button>
+              <button class="danger-action" type="button" @click="removeGroupMember(member)">移出</button>
+            </template>
+          </div>
+        </div>
+      </div>
+      <template #footer><button class="dialog-secondary" type="button" @click="groupManageVisible = false">关闭</button></template>
+    </el-dialog>
+
+    <el-dialog v-model="remarkEditorVisible" title="修改好友备注" width="420px">
+      <label class="block">
+        <span class="mb-1 block text-sm text-slate-500">备注名称</span>
+        <input v-model="remarkText" class="dialog-input" maxlength="40" placeholder="留空则使用对方昵称">
+      </label>
+      <template #footer>
+        <button class="dialog-secondary" type="button" @click="remarkEditorVisible = false">取消</button>
+        <button class="dialog-primary" type="button" @click="saveRemark"><EditPen /> 保存</button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -375,6 +804,7 @@ onUnmounted(() => {
 .chat-toolbar,
 .chat-title,
 .toolbar-actions,
+.socket-status,
 .unread-summary,
 .create-group-button,
 .chat-head,
@@ -440,15 +870,178 @@ onUnmounted(() => {
   gap: 10px;
 }
 
+.socket-status,
 .unread-summary,
 .create-group-button,
 .dialog-primary,
+.pinned-message,
+.mute-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--app-border);
+  padding: 8px 18px;
+  color: var(--app-text-secondary);
+  font-size: 12px;
+}
+
+.pinned-message {
+  background: rgb(var(--theme-primary-rgb) / 0.08);
+}
+
+.pinned-message strong,
+.owner-badge,
+.admin-badge {
+  color: var(--theme-primary);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.pinned-message span {
+  overflow: hidden;
+  flex: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pinned-message button,
+.message-admin-action button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 11px;
+}
+
+.mute-notice {
+  justify-content: center;
+  background: rgb(var(--theme-secondary-rgb) / 0.1);
+  color: var(--theme-secondary);
+  font-weight: 700;
+}
+
+.message-admin-action {
+  margin-top: 7px;
+  text-align: right;
+}
+
+.message-admin-action button {
+  position: relative;
+  z-index: 1;
+  border-radius: 6px;
+  background: rgb(var(--theme-primary-rgb) / 0.12);
+  padding: 4px 8px;
+  color: var(--theme-primary);
+}
+
+.message-row.mine .message-admin-action button {
+  background: rgb(255 255 255 / 0.18);
+  color: white;
+}
+
+.message-emoji {
+  margin-top: 4px;
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+.group-manage-panel,
+.manage-member-list,
+.manage-result-list {
+  display: grid;
+  gap: 10px;
+}
+
+.group-manage-top,
+.member-invite,
+.manage-member-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.group-manage-top {
+  justify-content: space-between;
+  border-bottom: 1px solid var(--app-border);
+  padding-bottom: 12px;
+}
+
+.group-manage-top div,
+.manage-member-name {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.group-manage-top small,
+.manage-member-name small,
+.manage-member-row small {
+  color: var(--app-text-muted);
+  font-size: 11px;
+}
+
+.member-invite .dialog-input {
+  flex: 1;
+}
+
+.manage-member-list {
+  max-height: 330px;
+  overflow-y: auto;
+}
+
+.manage-member-row {
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.manage-member-name {
+  flex: 1;
+}
+
+.danger-action {
+  border: 1px solid rgb(220 38 38 / 0.24);
+  border-radius: 8px;
+  background: rgb(220 38 38 / 0.08);
+  padding: 7px 9px;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .dialog-secondary {
   min-height: 40px;
   border-radius: 8px;
   padding: 0 14px;
   font-size: 13px;
   font-weight: 750;
+}
+
+.socket-status {
+  gap: 6px;
+  border: 1px solid var(--app-border);
+  background: var(--app-card-solid);
+  color: var(--app-text-muted);
+}
+
+.socket-status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--app-text-muted);
+}
+
+.socket-status.is-connected {
+  color: var(--theme-primary);
+}
+
+.socket-status.is-connected i {
+  background: var(--theme-primary);
+}
+
+.socket-status.is-reconnecting i,
+.socket-status.is-connecting i {
+  background: var(--theme-secondary);
 }
 
 .unread-summary {
@@ -630,6 +1223,47 @@ onUnmounted(() => {
   height: 18px;
 }
 
+.avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.small-avatar {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+}
+
+.friend-item {
+  align-items: center;
+}
+
+.friend-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 2px;
+}
+
+.friend-copy strong,
+.friend-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friend-unread {
+  display: grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--theme-secondary);
+  color: white !important;
+}
+
 .conversation-item strong {
   display: block;
   overflow: hidden;
@@ -656,7 +1290,6 @@ onUnmounted(() => {
   background: var(--theme-secondary);
   color: white;
   font-size: 11px;
-  animation: unread-pop 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .chat-main {
@@ -669,6 +1302,45 @@ onUnmounted(() => {
   justify-content: space-between;
   border-bottom: 1px solid var(--app-border);
   padding: 15px 18px;
+}
+
+.active-profile,
+.active-name-row,
+.head-actions,
+.input-tools,
+.message-file {
+  display: flex;
+  align-items: center;
+}
+
+.active-profile {
+  min-width: 0;
+  gap: 10px;
+}
+
+.active-avatar {
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+}
+
+.active-name-row {
+  gap: 8px;
+}
+
+.head-actions,
+.input-tools {
+  gap: 8px;
+}
+
+.level-badge {
+  border-radius: 999px;
+  background: rgb(var(--theme-primary-rgb) / 0.12);
+  padding: 3px 7px;
+  color: var(--theme-primary);
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .chat-head h2 {
@@ -715,12 +1387,20 @@ onUnmounted(() => {
 
 .message-row {
   display: flex;
+  align-items: flex-end;
+  gap: 8px;
   margin-bottom: 12px;
-  animation: message-arrive 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .message-row.mine {
-  justify-content: flex-end;
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
+.message-avatar {
+  width: 32px;
+  height: 32px;
+  flex-basis: 32px;
 }
 
 .message-bubble {
@@ -757,6 +1437,54 @@ onUnmounted(() => {
   word-break: break-word;
 }
 
+.message-image {
+  display: block;
+  overflow: hidden;
+  margin-top: 7px;
+  border-radius: 7px;
+}
+
+.message-image img {
+  display: block;
+  max-width: min(360px, 100%);
+  max-height: 280px;
+  object-fit: cover;
+}
+
+.message-file {
+  min-width: min(250px, 100%);
+  max-width: 360px;
+  gap: 9px;
+  margin-top: 7px;
+  border: 1px solid rgb(var(--theme-primary-rgb) / 0.22);
+  border-radius: 7px;
+  background: rgb(var(--theme-primary-rgb) / 0.08);
+  padding: 9px;
+  color: inherit;
+}
+
+.message-file svg {
+  width: 23px;
+  flex: 0 0 23px;
+}
+
+.message-file span {
+  display: grid;
+  min-width: 0;
+}
+
+.message-file strong,
+.message-file small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message-file small {
+  margin-top: 2px;
+  opacity: 0.72;
+}
+
 .read-line {
   margin-top: 6px;
   color: var(--app-text-muted);
@@ -772,6 +1500,64 @@ onUnmounted(() => {
 .chat-input textarea {
   resize: none;
   padding: 11px;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.emoji-picker-wrap {
+  position: relative;
+}
+
+.emoji-toggle {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: rgb(var(--theme-primary-rgb) / 0.08);
+  color: var(--theme-primary);
+  font-size: 19px;
+}
+
+.emoji-picker {
+  position: absolute;
+  right: 0;
+  bottom: 48px;
+  z-index: 5;
+  display: grid;
+  width: 220px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: var(--app-card-solid);
+  padding: 8px;
+  box-shadow: var(--app-elevation-float);
+}
+
+.emoji-picker button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  padding: 0;
+  font-size: 19px;
+}
+
+.emoji-picker button:hover {
+  background: rgb(var(--theme-primary-rgb) / 0.1);
+  transform: none;
+}
+
+.attachment-button {
+  justify-content: center;
+  border: 1px solid var(--app-border) !important;
+  background: rgb(var(--theme-primary-rgb) / 0.08) !important;
+  color: var(--theme-primary) !important;
+  box-shadow: none !important;
 }
 
 .chat-input button {
@@ -821,6 +1607,21 @@ onUnmounted(() => {
   0% { opacity: 0; transform: scale(0.62); }
   70% { transform: scale(1.08); }
   100% { opacity: 1; transform: scale(1); }
+}
+
+.chat-input .attachment-button {
+  border: 1px solid var(--app-border) !important;
+  background: rgb(var(--theme-primary-rgb) / 0.08) !important;
+  color: var(--theme-primary) !important;
+  box-shadow: none !important;
+}
+
+.chat-input .emoji-toggle {
+  border: 1px solid var(--app-border);
+  background: rgb(var(--theme-primary-rgb) / 0.08);
+  padding: 0;
+  color: var(--theme-primary);
+  box-shadow: none;
 }
 
 @media (max-width: 960px) {

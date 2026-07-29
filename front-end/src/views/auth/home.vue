@@ -155,6 +155,7 @@ const animatedStats = ref({
 const getUserInfo =()=>{
   request.get('/user/getUserById',{},(message,data)=>{
     UserInfo.value=data
+    loadTimeline(data?.id)
   })
 }
 
@@ -198,14 +199,28 @@ const handleStageClick = (stage, idx) => {
 }
 
 // 时光轴数据
-const timelineData = [
-  { date: '2022年6月', stage: '高中', stageClass: 'highschool', title: '高考 · 最后一课', description: '黑板上写着"高考必胜"，同学们互相在衣服上签名。三年时光，在这个夏天画上句号。', tags: ['高考', '毕业', '青春'] },
-  { date: '2022年9月', stage: '大学', stageClass: 'university', title: '大学开学第一课', description: '拖着行李箱走进校门，对一切都充满好奇。第一次离开家，既紧张又兴奋。', tags: ['新生', '开学', '大学'] },
-  { date: '2023年12月', stage: '大学', stageClass: 'university', title: '第一次获奖', description: '参加校园设计大赛获得一等奖，站在领奖台上的那一刻，觉得所有努力都值得。', tags: ['成长', '获奖', '突破'] },
-  { date: '2024年7月', stage: '职场', stageClass: 'work', title: '第一份实习offer', description: '经过三轮面试，终于拿到心仪的实习offer。职场第一步，从这里开始。', tags: ['实习', '职场', '新起点'] },
-  { date: '2025年3月', stage: '职场', stageClass: 'work', title: '独立完成项目', description: '第一次独立负责项目，从策划到执行全程主导。项目上线那天，成就感满满。', tags: ['成长', '独立', '项目'] }
-]
+const timelineData = ref([])
 
+const timelineDate = value => value ? String(value).slice(0, 10) : ''
+const loadTimeline = async (userId) => {
+  if (!userId) return
+  const [scoreResult, interviewResult, goalResult] = await Promise.allSettled([
+    request.get(`/score/list/${userId}`),
+    request.get('/workplace/interviews'),
+    request.get('/workplace/goals'),
+  ])
+  const items = []
+  if (UserInfo.value?.createTime) {
+    items.push({ date: timelineDate(UserInfo.value.createTime), stage: '成长', stageClass: 'growth', title: '加入拾光记', description: '开始建立自己的学习与成长记录。', tags: ['成长'], sortDate: UserInfo.value.createTime })
+  }
+  const scores = scoreResult.status === 'fulfilled' ? scoreResult.value.data || [] : []
+  scores.slice(0, 3).forEach((item) => items.push({ date: timelineDate(item.examDate), stage: '高中', stageClass: 'highschool', title: item.examName || '模考记录', description: `${item.subjectName || '学科'} ${item.score ?? '-'} 分，已纳入模考诊断。`, tags: ['模考', '成绩'], sortDate: item.examDate }))
+  const interviews = interviewResult.status === 'fulfilled' ? interviewResult.value.data || [] : []
+  interviews.slice(0, 3).forEach((item) => items.push({ date: timelineDate(item.interviewDate), stage: '职场', stageClass: 'work', title: `${item.companyName || '目标公司'} · ${item.positionName || '面试准备'}`, description: `${item.interviewRound || '面试'} · ${item.status || '准备中'}`, tags: ['面试', '职场'], sortDate: item.interviewDate }))
+  const goals = goalResult.status === 'fulfilled' ? goalResult.value.data || [] : []
+  goals.slice(0, 3).forEach((item) => items.push({ date: timelineDate(item.targetDate || item.updatedAt), stage: '职场', stageClass: 'work', title: item.goalName || '职业目标', description: item.metric || item.notes || '职业目标正在推进中。', tags: ['目标', '职业'], sortDate: item.targetDate || item.updatedAt }))
+  timelineData.value = items.sort((a, b) => String(b.sortDate || '').localeCompare(String(a.sortDate || '')))
+}
 // 图谱总览数据
 const milestones = [
   { icon: '✒️', year: '2019', title: '初入文海', desc: '开始记录读书笔记', progress: 100, status: '已完成' },
@@ -699,6 +714,7 @@ onUnmounted(() => {
             </h2>
             <p class="text-gray-500">记录每一个值得铭记的瞬间</p>
           </div>
+          <p v-if="!timelineData.length" class="text-center text-sm text-gray-500">还没有可展示的成长记录，录入模考、职业目标或面试后会自动出现在这里。</p>
           <div class="relative max-w-3xl mx-auto">
             <div v-for="(item, idx) in timelineData" :key="idx"
                  class="relative mb-12 flex justify-start scroll-animate"

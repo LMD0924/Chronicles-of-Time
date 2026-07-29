@@ -13,11 +13,17 @@ public class FriendVO {
 
     private Long friendId;
 
+    private String remark;
+
     private String username;
 
     private String name;
 
     private String avatar;
+
+    private Integer level;
+
+    private String levelName;
 
     private String status;
 
