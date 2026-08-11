@@ -279,7 +279,7 @@ defineExpose({
   color: #e5e7eb;
 }
 
-.markdown-preview h1 {
+.markdown-preview :deep(h1) {
   font-size: 2rem;
   font-weight: 700;
   margin: 1.5rem 0 1rem;
@@ -287,7 +287,7 @@ defineExpose({
   border-bottom: 1px solid #e5e7eb;
 }
 
-.markdown-preview h2 {
+.markdown-preview :deep(h2) {
   font-size: 1.6rem;
   font-weight: 600;
   margin: 1.3rem 0 0.8rem;
@@ -295,46 +295,46 @@ defineExpose({
   border-bottom: 1px solid #e5e7eb;
 }
 
-.markdown-preview h3 {
+.markdown-preview :deep(h3) {
   font-size: 1.35rem;
   font-weight: 600;
   margin: 1.1rem 0 0.6rem;
 }
 
-.markdown-preview h4 {
+.markdown-preview :deep(h4) {
   font-size: 1.2rem;
   font-weight: 600;
   margin: 1rem 0 0.5rem;
 }
 
-.markdown-preview h5, .markdown-preview h6 {
+.markdown-preview :deep(h5), .markdown-preview :deep(h6) {
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0.9rem 0 0.5rem;
 }
 
-.dark .markdown-preview h1,
-.dark .markdown-preview h2 {
+:global(.dark) .markdown-preview :deep(h1),
+:global(.dark) .markdown-preview :deep(h2) {
   border-bottom-color: #374151;
 }
 
-.markdown-preview p {
+.markdown-preview :deep(p) {
   margin: 0.8rem 0;
   line-height: 1.8;
 }
 
-.markdown-preview ul,
-.markdown-preview ol {
+.markdown-preview :deep(ul),
+.markdown-preview :deep(ol) {
   margin: 0.8rem 0;
   padding-left: 2rem;
 }
 
-.markdown-preview li {
+.markdown-preview :deep(li) {
   margin: 0.3rem 0;
   line-height: 1.7;
 }
 
-.markdown-preview blockquote {
+.markdown-preview :deep(blockquote) {
   margin: 1rem 0;
   padding: 0.5rem 1rem;
   border-left: 4px solid var(--theme-primary);
@@ -343,12 +343,12 @@ defineExpose({
   font-style: italic;
 }
 
-.dark .markdown-preview blockquote {
+:global(.dark) .markdown-preview :deep(blockquote) {
   background-color: #1f2937;
   color: #9ca3af;
 }
 
-.markdown-preview pre {
+.markdown-preview :deep(pre) {
   background-color: #1e1e1e;
   border-radius: 8px;
   padding: 1rem;
@@ -356,14 +356,14 @@ defineExpose({
   margin: 1rem 0;
 }
 
-.markdown-preview pre code {
+.markdown-preview :deep(pre code) {
   font-family: 'Fira Code', 'Courier New', monospace;
   font-size: 14px;
   line-height: 1.5;
   color: #d4d4d4;
 }
 
-.markdown-preview code:not(pre code) {
+.markdown-preview :deep(code:not(pre code)) {
   padding: 0.2rem 0.4rem;
   background-color: #f3f4f6;
   border-radius: 4px;
@@ -372,23 +372,23 @@ defineExpose({
   color: #e11d48;
 }
 
-.dark .markdown-preview code:not(pre code) {
+:global(.dark) .markdown-preview :deep(code:not(pre code)) {
   background-color: #374151;
   color: #f87171;
 }
 
-.markdown-preview a {
+.markdown-preview :deep(a) {
   color: var(--theme-primary);
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: border-color 0.2s;
 }
 
-.markdown-preview a:hover {
+.markdown-preview :deep(a:hover) {
   border-bottom-color: var(--theme-primary);
 }
 
-.markdown-preview img {
+.markdown-preview :deep(img) {
   max-width: 100%;
   height: auto;
   border-radius: 8px;
@@ -396,7 +396,7 @@ defineExpose({
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.markdown-preview table {
+.markdown-preview :deep(table) {
   width: 100%;
   border-collapse: collapse;
   margin: 1rem 0;
@@ -404,35 +404,35 @@ defineExpose({
   display: block;
 }
 
-.markdown-preview th,
-.markdown-preview td {
+.markdown-preview :deep(th),
+.markdown-preview :deep(td) {
   border: 1px solid #e5e7eb;
   padding: 0.5rem 1rem;
   text-align: left;
 }
 
-.markdown-preview th {
+.markdown-preview :deep(th) {
   background-color: #f9fafb;
   font-weight: 600;
 }
 
-.dark .markdown-preview th,
-.dark .markdown-preview td {
+:global(.dark) .markdown-preview :deep(th),
+:global(.dark) .markdown-preview :deep(td) {
   border-color: #374151;
 }
 
-.dark .markdown-preview th {
+:global(.dark) .markdown-preview :deep(th) {
   background-color: #1f2937;
 }
 
-.markdown-preview hr {
+.markdown-preview :deep(hr) {
   margin: 2rem 0;
   border: none;
   height: 1px;
   background: linear-gradient(to right, transparent, #e5e7eb, transparent);
 }
 
-.dark .markdown-preview hr {
+:global(.dark) .markdown-preview :deep(hr) {
   background: linear-gradient(to right, transparent, #374151, transparent);
 }
 </style>

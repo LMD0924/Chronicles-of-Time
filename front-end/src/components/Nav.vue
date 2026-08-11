@@ -28,13 +28,13 @@
         </div>
 
         <!-- 中间导航菜单 -->
-        <div v-if="resolvedMenuItems.length" class="nav-center-menu flex items-center justify-center gap-2">
+        <div v-if="resolvedMenuItems.length" class="nav-center-menu mx-3 flex min-w-0 flex-1 items-center justify-start gap-2 overflow-x-auto lg:justify-center">
           <template v-for="item in resolvedMenuItems" :key="item.key">
             <!-- 有子菜单的项 -->
-            <div v-if="item.children && item.children.length" class="relative submenu-container" @click.stop>
+            <div v-if="item.children && item.children.length" class="relative shrink-0 submenu-container" @click.stop>
               <button
                 @click="toggleSubmenu(item.key)"
-                class="relative px-6 py-2 rounded-full text-base font-medium transition-all duration-300 overflow-hidden group"
+                class="relative shrink-0 px-6 py-2 rounded-full text-base font-medium transition-all duration-300 overflow-hidden group"
                 :class="[
                   activeNav === item.key || isChildActive(item)
                     ? isDark
@@ -79,7 +79,7 @@
             <button
               v-else
               @click="handleMenuClick(item)"
-              class="relative px-6 py-2 rounded-full text-base font-medium transition-all duration-300 overflow-hidden group"
+              class="relative shrink-0 px-6 py-2 rounded-full text-base font-medium transition-all duration-300 overflow-hidden group"
               :class="[
                 activeNav === item.key
                   ? isDark
@@ -112,6 +112,27 @@
               <strong>Lv.{{ growthSummary.level || 1 }}</strong>
             </span>
             <span class="nav-growth-track"><i :style="{ width: `${growthSummary.levelProgress || 0}%` }"></i></span>
+          </button>
+
+          <button
+            class="nav-icon-action"
+            type="button"
+            title="全局搜索（Ctrl+K）"
+            aria-label="打开全局搜索"
+            @click="openGlobalSearch"
+          >
+            <Search />
+          </button>
+
+          <button
+            class="nav-icon-action nav-notification-action"
+            type="button"
+            title="通知中心"
+            aria-label="打开通知中心"
+            @click="navigateWithTransition('/GrowthPlanner?view=notifications')"
+          >
+            <Bell />
+            <span v-if="notificationCount" class="nav-notification-count">{{ notificationCount > 99 ? '99+' : notificationCount }}</span>
           </button>
 
           <button
@@ -186,9 +207,11 @@
 </template>
 
 <script setup>
+defineOptions({ name: 'GlobalNavigation' })
+
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ChatDotRound, Trophy } from '@element-plus/icons-vue'
+import { Bell, ChatDotRound, Search, Trophy } from '@element-plus/icons-vue'
 import request from "@/utils/request.js";
 
 const props = defineProps({
@@ -238,6 +261,10 @@ const props = defineProps({
     type: Boolean,
     default: true
   },
+  showArchive: {
+    type: Boolean,
+    default: false
+  },
   // Logo 点击路径
   logoPath: {
     type: String,
@@ -251,7 +278,7 @@ const includesArchive = (items) => items.some((item) =>
   item.path === '/Archive' || item.route === '/Archive' || item.to === '/Archive' || (item.children && includesArchive(item.children))
 )
 
-const resolvedMenuItems = computed(() => includesArchive(props.menuItems)
+const resolvedMenuItems = computed(() => !props.showArchive || includesArchive(props.menuItems)
   ? props.menuItems
   : [...props.menuItems, archiveMenuItem]
 )
@@ -264,6 +291,7 @@ const openSubmenuKey = ref(null)
 const activeNav = ref('')
 const UserInfo = ref({})
 const growthSummary = ref({ level: 1, levelName: '初见', levelProgress: 0 })
+const notificationCount = ref(0)
 const showUserMenu = ref(false)
 
 const normalizePath = (path) => {
@@ -335,6 +363,19 @@ const getGrowthSummary = async () => {
   } catch {
     // 导航仍可使用，成长服务不可用时展示默认等级。
   }
+}
+
+const getNotificationCount = async () => {
+  try {
+    const response = await request.get('/notifications', { limit: 1 })
+    notificationCount.value = Number(response.data?.unreadCount || 0)
+  } catch {
+    notificationCount.value = 0
+  }
+}
+
+const openGlobalSearch = () => {
+  window.dispatchEvent(new CustomEvent('app:open-search'))
 }
 
 // 统一导航入口
@@ -445,6 +486,7 @@ const handleScroll = () => {
 onMounted(() => {
   getUserInfo()
   getGrowthSummary()
+  getNotificationCount()
   window.addEventListener('scroll', handleScroll)
   window.addEventListener('click', handleClickOutside)
   updateActiveNav()
@@ -469,6 +511,13 @@ onUnmounted(() => {
   animation: nav-arrive 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.nav-center-menu {
+  scrollbar-width: none;
+}
+
+.nav-center-menu::-webkit-scrollbar {
+  display: none;
+}
 .nav-growth-chip,
 .nav-icon-action {
   position: relative;
@@ -564,6 +613,27 @@ onUnmounted(() => {
 
 .nav-icon-action:hover svg {
   animation: friendly-wiggle 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-notification-action {
+  overflow: visible;
+}
+
+.nav-notification-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  border: 2px solid var(--app-card-solid);
+  border-radius: 9px;
+  background: rgb(225 29 72);
+  padding: 0 4px;
+  color: white;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 14px;
+  text-align: center;
 }
 
 @keyframes nav-arrive {

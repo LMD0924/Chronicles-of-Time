@@ -25,11 +25,18 @@ public class CareerTask {
     private String taskType;
     private String status;
     private String priority;
+    private String quadrant;
+    private LocalDate startDate;
     private LocalDate dueDate;
     private Integer estimatedMinutes;
     private Integer actualMinutes;
     private String outcome;
     private String notes;
+    private String tags;
+    private Integer reminderEnabled;
+    private LocalDateTime reminderAt;
+    private String repeatRule;
+    private LocalDateTime completedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

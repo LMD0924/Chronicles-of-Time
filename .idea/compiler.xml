@@ -13,6 +13,7 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$PROJECT_DIR$/../../maven-repository/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$PROJECT_DIR$/../../maven-repository/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
         <module name="high-service" />
         <module name="file-upload" />
@@ -30,6 +31,7 @@
     <bytecodeTargetLevel>
       <module name="back-end-admin" target="17" />
       <module name="Question-Bank" target="17" />
+      <module name="unified-launcher" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
@@ -45,6 +47,7 @@
       <module name="gateway" options="-parameters" />
       <module name="general-service" options="-parameters" />
       <module name="high-service" options="-parameters" />
+      <module name="unified-launcher" options="-parameters" />
       <module name="university-service" options="-parameters" />
       <module name="user-center" options="-parameters" />
       <module name="workplace-service" options="-parameters" />

@@ -131,6 +131,22 @@ public class WorkplaceServiceImpl implements WorkplaceService {
         if (!StringUtils.hasText(task.getStatus())) {
             task.setStatus("TODO");
         }
+        if (!StringUtils.hasText(task.getQuadrant())) {
+            task.setQuadrant(defaultQuadrant(task));
+        }
+        if (task.getReminderEnabled() == null) {
+            task.setReminderEnabled(task.getReminderAt() == null ? 0 : 1);
+        }
+        if (!StringUtils.hasText(task.getRepeatRule())) {
+            task.setRepeatRule("NONE");
+        }
+        if (Objects.equals("DONE", task.getStatus())) {
+            if (task.getCompletedAt() == null) {
+                task.setCompletedAt(LocalDateTime.now());
+            }
+        } else {
+            task.setCompletedAt(null);
+        }
         touch(task);
         if (task.getId() == null) {
             taskMapper.insert(task);
@@ -140,6 +156,15 @@ public class WorkplaceServiceImpl implements WorkplaceService {
         }
         refreshGoalProgress(task.getGoalId(), ownerId);
         return task;
+    }
+
+    private String defaultQuadrant(CareerTask task) {
+        boolean important = Objects.equals("HIGH", task.getPriority());
+        boolean urgent = task.getDueDate() != null && !task.getDueDate().isAfter(LocalDate.now().plusDays(3));
+        if (important && urgent) return "IMPORTANT_URGENT";
+        if (important) return "IMPORTANT_NOT_URGENT";
+        if (urgent) return "URGENT_NOT_IMPORTANT";
+        return "NOT_IMPORTANT_NOT_URGENT";
     }
 
     @Override

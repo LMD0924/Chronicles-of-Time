@@ -665,6 +665,7 @@ onUnmounted(() => {
       logoText="拾光记"
       logoSubtext="知识图谱"
       :menuItems="menuItems"
+      :showArchive="true"
       :showBackHome="true"
       logoPath="/home"
       @menuClick="handleMenuClick"

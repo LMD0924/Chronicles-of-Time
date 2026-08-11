@@ -9,6 +9,7 @@ import request from '@/utils/request'
 import { getStoredTheme, onThemeChange, ThemeType } from '@/utils/theme'
 import { message } from 'ant-design-vue'
 import Nav from '@/components/Nav.vue'
+import { Check, Close, Delete, Edit } from '@element-plus/icons-vue'
 
 const [messageApi, contextHolder] = message.useMessage();
 const router = useRouter()
@@ -34,7 +35,8 @@ const stats = ref({
   totalFavorites: 0,
   totalComments: 0,
   totalRecords: 0,
-  totalViews: 0
+  totalViews: 0,
+  totalQuotes: 0,
 })
 
 // 发表的文章列表
@@ -58,6 +60,13 @@ const commentsLoading = ref(false)
 // 成长记录列表
 const growthRecords = ref([])
 const recordsLoading = ref(false)
+
+// 我的每日寄语
+const myQuotes = ref([])
+const quotesLoading = ref(false)
+const editingQuoteId = ref(null)
+const quoteEditText = ref('')
+const quoteSaving = ref(false)
 
 // 成就徽章
 const badges = ref([
@@ -119,13 +128,13 @@ const fetchUserInfo = async () => {
 const fetchMyArticles = async () => {
   articlesLoading.value = true
   try {
-    const res = await request.get('/content/user/' + userInfo.value.id, {
-      pageNum: articlesPage.value,
-      pageSize: 10
+    const res = await request.get('/content/my/list', {
+      pageNum: 1,
+      pageSize: 100
     })
     if (res.code === 200 && res.data) {
-      myArticles.value = res.data.records || []
-      articlesTotal.value = res.data.total || 0
+      myArticles.value = (res.data.records || []).filter((item) => item.contentType !== 'quote')
+      articlesTotal.value = myArticles.value.length
       stats.value.totalArticles = articlesTotal.value
     }
   } catch (error) {
@@ -211,6 +220,26 @@ const fetchGrowthRecords = async () => {
     recordsLoading.value = false
   }
 }
+// 获取我的每日寄语
+const fetchMyQuotes = async () => {
+  quotesLoading.value = true
+  try {
+    const res = await request.get('/content/my/list', {
+      pageNum: 1,
+      pageSize: 100,
+      contentType: 'quote'
+    })
+    if (res.code === 200) {
+      myQuotes.value = res.data?.records || []
+      stats.value.totalQuotes = res.data?.total ?? myQuotes.value.length
+    }
+  } catch (error) {
+    console.error('获取寄语记录失败', error)
+  } finally {
+    quotesLoading.value = false
+  }
+}
+
 // 加载所有数据
 const loadUserData = async () => {
   if (!userInfo.value?.id) return
@@ -219,7 +248,8 @@ const loadUserData = async () => {
     fetchLikedArticles(),
     fetchFavoritedArticles(),
     fetchMyComments(),
-    fetchGrowthRecords()
+    fetchGrowthRecords(),
+    fetchMyQuotes()
   ])
 
   // 更新成就进度
@@ -355,6 +385,59 @@ const formatDate = (dateStr) => {
   return date.toLocaleDateString('zh-CN')
 }
 
+const startQuoteEdit = (quote) => {
+  editingQuoteId.value = quote.id
+  quoteEditText.value = quote.content || ''
+}
+
+const cancelQuoteEdit = () => {
+  editingQuoteId.value = null
+  quoteEditText.value = ''
+}
+
+const saveQuoteEdit = async (quote) => {
+  const content = quoteEditText.value.trim()
+  if (!content) {
+    messageApi.warning('寄语不能为空')
+    return
+  }
+  quoteSaving.value = true
+  try {
+    const res = await request.post('/content/save', {
+      id: quote.id,
+      title: '每日寄语',
+      summary: content,
+      content,
+      contentType: 'quote',
+      isPublic: quote.isPublic ?? 2,
+      status: quote.status ?? 1,
+    })
+    if (res.code !== 200) throw new Error(res.message || '保存失败')
+    cancelQuoteEdit()
+    await fetchMyQuotes()
+    messageApi.success('寄语已更新')
+  } catch (error) {
+    messageApi.error(error.message || '寄语更新失败')
+  } finally {
+    quoteSaving.value = false
+  }
+}
+
+const deleteQuote = async (quote) => {
+  try {
+    await ElMessageBox.confirm('确认删除这条寄语吗？', '删除寄语', { type: 'warning' })
+    const res = await request.delete('/content/delete/' + quote.id)
+    if (res.code !== 200) throw new Error(res.message || '删除失败')
+    if (editingQuoteId.value === quote.id) cancelQuoteEdit()
+    await fetchMyQuotes()
+    messageApi.success('寄语已删除')
+  } catch (error) {
+    if (error !== 'cancel' && error !== 'close') {
+      messageApi.error(error.message || '寄语删除失败')
+    }
+  }
+}
+
 // 切换右侧标签
 const switchTab = (tab) => {
   activeRightTab.value = tab
@@ -376,6 +459,9 @@ const handleLogout = async () => {
 onMounted(async () => {
   await fetchUserInfo()
   await loadUserData()
+  if (route.query.tab === 'quotes') {
+    activeRightTab.value = 'quotes'
+  }
 
   const stopListen = onThemeChange((theme) => {
     isDark.value = theme === ThemeType.DARK
@@ -514,10 +600,11 @@ onMounted(async () => {
         <div class="lg:col-span-8">
           <!-- 标签页切换 -->
           <div :class="[isDark ? 'bg-white/10 backdrop-blur-sm border border-white/20' : 'bg-white shadow-sm', 'rounded-2xl overflow-hidden fade-in-up']">
-            <div :class="[isDark ? 'border-white/20' : 'border-gray-100', 'flex border-b']">
+            <div :class="[isDark ? 'border-white/20' : 'border-gray-100', 'flex overflow-x-auto border-b']">
               <button
                 v-for="tab in [
                   { id: 'articles', name: '我的发表', icon: '📝', count: stats.totalArticles },
+                  { id: 'quotes', name: '我的寄语', icon: '💭', count: stats.totalQuotes },
                   { id: 'records', name: '成长记录', icon: '📌', count: stats.totalRecords },
                   { id: 'likes', name: '我的点赞', icon: '❤️', count: stats.totalLikes },
                   { id: 'favorites', name: '我的收藏', icon: '⭐', count: stats.totalFavorites },
@@ -525,7 +612,7 @@ onMounted(async () => {
                 ]"
                 :key="tab.id"
                 @click="switchTab(tab.id)"
-                class="flex-1 px-4 py-3 text-center transition-all duration-300 relative group"
+                class="min-w-[108px] flex-none sm:flex-1 px-4 py-3 text-center transition-all duration-300 relative group"
                 :class="activeRightTab === tab.id
                   ? 'text-brand-600 font-medium'
                   : (isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')"
@@ -573,6 +660,38 @@ onMounted(async () => {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              <!-- 我的寄语 -->
+              <div v-if="activeRightTab === 'quotes'">
+                <div v-if="quotesLoading" class="text-center py-8">
+                  <div class="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                </div>
+                <div v-else-if="myQuotes.length === 0" class="text-center py-12">
+                  <div class="text-5xl mb-3">💭</div>
+                  <p :class="isDark ? 'text-gray-400' : 'text-gray-500'">还没有发表过寄语</p>
+                  <button type="button" @click="$router.push('/home#daily-quote')" class="mt-4 px-4 py-2 bg-gradient-to-r from-brand-500 to-pink-500 text-white rounded-lg text-sm">去发表寄语</button>
+                </div>
+                <div v-else class="space-y-4">
+                  <article v-for="quote in myQuotes" :key="quote.id" class="p-4 rounded-xl transition-all" :class="isDark ? 'bg-white/5' : 'bg-gray-50'">
+                    <div v-if="editingQuoteId === quote.id" class="space-y-3">
+                      <textarea v-model="quoteEditText" maxlength="200" rows="3" class="w-full rounded-lg border px-3 py-2 text-sm outline-none resize-none" :class="isDark ? 'bg-black/20 border-white/20 text-white' : 'bg-white border-gray-200 text-gray-800'"></textarea>
+                      <div class="flex justify-end gap-2">
+                        <button type="button" title="取消编辑" aria-label="取消编辑" @click="cancelQuoteEdit" class="quote-action-button" :class="isDark ? 'text-gray-300 hover:bg-white/10' : 'text-gray-500 hover:bg-gray-200'"><Close /></button>
+                        <button type="button" title="保存寄语" aria-label="保存寄语" :disabled="quoteSaving" @click="saveQuoteEdit(quote)" class="quote-action-button text-brand-600 hover:bg-brand-50 disabled:opacity-50"><Check /></button>
+                      </div>
+                    </div>
+                    <div v-else class="flex items-start gap-3">
+                      <span class="text-2xl text-accent-500">“</span>
+                      <p class="min-w-0 flex-1 leading-7" :class="isDark ? 'text-gray-200' : 'text-gray-700'">{{ quote.content }}</p>
+                      <div class="flex shrink-0 gap-1">
+                        <button type="button" title="编辑寄语" aria-label="编辑寄语" @click="startQuoteEdit(quote)" class="quote-action-button text-brand-600 hover:bg-brand-50"><Edit /></button>
+                        <button type="button" title="删除寄语" aria-label="删除寄语" @click="deleteQuote(quote)" class="quote-action-button text-red-500 hover:bg-red-50"><Delete /></button>
+                      </div>
+                    </div>
+                    <div v-if="editingQuoteId !== quote.id" class="mt-3 pl-7 text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ formatDate(quote.publishTime || quote.createTime || quote.createdAt) }}</div>
+                  </article>
                 </div>
               </div>
 
@@ -744,6 +863,15 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.quote-action-button {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
 .fade-in-up {
   opacity: 0;
   transform: translateY(30px);

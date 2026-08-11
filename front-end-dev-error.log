@@ -1,0 +1,26 @@
+[2m10:50:40[22m [31m[1m[vite][22m[39m [31mInternal server error: Element is missing end tag.[39m
+  Plugin: [35mvite-plugin-vue-inspector[39m
+  File: [36mD:/mdliu9/Chronicles-of-Time/front-end/src/views/FocusTasks.vue[39m
+      at createCompilerError (D:\mdliu9\Chronicles-of-Time\front-end\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:1378:17)
+      at emitError (D:\mdliu9\Chronicles-of-Time\front-end\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3014:5)
+      at Object.onclosetag (D:\mdliu9\Chronicles-of-Time\front-end\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:2381:13)
+      at Tokenizer.stateInClosingTagName (D:\mdliu9\Chronicles-of-Time\front-end\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:799:16)
+      at Tokenizer.parse (D:\mdliu9\Chronicles-of-Time\front-end\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:1157:16)
+      at Object.baseParse (D:\mdliu9\Chronicles-of-Time\front-end\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3053:13)
+      at parse (D:\mdliu9\Chronicles-of-Time\front-end\node_modules\@vue\compiler-dom\dist\compiler-dom.cjs.js:910:23)
+      at result (file:///D:/mdliu9/Chronicles-of-Time/front-end/node_modules/vite-plugin-vue-devtools/node_modules/vite-plugin-vue-inspector/dist/index.mjs:29:21)
+      at new Promise (<anonymous>)
+      at compileSFCTemplate (file:///D:/mdliu9/Chronicles-of-Time/front-end/node_modules/vite-plugin-vue-devtools/node_modules/vite-plugin-vue-inspector/dist/index.mjs:26:24)
+[2m14:45:30[22m [31m[1m[vite][22m[39m [31mInternal server error: Element is missing end tag.[39m
+  Plugin: [35mvite-plugin-vue-inspector[39m
+  File: [36mD:/mdliu9/Chronicles-of-Time/front-end/src/views/FocusTasks.vue[39m
+      at createCompilerError (D:\mdliu9\Chronicles-of-Time\front-end\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:1378:17)
+      at emitError (D:\mdliu9\Chronicles-of-Time\front-end\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3014:5)
+      at Object.onclosetag (D:\mdliu9\Chronicles-of-Time\front-end\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:2381:13)
+      at Tokenizer.stateInClosingTagName (D:\mdliu9\Chronicles-of-Time\front-end\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:799:16)
+      at Tokenizer.parse (D:\mdliu9\Chronicles-of-Time\front-end\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:1157:16)
+      at Object.baseParse (D:\mdliu9\Chronicles-of-Time\front-end\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3053:13)
+      at parse (D:\mdliu9\Chronicles-of-Time\front-end\node_modules\@vue\compiler-dom\dist\compiler-dom.cjs.js:910:23)
+      at result (file:///D:/mdliu9/Chronicles-of-Time/front-end/node_modules/vite-plugin-vue-devtools/node_modules/vite-plugin-vue-inspector/dist/index.mjs:29:21)
+      at new Promise (<anonymous>)
+      at compileSFCTemplate (file:///D:/mdliu9/Chronicles-of-Time/front-end/node_modules/vite-plugin-vue-devtools/node_modules/vite-plugin-vue-inspector/dist/index.mjs:26:24)

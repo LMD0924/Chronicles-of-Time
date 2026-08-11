@@ -249,6 +249,7 @@ onMounted(() => {
         logoText="拾光记"
         logoSubtext="文章列表"
         :menuItems="menuItems"
+        :showArchive="true"
         :showBackHome="true"
         logoPath="/home"
         @menuClick="handleMenuClick"

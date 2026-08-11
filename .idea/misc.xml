@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="JavaScriptSettings">
@@ -29,6 +28,7 @@
         <option value="$PROJECT_DIR$/back-end-admin/pom.xml" />
         <option value="$PROJECT_DIR$/back-end-spring-cloud/Question-Bank/pom.xml" />
         <option value="$PROJECT_DIR$/back-end-spring-cloud/Workplace/pom.xml" />
+        <option value="$PROJECT_DIR$/back-end-spring-cloud/unified-launcher/pom.xml" />
       </set>
     </option>
   </component>

@@ -28,6 +28,21 @@ const router = createRouter({
       component: () => import('@/views/auth/home.vue')
     },
     {
+      path: '/Today',
+      name: '今日成长工作台',
+      component: () => import('@/views/TodayDashboard.vue')
+    },
+    {
+      path: '/GrowthPlanner',
+      name: '成长规划中心',
+      component: () => import('@/views/GrowthPlanner.vue')
+    },
+    {
+      path: '/TaskMatrix',
+      name: '任务矩阵',
+      component: () => import('@/views/FocusTasks.vue')
+    },
+    {
       path:'/PersonalProfile',
       name:'个人档案',
       component: () => import('@/views/auth/PersonalProfile.vue')
@@ -64,8 +79,18 @@ const router = createRouter({
     },
     {
       path:'/WorkRecords',
-      name:'职场新人',
+      name:'职场工作台',
       component: () => import('@/views/career/WorkRecords.vue')
+    },
+    {
+      path:'/CareerTimeline',
+      name:'职场成长时间线',
+      component: () => import('@/views/career/CareerTimeline.vue')
+    },
+    {
+      path:'/CareerToolkit',
+      name:'入职工具箱',
+      component: () => import('@/views/career/CareerToolkit.vue')
     },
     {
       path:'/InterviewLab',

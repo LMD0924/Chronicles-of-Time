@@ -5,10 +5,7 @@
 import * as echarts from 'echarts'
 import request from '@/utils/request'
 import { ref, reactive, onMounted, onBeforeUnmount, computed, nextTick, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import Nav from "@/components/Nav.vue";
-
-const router = useRouter()
 
 // 数据响应式
 const isDark = ref(false)
@@ -50,26 +47,13 @@ const tabs = computed(() => [
 
 // 导航菜单配置
 const menuItems = [
-  {
-    key: 'StudyDashboard',
-    label: '在线考试',
-    icon: '📝',
-    children: [
-      { key: 'practice', label: '实战练习', icon: '⚡', path: '/StudyDashboard?tab=practice' },
-      { key: 'mistake', label: '错题本', icon: '📖', path: '/StudyDashboard?tab=mistake' },
-      { key: 'analysis', label: '成绩分析', icon: '📊', path: '/StudyDashboard?tab=analysis' },
-      { key: 'questionBank', label: '题库管理', icon: '📚', path: '/StudyDashboard?tab=questionBank' },
-      { key: 'answerRecords', label: '答题记录', icon: '✍️', path: '/StudyDashboard?tab=answerRecords' }
-    ]
-  },
-  {
-    key: '个人图谱分析',
-    label: '图谱',
-    icon: '👤',
-    path: '/GraphView'
-  }
+  { key: 'practice', label: '实战练习', icon: '⚡', path: '/StudyDashboard?tab=practice' },
+  { key: 'mistake', label: '错题本', icon: '📖', path: '/StudyDashboard?tab=mistake' },
+  { key: 'analysis', label: '成绩分析', icon: '📊', path: '/StudyDashboard?tab=analysis' },
+  { key: 'questionBank', label: '题库管理', icon: '📚', path: '/StudyDashboard?tab=questionBank' },
+  { key: 'answerRecords', label: '答题记录', icon: '✍️', path: '/StudyDashboard?tab=answerRecords' },
+  { key: 'personalGraph', label: '图谱', icon: '👤', path: '/GraphView' }
 ]
-
 const getThemeColor = (name, fallback) => {
   if (typeof window === 'undefined') return fallback
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
@@ -168,10 +152,6 @@ const getCurrentUser = () => {
       loadData()
     }
   })
-}
-
-const goBack = () => {
-  router.push('/')
 }
 
 const loadData = async () => {

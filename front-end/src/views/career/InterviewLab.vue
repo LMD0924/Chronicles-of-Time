@@ -20,9 +20,10 @@ const submitting = ref(false)
 const aiEnabled = ref(null)
 
 const menuItems = [
-  { key: 'work', label: '职场新人', icon: '💼', path: '/WorkRecords' },
+  { key: 'work', label: '工作台', icon: '💼', path: '/WorkRecords' },
+  { key: 'timeline', label: '成长时间线', icon: '🗓️', path: '/CareerTimeline' },
+  { key: 'toolkit', label: '入职工具箱', icon: '🧰', path: '/CareerToolkit' },
   { key: 'interview', label: '模拟面试', icon: '🎙️', path: '/InterviewLab' },
-  { key: 'advance', label: '进阶之路', icon: '🚀', path: '/AdvanceRecords' },
 ]
 
 const ready = computed(() => Boolean(currentQuestion.value))
@@ -78,7 +79,7 @@ const submitAnswer = async () => {
       <div class="app-container interview-layout">
         <section class="interview-intro">
           <div><p class="app-section-label">AI Interview Lab</p><h1>在线模拟面试</h1><p>由虚拟面试官连续提问。每次作答后获得结构、相关性、证据和表达建议。</p></div>
-          <button type="button" class="app-btn-secondary" @click="router.push('/WorkRecords')">返回职场新人</button>
+          <button type="button" class="app-btn-secondary" @click="router.push('/WorkRecords')">返回工作台</button>
         </section>
 
         <section class="interview-stage">

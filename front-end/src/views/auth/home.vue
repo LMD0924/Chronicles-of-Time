@@ -2,22 +2,21 @@
   文件说明：拾光记前台应用认证与登录页面组件，承载认证与登录场景的界面展示、交互操作和数据承接。
 -->
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+defineOptions({ name: 'HomeView' })
+
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import ThemeToggleButton from '@/components/ThemeToggleButton.vue';
 import AdvancedTypewriter from '@/components/Typewriter.vue'
 import {
   ThemeType,
   getStoredTheme,
-  setTheme,
-  toggleTheme as toggleGlobalTheme,
-  initTheme,
   onThemeChange
 } from "@/utils/theme.js";
 import AdvancedPageTransition from '@/components/AdvancedPageTransition.vue';
 import request from "@/utils/request.js";
 import { message } from 'ant-design-vue'
-import { ChatDotRound, Trophy } from '@element-plus/icons-vue'
+import { ChatDotRound, Collection, EditPen, RefreshRight, Trophy } from '@element-plus/icons-vue'
 
 // 页面过渡组件引用
 const transitionRef = ref(null);
@@ -26,23 +25,23 @@ const isScrolled = ref(false)
 const showBackTop = ref(false)
 const activeNav = ref('home')
 const activeStage = ref(0)
+const preferredStage = ref(localStorage.getItem('preferred_stage') || 'all')
 const showUserMenu = ref(false)
 const isDark = ref(getStoredTheme() === ThemeType.DARK)
 const texts = ref(['拾光记 · 弥补当时那个迷茫的自己'])
 const UserInfo = ref({})
 const [MessageApi,contextHolder] = message.useMessage();
 
-const homeNavItems = [
-  { id: 'home', name: '首页', icon: '🏠' },
-  { id: 'timeline', name: '时光轴', icon: '⏳' },
-  { id: 'milestone', name: '图谱总览', icon: '📜' },
-  { id: 'exam', name: '在线考试', icon: '📝' },
-  { id: 'journal', name: '云边小札', icon: '📖' }
-]
+const homeNavItems = computed(() => [
+  { id: 'home', name: '首页', icon: '🏠', stages: ['all', 'high_school', 'university', 'workplace'] },
+  { id: 'timeline', name: '时光轴', icon: '⏳', stages: ['all', 'high_school', 'university', 'workplace'] },
+  { id: 'milestone', name: '图谱总览', icon: '📜', stages: ['all', 'university', 'workplace'] },
+  { id: 'exam', name: '在线考试', icon: '📝', link: '/StudyDashboard?tab=practice', stages: ['all', 'high_school', 'university'] },
+  { id: 'journal', name: '云边小札', icon: '📖', stages: ['all', 'university', 'workplace'] }
+].filter((item) => item.stages.includes(preferredStage.value)))
 
 // 浮动窗口控制
 const activePopup = ref(null)
-const popupPosition = ref({ left: '50%', top: 'auto' })
 
 // 各区域的内容配置
 const sectionContents = {
@@ -53,6 +52,8 @@ const sectionContents = {
       { icon: '🎓', name: '高中时代', description: '2019-2022 · 奋斗的青春', link: '/CourseSelection' },
       { icon: '📚', name: '大学时光', description: '2022-2026 · 成长的蜕变', link: '/PrePare' },
       { icon: '💼', name: '职场生涯', description: '2026-至今 · 职业的启航', link: '/WorkRecords' },
+      { icon: '🗓️', name: '成长时间线', description: '目标、任务、面试和复盘一览', link: '/CareerTimeline' },
+      { icon: '🧰', name: '入职工具箱', description: '90天计划与常用工作模板', link: '/CareerToolkit' },
       { icon: '🏆', name: '里程碑事件', description: '查看所有重要时刻', link: '/milestones' }
     ],
     stats: [
@@ -74,21 +75,6 @@ const sectionContents = {
       { label: '知识点总数', value: '128个' },
       { label: '已掌握', value: '76个' },
       { label: '整体掌握率', value: '68.7%' }
-    ]
-  },
-  exam: {
-    title: '📝 在线考试',
-    description: '从题库抽题、限时作答、提交后生成成绩与错题复盘，把练习结果沉淀成学习路径。',
-    menuList: [
-      { icon: '⚡', name: '开始考试', description: '按分类、知识点和难度随机组卷', link: '/StudyDashboard?tab=practice' },
-      { icon: '📚', name: '题库管理', description: '维护个人题库，审核通过后进入考试', link: '/StudyDashboard?tab=questionBank' },
-      { icon: '🧩', name: '错题练习', description: '从未掌握错题中抽题复习', link: '/StudyDashboard?tab=mistake' },
-      { icon: '📈', name: '成绩分析', description: '查看考试次数、分数趋势和薄弱科目', link: '/StudyDashboard?tab=analysis' }
-    ],
-    stats: [
-      { label: '组卷模式', value: '3种' },
-      { label: '题库来源', value: '个人题库' },
-      { label: '复盘闭环', value: '自动生成' }
     ]
   },
   journal: {
@@ -160,20 +146,20 @@ const getUserInfo =()=>{
 }
 
 // 时光轴节点预览
-const timelineNodes = [
-  { year: '2019', event: '高中入学' },
-  { year: '2022', event: '高考冲刺' },
-  { year: '2023', event: '大学新生' },
-  { year: '2025', event: '实习入职' }
+const motivationalTimelineNodes = [
+  { year: '现在', event: '每一次记录，都是在为未来积累答案。' },
+  { year: '下一步', event: '从完成一个小目标开始，让成长有迹可循。' },
+  { year: '坚持', event: '今天的努力，会成为明天回头时的光。' },
+  { year: '未来', event: '你会感谢现在没有放弃的自己。' }
 ]
 
 // 人生阶段
-const lifeStages = [
-  { icon: '📚', name: '高中时代', years: '15-18岁', path: '/CourseSelection' },
-  { icon: '🎓', name: '大学时光', years: '18-22岁', path: '/PrePare' },
-  { icon: '💼', name: '职场新人', years: '22-25岁', path: '/WorkRecords' },
-  { icon: '🚀', name: '进阶之路', years: '25岁+', path: '/AdvanceRecords' }
-]
+const lifeStages = computed(() => [
+  { icon: '📚', name: '高中时代', years: '15-18岁', path: '/CourseSelection', stage: 'high_school' },
+  { icon: '🎓', name: '大学时光', years: '18-22岁', path: '/PrePare', stage: 'university' },
+  { icon: '💼', name: '职场工作台', years: '22-25岁', path: '/WorkRecords', stage: 'workplace' },
+  { icon: '🚀', name: '进阶之路', years: '25岁+', path: '/AdvanceRecords', stage: 'workplace' }
+].filter((item) => preferredStage.value === 'all' || item.stage === preferredStage.value))
 
 // 带过渡效果的导航
 const navigateWithTransition = (path) => {
@@ -200,27 +186,67 @@ const handleStageClick = (stage, idx) => {
 
 // 时光轴数据
 const timelineData = ref([])
+const fallbackTimelineItems = motivationalTimelineNodes.map((node) => ({
+  source: 'fallback',
+  date: node.year,
+  stage: '成长',
+  stageClass: 'growth',
+  title: node.event,
+  description: '记录一个小目标，成长轨迹就会继续向前。',
+  tags: ['成长'],
+  sortDate: ''
+}))
+const timelineItems = computed(() => {
+  const source = timelineData.value.length ? timelineData.value : fallbackTimelineItems
+  return source.slice(0, 10)
+})
 
 const timelineDate = value => value ? String(value).slice(0, 10) : ''
+const listFromResult = (result) => {
+  if (result.status !== 'fulfilled') return []
+  const data = result.value?.data
+  if (Array.isArray(data)) return data
+  return data?.records || data?.list || []
+}
+const recentItems = (items, dateOf, limit = 4) => items
+  .filter((item) => dateOf(item))
+  .sort((a, b) => String(dateOf(b)).localeCompare(String(dateOf(a))))
+  .slice(0, limit)
 const loadTimeline = async (userId) => {
   if (!userId) return
-  const [scoreResult, interviewResult, goalResult] = await Promise.allSettled([
+  const [scoreResult, growthResult, articleResult, interviewResult, goalResult] = await Promise.allSettled([
     request.get(`/score/list/${userId}`),
+    request.post('/growth/list', { page: 1, size: 12 }),
+    request.get(`/content/user/${userId}`, { pageNum: 1, pageSize: 8 }),
     request.get('/workplace/interviews'),
     request.get('/workplace/goals'),
   ])
   const items = []
   if (UserInfo.value?.createTime) {
-    items.push({ date: timelineDate(UserInfo.value.createTime), stage: '成长', stageClass: 'growth', title: '加入拾光记', description: '开始建立自己的学习与成长记录。', tags: ['成长'], sortDate: UserInfo.value.createTime })
+    items.push({ source: 'account', date: timelineDate(UserInfo.value.createTime), stage: '成长', stageClass: 'growth', title: '加入拾光记', description: '开始建立自己的学习与成长记录。', tags: ['成长'], sortDate: UserInfo.value.createTime })
   }
-  const scores = scoreResult.status === 'fulfilled' ? scoreResult.value.data || [] : []
-  scores.slice(0, 3).forEach((item) => items.push({ date: timelineDate(item.examDate), stage: '高中', stageClass: 'highschool', title: item.examName || '模考记录', description: `${item.subjectName || '学科'} ${item.score ?? '-'} 分，已纳入模考诊断。`, tags: ['模考', '成绩'], sortDate: item.examDate }))
-  const interviews = interviewResult.status === 'fulfilled' ? interviewResult.value.data || [] : []
-  interviews.slice(0, 3).forEach((item) => items.push({ date: timelineDate(item.interviewDate), stage: '职场', stageClass: 'work', title: `${item.companyName || '目标公司'} · ${item.positionName || '面试准备'}`, description: `${item.interviewRound || '面试'} · ${item.status || '准备中'}`, tags: ['面试', '职场'], sortDate: item.interviewDate }))
-  const goals = goalResult.status === 'fulfilled' ? goalResult.value.data || [] : []
-  goals.slice(0, 3).forEach((item) => items.push({ date: timelineDate(item.targetDate || item.updatedAt), stage: '职场', stageClass: 'work', title: item.goalName || '职业目标', description: item.metric || item.notes || '职业目标正在推进中。', tags: ['目标', '职业'], sortDate: item.targetDate || item.updatedAt }))
+  const scores = recentItems(listFromResult(scoreResult), (item) => item.examDate, 3)
+  scores.forEach((item) => items.push({ source: 'score', date: timelineDate(item.examDate), stage: '高中', stageClass: 'highschool', title: item.examName || '模考记录', description: `${item.subjectName || '学科'} ${item.score ?? '-'} 分，已纳入模考诊断。`, tags: ['模考', '成绩'], sortDate: item.examDate }))
+  const growthRecords = recentItems(listFromResult(growthResult), (item) => item.recordDate, 4)
+  growthRecords.forEach((item) => items.push({ source: 'growth', date: timelineDate(item.recordDate), stage: item.stage || '成长', stageClass: 'growth', title: item.examName || item.activityName || item.companyName || '成长记录', description: item.achievementThisPeriod || item.jobContent || (item.studyHours ? `日均学习 ${item.studyHours} 小时。` : '记录了一段真实的成长经历。'), tags: ['成长记录'], sortDate: item.recordDate }))
+  const articles = recentItems(listFromResult(articleResult), (item) => item.publishTime || item.createdAt || item.createTime, 4)
+  articles.forEach((item) => items.push({ source: 'article', date: timelineDate(item.publishTime || item.createdAt || item.createTime), stage: '文章', stageClass: 'article', title: item.title || '发布了一篇文章', description: item.summary || '把思考写下来，让成长留下可以回看的证据。', tags: ['文章', '表达'], sortDate: item.publishTime || item.createdAt || item.createTime }))
+  const interviews = recentItems(listFromResult(interviewResult), (item) => item.interviewDate, 3)
+  interviews.forEach((item) => items.push({ source: 'interview', date: timelineDate(item.interviewDate), stage: '职场', stageClass: 'work', title: `${item.companyName || '目标公司'} · ${item.positionName || '面试准备'}`, description: `${item.interviewRound || '面试'} · ${item.status || '准备中'}`, tags: ['面试', '职场'], sortDate: item.interviewDate }))
+  const goals = recentItems(listFromResult(goalResult), (item) => item.targetDate || item.updatedAt || item.createdAt, 3)
+  goals.forEach((item) => items.push({ source: 'goal', date: timelineDate(item.targetDate || item.updatedAt || item.createdAt), stage: '职场', stageClass: 'work', title: item.goalName || '职业目标', description: item.metric || item.notes || '职业目标正在推进中。', tags: ['目标', '职业'], sortDate: item.targetDate || item.updatedAt || item.createdAt }))
   timelineData.value = items.sort((a, b) => String(b.sortDate || '').localeCompare(String(a.sortDate || '')))
+  await nextTick()
+  initScrollAnimation()
 }
+const hasTimelineActivity = computed(() => timelineData.value.some((item) => item.source !== 'account'))
+const timelineNodes = computed(() => {
+  if (!hasTimelineActivity.value) return motivationalTimelineNodes
+  return [...timelineData.value].slice(0, 4).reverse().map((item) => ({
+    year: item.date ? item.date.slice(0, 4) : '最近',
+    event: item.title,
+  }))
+})
 // 图谱总览数据
 const milestones = [
   { icon: '✒️', year: '2019', title: '初入文海', desc: '开始记录读书笔记', progress: 100, status: '已完成' },
@@ -247,19 +273,98 @@ const journalEntries = [
 ]
 
 // 每日寄语
-const quotes = [
+const fallbackQuotes = [
   { text: '种一棵树最好的时间是十年前，其次是现在。', author: '佚名' },
   { text: '那些你熬夜努力的时光，终会化作照亮前路的光。', author: '拾光记' },
   { text: '成长不是变得复杂，而是学会在复杂中保持简单。', author: '佚名' },
   { text: '每一个优秀的人都有一段沉默的时光，那段时间是付出了很多努力，却得不到结果的日子，我们把它叫做扎根。', author: '佚名' }
 ]
 
-const dailyQuote = ref(quotes[0])
+const publishedQuotes = ref([])
+const dailyQuote = ref(fallbackQuotes[0])
+const quoteTypewriterKey = ref(0)
+let quoteRotationTimer = null
+const quoteDraft = ref('')
+const quotePublishing = ref(false)
 
-// 刷新寄语
+const setDailyQuote = (quote) => {
+  dailyQuote.value = quote
+  quoteTypewriterKey.value += 1
+}
+
+const normalizeQuote = (item) => ({
+  id: item.id,
+  text: item.content,
+  author: item.author?.name || item.author?.username || item.authorName || '拾光用户',
+  createdAt: item.publishTime || item.createTime,
+})
+
+const loadQuotes = async (selectLatest = false) => {
+  try {
+    const res = await request.get('/content/public/list', {
+      pageNum: 1,
+      pageSize: 50,
+      contentType: 'quote',
+    })
+    publishedQuotes.value = (res.data?.records || [])
+      .filter((item) => item.content?.trim())
+      .map(normalizeQuote)
+    if (publishedQuotes.value.length) {
+      setDailyQuote(selectLatest
+        ? publishedQuotes.value[0]
+        : publishedQuotes.value[Math.floor(Math.random() * publishedQuotes.value.length)])
+    }
+  } catch (error) {
+    console.error('获取每日寄语失败', error)
+  }
+}
+
+const publishQuote = async () => {
+  const content = quoteDraft.value.trim()
+  if (!content) {
+    MessageApi.warning('请先写下想分享的寄语')
+    return
+  }
+  if (content.length > 200) {
+    MessageApi.warning('寄语不能超过 200 个字')
+    return
+  }
+
+  quotePublishing.value = true
+  try {
+    const res = await request.post('/content/save', {
+      title: '每日寄语',
+      summary: content,
+      content,
+      contentType: 'quote',
+      isPublic: 2,
+      status: 1,
+    })
+    if (res.code !== 200) throw new Error(res.message || '发表失败')
+    quoteDraft.value = ''
+    await loadQuotes(true)
+    MessageApi.success('寄语已发表')
+  } catch (error) {
+    MessageApi.error(error.message || '寄语发表失败')
+  } finally {
+    quotePublishing.value = false
+  }
+}
+
 const refreshQuote = () => {
-  const randomIndex = Math.floor(Math.random() * quotes.length)
-  dailyQuote.value = quotes[randomIndex]
+  const source = publishedQuotes.value.length ? publishedQuotes.value : fallbackQuotes
+  if (source.length <= 1) return
+  let nextQuote = dailyQuote.value
+  let attempts = 0
+  const sameQuote = (left, right) =>
+    left?.id && right?.id
+      ? String(left.id) === String(right.id)
+      : left?.text === right?.text && left?.author === right?.author
+  while (sameQuote(nextQuote, dailyQuote.value) && attempts < 10) {
+    nextQuote = source[Math.floor(Math.random() * source.length)]
+    attempts += 1
+  }
+  setDailyQuote(nextQuote)
 }
 
 // 数字滚动动画
@@ -349,21 +454,31 @@ const handleClickOutside = (event) => {
 }
 
 // 初始化滚动动画观察器
-const initScrollAnimation = () => {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('animated')
-        observer.unobserve(entry.target)
-      }
-    })
-  }, {
-    threshold: 0.2,
-    rootMargin: '0px 0px -50px 0px'
-  })
+let scrollAnimationObserver = null
 
-  const animatedElements = document.querySelectorAll('.scroll-animate')
-  animatedElements.forEach(el => observer.observe(el))
+const initScrollAnimation = () => {
+  if (typeof window === 'undefined') return
+
+  if (!scrollAnimationObserver && 'IntersectionObserver' in window) {
+    scrollAnimationObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animated')
+          scrollAnimationObserver.unobserve(entry.target)
+        }
+      })
+    }, {
+      threshold: 0.2,
+      rootMargin: '0px 0px -50px 0px'
+    })
+  }
+
+  const animatedElements = document.querySelectorAll('.scroll-animate:not(.animated)')
+  if (!scrollAnimationObserver) {
+    animatedElements.forEach((element) => element.classList.add('animated'))
+    return
+  }
+  animatedElements.forEach(element => scrollAnimationObserver.observe(element))
 }
 
 // 处理主题切换
@@ -381,20 +496,21 @@ const handleThemeChange = (theme) => {
     const animatedElements = document.querySelectorAll('.scroll-animate')
     animatedElements.forEach(el => {
       el.classList.remove('animated')
-      setTimeout(() => {
-        if (el.getBoundingClientRect().top < window.innerHeight + 100) {
-          el.classList.add('animated')
-        }
-      }, 50)
     })
+    initScrollAnimation()
   })
 }
 
 const handleTransitionComplete = () => {
 }
 
+const handleStageChange = (event) => { preferredStage.value = event.detail || localStorage.getItem('preferred_stage') || 'all' }
+const stageVisible = (stages) => preferredStage.value === 'all' || stages.includes(preferredStage.value)
+
 onMounted(() => {
   getUserInfo()
+  loadQuotes()
+  quoteRotationTimer = window.setInterval(refreshQuote, 5000)
   if (isDark.value) {
     document.documentElement.classList.add('dark')
   }
@@ -402,8 +518,13 @@ onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   window.addEventListener('click', handleClickOutside)
   window.addEventListener('click', handleClickOutsidePopup)
+  window.addEventListener('app:stage-change', handleStageChange)
   animateNumbers()
   setTimeout(initScrollAnimation, 100)
+  if (window.location.hash === '#daily-quote') {
+    nextTick(() => document.getElementById('daily-quote')?.scrollIntoView({ behavior: 'smooth' }))
+  }
+
 
   const stopListen = onThemeChange((theme) => {
     handleThemeChange(theme)
@@ -418,6 +539,13 @@ onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('click', handleClickOutside)
   window.removeEventListener('click', handleClickOutsidePopup)
+  window.removeEventListener('app:stage-change', handleStageChange)
+  if (quoteRotationTimer) {
+    window.clearInterval(quoteRotationTimer)
+    quoteRotationTimer = null
+  }
+  scrollAnimationObserver?.disconnect()
+  scrollAnimationObserver = null
 })
 </script>
 
@@ -604,9 +732,6 @@ onUnmounted(() => {
               </div>
 
               <ThemeToggleButton />
-
-              <button type="button" class="home-mobile-link md:hidden" title="成长等级" @click="navigateWithTransition('/DailyCheckin')"><Trophy /></button>
-              <button type="button" class="home-mobile-link md:hidden" title="在线聊天" @click="navigateWithTransition('/Chat')"><ChatDotRound /></button>
             </div>
           </div>
         </div>
@@ -648,8 +773,11 @@ onUnmounted(() => {
                   <div class="text-sm">陪伴天数</div>
                 </div>
               </div>
-              <div class="flex gap-4">
-                <button @click="navigateWithTransition('/Records')" class="px-8 py-3 bg-gradient-to-r from-brand-500 to-accent-500 text-white rounded-full font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5">
+              <div class="flex flex-wrap gap-4">
+                <button @click="navigateWithTransition('/Today')" class="px-8 py-3 bg-gradient-to-r from-brand-500 to-accent-500 text-white rounded-full font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5">
+                  🧭 打开今日工作台
+                </button>
+                <button @click="navigateWithTransition('/Records')" class="px-8 py-3 border border-gray-300 rounded-full font-medium hover:border-brand-400 hover:text-brand-600 transition-all">
                   开始记录时光
                 </button>
                 <button @click="scrollToSection('timeline')" class="px-8 py-3 border border-gray-300 rounded-full font-medium hover:border-brand-400 hover:text-brand-600 transition-all">
@@ -699,7 +827,7 @@ onUnmounted(() => {
       </section>
 
       <!-- 时光轴区域 - 可点击标题 -->
-      <section id="timeline" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
+      <section v-if="stageVisible([&quot;all&quot;, &quot;high_school&quot;, &quot;university&quot;, &quot;workplace&quot;])" id="timeline" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
           <div
             class="text-center mb-12 scroll-animate cursor-pointer group"
@@ -714,15 +842,15 @@ onUnmounted(() => {
             </h2>
             <p class="text-gray-500">记录每一个值得铭记的瞬间</p>
           </div>
-          <p v-if="!timelineData.length" class="text-center text-sm text-gray-500">还没有可展示的成长记录，录入模考、职业目标或面试后会自动出现在这里。</p>
+          <p v-if="!hasTimelineActivity" class="text-center text-sm text-gray-500">{{ timelineData.length ? '你已经迈出了第一步，记录一个目标或完成一次学习后，这条时光轴会继续生长。' : '今天记录一件小事，明天就多一份可以回看的成长。' }}</p>
           <div class="relative max-w-3xl mx-auto">
-            <div v-for="(item, idx) in timelineData" :key="idx"
+            <div v-for="(item, idx) in timelineItems" :key="idx"
                  class="relative mb-12 flex justify-start scroll-animate"
                  :class="{ 'justify-end': idx % 2 === 1 }"
                  :style="{ transitionDelay: `${idx * 0.1}s` }">
               <div class="absolute left-1/2 -translate-x-1/2 w-10 flex flex-col items-center">
                 <div class="w-4 h-4 bg-brand-500 rounded-full border-2 border-white shadow-[0_0_0_4px_rgba(var(--theme-primary-rgb),0.2)] z-10"></div>
-                <div class="w-0.5 h-16 bg-gray-300 mt-2" v-if="idx !== timelineData.length - 1"></div>
+                <div class="w-0.5 h-16 bg-gray-300 mt-2" v-if="idx !== timelineItems.length - 1"></div>
               </div>
               <div class="w-[calc(50%-50px)] rounded-2xl p-5 shadow-md hover:shadow-xl transition-all hover:-translate-y-1"
                    :class="[isDark ? 'bg-white/10' : 'bg-white', { 'ml-auto': idx % 2 === 1 }]">
@@ -730,7 +858,9 @@ onUnmounted(() => {
                 <div class="inline-block px-2 py-1 rounded-full text-xs font-medium mb-3" :class="{
                   'bg-amber-100 text-amber-700': item.stage === '高中',
                   'bg-blue-100 text-blue-700': item.stage === '大学',
-                  'bg-green-100 text-green-700': item.stage === '职场'
+                  'bg-green-100 text-green-700': item.stage === '职场',
+                  'bg-purple-100 text-purple-700': item.stage === '文章',
+                  'bg-rose-100 text-rose-700': item.stage === '成长'
                 }">{{ item.stage }}</div>
                 <h3 class="text-lg font-semibold mb-2" :class="isDark ? 'text-white' : 'text-gray-800'">{{ item.title }}</h3>
                 <p class="text-sm leading-relaxed mb-3" :class="isDark ? 'text-gray-400' : 'text-gray-600'">{{ item.description }}</p>
@@ -744,7 +874,7 @@ onUnmounted(() => {
       </section>
 
       <!-- 图谱总览区域 - 可点击标题 -->
-      <section id="milestone" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
+      <section v-if="stageVisible([&quot;all&quot;, &quot;university&quot;, &quot;workplace&quot;])" id="milestone" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
           <div
             class="text-center mb-12 scroll-animate cursor-pointer group"
@@ -799,19 +929,14 @@ onUnmounted(() => {
         </div>
       </section>
 
-      <!-- 在线考试 - 可点击标题 -->
-      <section id="exam" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
+      <!-- 在线考试 -->
+      <section v-if="stageVisible([&quot;all&quot;, &quot;high_school&quot;, &quot;university&quot;])" id="exam" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
           <div
-            class="text-center mb-12 scroll-animate cursor-pointer group"
-            @click="showPopup('exam', $event)"
-            data-section="exam"
+            class="text-center mb-12 scroll-animate"
           >
-            <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2 group-hover:text-brand-500 transition-colors" :class="isDark ? 'text-white group-hover:text-brand-400' : 'text-gray-900 group-hover:text-brand-600'">
+            <h2 class="text-3xl lg:text-4xl font-bold mb-3 inline-flex items-center gap-2" :class="isDark ? 'text-white' : 'text-gray-900'">
               📝 在线考试
-              <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0121 0z"></path>
-              </svg>
             </h2>
             <p class="text-gray-500">快速进入组卷、考试、错题复盘和成绩分析</p>
           </div>
@@ -843,7 +968,7 @@ onUnmounted(() => {
       </section>
 
       <!-- 云边小札 - 可点击标题 -->
-      <section id="journal" class="py-20" :class="isDark ? 'bg-black' : 'bg-gray-50'">
+      <section v-if="stageVisible([&quot;all&quot;, &quot;university&quot;, &quot;workplace&quot;])" id="journal" class="py-20" :class="isDark ? 'bg-black' : 'bg-gray-50'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
           <div
             class="text-center mb-12 scroll-animate cursor-pointer group"
@@ -881,18 +1006,49 @@ onUnmounted(() => {
       </section>
 
       <!-- 每日寄语 -->
-      <section class="py-20 bg-gradient-to-r">
+      <section id="daily-quote" class="py-20 bg-gradient-to-r">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
-          <div class=" rounded-3xl p-12 text-center backdrop-blur-sm scroll-animate" :class="isDark?'bg-white/10 text-gray-300':'bg-white'">
+          <div class="rounded-3xl p-8 lg:p-12 text-center backdrop-blur-sm scroll-animate" :class="isDark ? 'bg-white/10 text-gray-300' : 'bg-white'">
             <div class="text-5xl text-accent-400 opacity-50 mb-4">“</div>
-            <p class="text-xl lg:text-2xl leading-relaxed max-w-2xl mx-auto mb-5 italic">{{ dailyQuote.text }}</p>
+            <div class="text-xl lg:text-2xl leading-relaxed max-w-2xl mx-auto mb-5 italic min-h-[4.5rem] flex items-center justify-center">
+              <AdvancedTypewriter
+                :key="quoteTypewriterKey"
+                :texts="[dailyQuote.text]"
+                :type-speed="45"
+                :delete-speed="25"
+                :pause-time="5000"
+                :loop="false"
+                :keep-last-text="true"
+                :show-cursor="true"
+                text-class="text-center"
+              />
+            </div>
             <p class="text-gray-500 mb-5">—— {{ dailyQuote.author }}</p>
-            <button @click="refreshQuote" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-sm text-gray-600 hover:bg-gray-200 transition-all">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
-              换一句
-            </button>
+            <div class="max-w-2xl mx-auto text-left">
+              <label class="block text-sm font-medium mb-2" :class="isDark ? 'text-gray-300' : 'text-gray-700'">写下今天想分享的一句话</label>
+              <textarea
+                v-model="quoteDraft"
+                maxlength="200"
+                rows="3"
+                class="w-full rounded-xl border px-4 py-3 text-sm outline-none resize-none transition-colors"
+                :class="isDark ? 'bg-black/20 border-white/20 text-white placeholder:text-gray-500 focus:border-brand-400' : 'bg-gray-50 border-gray-200 text-gray-800 placeholder:text-gray-400 focus:border-brand-400'"
+                placeholder="此刻想留给大家的话..."
+              ></textarea>
+              <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
+                <span class="text-xs text-gray-400">{{ quoteDraft.length }}/200</span>
+                <div class="flex flex-wrap gap-2">
+                  <button type="button" @click="publishQuote" :disabled="quotePublishing" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-500 text-white rounded-lg text-sm hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <EditPen class="w-4 h-4" /> {{ quotePublishing ? '发表中...' : '发表寄语' }}
+                  </button>
+                  <button type="button" @click="navigateWithTransition('/PersonalProfile?tab=quotes')" class="inline-flex items-center gap-1.5 px-4 py-2 border rounded-lg text-sm transition-colors" :class="isDark ? 'border-white/20 text-gray-300 hover:border-brand-400 hover:text-brand-400' : 'border-gray-200 text-gray-600 hover:border-brand-400 hover:text-brand-600'">
+                    <Collection class="w-4 h-4" /> 我的寄语
+                  </button>
+                  <button type="button" @click="refreshQuote" title="换一句寄语" aria-label="换一句寄语" class="inline-flex items-center gap-1.5 px-4 py-2 border rounded-lg text-sm transition-colors" :class="isDark ? 'border-white/20 text-gray-300 hover:border-brand-400 hover:text-brand-400' : 'border-gray-200 text-gray-600 hover:border-brand-400 hover:text-brand-600'">
+                    <RefreshRight class="w-4 h-4" /> 换一句
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

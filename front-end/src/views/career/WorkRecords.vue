@@ -9,6 +9,13 @@ import request from '@/utils/request'
 const { isDark } = useTheme()
 const router = useRouter()
 
+const menuItems = [
+  { key: 'work', label: '工作台', icon: '💼', path: '/WorkRecords' },
+  { key: 'timeline', label: '成长时间线', icon: '🗓️', path: '/CareerTimeline' },
+  { key: 'toolkit', label: '入职工具箱', icon: '🧰', path: '/CareerToolkit' },
+  { key: 'interview', label: '模拟面试', icon: '🎙️', path: '/InterviewLab' },
+]
+
 const loading = ref(false)
 const dashboard = ref({})
 const profile = ref(null)
@@ -201,16 +208,16 @@ onMounted(loadAll)
 
 <template>
   <div class="app-shell overflow-x-hidden" :class="isDark ? 'app-shell-dark' : 'app-shell-light'">
-    <Nav :isDark="isDark" />
+    <Nav :isDark="isDark" :menuItems="menuItems" />
     <main class="app-main">
       <div class="app-container space-y-6">
         <header class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p class="app-section-label mb-2">Workplace</p>
-            <h1 class="app-page-title">职场成长中心</h1>
+            <h1 class="app-page-title">职场工作台</h1>
             <p class="app-page-desc">同步后端职场服务，管理职业档案、目标任务、面试准备和周期复盘。</p>
           </div>
-          <button type="button" class="app-btn-secondary" :disabled="loading" @click="loadAll">刷新数据</button>
+          <div class="flex flex-wrap gap-2"><button type="button" class="app-btn-secondary" @click="router.push('/TaskMatrix?view=matrix')">四象限任务</button><button type="button" class="app-btn-secondary" :disabled="loading" @click="loadAll">刷新数据</button></div>
         </header>
 
         <section class="grid gap-4 md:grid-cols-4">

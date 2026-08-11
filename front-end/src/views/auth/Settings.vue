@@ -28,6 +28,13 @@ const user = ref({})
 const currentTheme = ref(getStoredTheme())
 const selectedPreset = ref(getStoredThemeColor().preset || getStoredThemeColor().key)
 const currentFont = ref(getStoredFont().key)
+const preferredStage = ref(localStorage.getItem('preferred_stage') || 'all')
+const stageOptions = [
+  { value: 'all', label: '全阶段', description: '保留全部学习、成长和职场模块' },
+  { value: 'high_school', label: '高中', description: '优先展示考试、错题和志愿规划' },
+  { value: 'university', label: '大学', description: '优先展示课程、论文和能力积累' },
+  { value: 'workplace', label: '职场', description: '优先展示任务、目标和面试准备' },
+]
 const fontPreviewClassMap = {
   'lawyer-handwriting': 'font-lawyer-handwriting',
   'honglei-xingshu': 'font-honglei-xingshu',
@@ -52,11 +59,26 @@ const load = async () => {
     const res = await request.get('/user/getUserById')
     if (res.code === 200) user.value = res.data || {}
   } catch (_) {}
+  try {
+    const preference = await request.get('/notifications/preference')
+    if (preference.data?.preferredStage) preferredStage.value = preference.data.preferredStage
+  } catch (_) {}
 }
 
 const savePrefs = () => {
   localStorage.setItem(STORAGE_PREFS, JSON.stringify(prefs.value))
   messageApi.success('偏好已保存')
+}
+
+const saveStage = async () => {
+  localStorage.setItem('preferred_stage', preferredStage.value)
+  window.dispatchEvent(new CustomEvent('app:stage-change', { detail: preferredStage.value }))
+  try {
+    await request.put('/notifications/preference', { preferredStage: preferredStage.value })
+    messageApi.success('成长阶段已保存')
+  } catch (_) {
+    messageApi.warning('已保存到本机，后端偏好暂未同步')
+  }
 }
 
 const setMode = (mode) => {
@@ -167,6 +189,18 @@ onMounted(load)
             <strong>拾光记 · 让每一次考试和成长都有迹可循</strong>
           </div>
         </div>
+        <div class="app-card-surface p-6 space-y-4">
+          <div>
+            <h3 class="text-lg font-black text-slate-900 dark:text-white">我的成长阶段</h3>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">阶段会影响首页和导航中优先展示的内容，随时可以切换。</p>
+          </div>
+          <div class="grid gap-2 sm:grid-cols-4">
+            <button v-for="stage in stageOptions" :key="stage.value" type="button" class="settings-stage-option" :class="preferredStage === stage.value ? 'settings-stage-active' : ''" @click="preferredStage = stage.value; saveStage()">
+              <strong>{{ stage.label }}</strong>
+              <small>{{ stage.description }}</small>
+            </button>
+          </div>
+        </div>
         <div class="grid gap-6 lg:grid-cols-2">
           <div class="app-card-surface p-6 space-y-3">
             <h3 class="font-black text-slate-900 dark:text-white">通知与隐私</h3>
@@ -206,6 +240,25 @@ onMounted(load)
 </template>
 
 <style scoped>
+.settings-stage-option {
+  display: grid;
+  min-height: 4.4rem;
+  gap: 0.25rem;
+  border: 1px solid var(--app-card-border);
+  border-radius: 10px;
+  padding: 0.75rem;
+  color: var(--app-text-secondary);
+  text-align: left;
+  transition: all 180ms ease;
+}
+.settings-stage-option:hover,
+.settings-stage-active {
+  border-color: rgba(var(--theme-primary-rgb), 0.48);
+  background: rgba(var(--theme-primary-rgb), 0.08);
+  color: var(--theme-primary);
+}
+.settings-stage-option strong { font-size: 0.88rem; }
+.settings-stage-option small { color: var(--app-text-muted); font-size: 0.7rem; line-height: 1.35; }
 .settings-mode-btn {
   min-width: 4.8rem;
   border-radius: 12px;

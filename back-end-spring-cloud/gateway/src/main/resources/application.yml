@@ -42,7 +42,7 @@ spring:
             - id: general-service
               uri: http://localhost:8084
               predicates:
-                - Path=/api/growth/**,/api/activity/**,/api/chat/**,/api/mistake/**,/api/question/**,/api/score/**,/api/content/**,/api/notes/**,/api/graph/**
+                - Path=/api/growth/**,/api/activity/**,/api/chat/**,/api/mistake/**,/api/question/**,/api/score/**,/api/content/**,/api/notes/**,/api/graph/**,/api/notifications/**,/api/productivity/**
             - id: workplace-service
               uri: http://localhost:8085
               predicates:

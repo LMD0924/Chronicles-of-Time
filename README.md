@@ -54,6 +54,16 @@ mvn.cmd "-Dmaven.repo.local=E:\GitHub\Chronicles-Of-Time\.m2\repository" -DskipT
 
 网关统一入口为 `http://localhost:8500/api`。
 
+#### Unified Java entry point
+
+Run `org.example.launcher.UnifiedBackendApplication` from the `unified-launcher` module in IntelliJ IDEA. The single Java process starts auth, user, high school, university, general, workplace, advanced, file upload, and gateway contexts while preserving their existing ports and configuration.
+
+A shared IntelliJ run configuration named `Unified Backend` is included under `.run/`.
+
+The unified launcher disables Eureka registration by default because this repository has no Eureka server module. Enable it with the JVM option `-Dunified.eureka.enabled=true` when a registry is available.
+
+Individual `*Application` classes remain available when only one service needs debugging.
+
 ### 3. 用户端
 
 ```powershell

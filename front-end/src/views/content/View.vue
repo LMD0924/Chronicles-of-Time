@@ -529,6 +529,7 @@ watch(() => article.value.content, () => {
         logoText="拾光记"
         logoSubtext="阅读文章"
         :menuItems="menuItems"
+        :showArchive="true"
         :showBackHome="true"
         logoPath="/home"
         @menuClick="handleMenuClick"

@@ -54,26 +54,14 @@ const currentComponent = computed(() => {
   return map[activeTab.value] || PracticeCenter
 })
 
-const userInitial = computed(() => {
-  return '学'
-})
-
 // 在线考试独立导航，不包含高中模块入口。
 const menuItems = [
-  {
-    key: 'StudyDashboard',
-    label: '在线考试',
-    icon: '📝',
-    children: [
-      { key: 'practice', label: '实战练习', icon: '⚡', path: '/StudyDashboard?tab=practice' },
-      { key: 'mistake', label: '错题本', icon: '📖', path: '/StudyDashboard?tab=mistake' },
-      { key: 'analysis', label: '成绩分析', icon: '📊', path: '/StudyDashboard?tab=analysis' },
-      { key: 'questionBank', label: '题库管理', icon: '📚', path: '/StudyDashboard?tab=questionBank' },
-      { key: 'answerRecords', label: '答题记录', icon: '✍️', path: '/StudyDashboard?tab=answerRecords' }
-    ]
-  }
+  { key: 'practice', label: '实战练习', icon: '⚡', path: '/StudyDashboard?tab=practice' },
+  { key: 'mistake', label: '错题本', icon: '📖', path: '/StudyDashboard?tab=mistake' },
+  { key: 'analysis', label: '成绩分析', icon: '📊', path: '/StudyDashboard?tab=analysis' },
+  { key: 'questionBank', label: '题库管理', icon: '📚', path: '/StudyDashboard?tab=questionBank' },
+  { key: 'answerRecords', label: '答题记录', icon: '✍️', path: '/StudyDashboard?tab=answerRecords' }
 ]
-
 // 监听 URL 参数变化
 watch(() => route.query.tab, (newTab) => {
   if (newTab) {

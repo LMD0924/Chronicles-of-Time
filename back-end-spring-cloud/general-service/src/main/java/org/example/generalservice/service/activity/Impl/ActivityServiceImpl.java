@@ -267,9 +267,11 @@ public class ActivityServiceImpl implements ActivityService {
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         long publishedArticleCount = countPublishedArticles(stats.getUserId(), null);
         long completedPracticeCount = learningProgressQueryService.countCompletedPractices(stats.getUserId(), null);
+        long publishedQuoteCount = countPublishedQuotes(stats.getUserId(), null);
         long todayArticleCount = countPublishedArticles(stats.getUserId(), todayStart);
         long todayPracticeCount = learningProgressQueryService.countCompletedPractices(stats.getUserId(), todayStart);
-        int growthExperience = calculateGrowthExperience(stats, publishedArticleCount, completedPracticeCount);
+        long todayQuoteCount = countPublishedQuotes(stats.getUserId(), todayStart);
+        int growthExperience = calculateGrowthExperience(stats, publishedArticleCount, publishedQuoteCount, completedPracticeCount);
         int levelIndex = resolveLevelIndex(growthExperience);
         int currentThreshold = LEVEL_THRESHOLDS[levelIndex];
         int nextThreshold = levelIndex == LEVEL_THRESHOLDS.length - 1
@@ -297,7 +299,7 @@ public class ActivityServiceImpl implements ActivityService {
         vo.setPublishedArticleCount(publishedArticleCount);
         vo.setCompletedPracticeCount(completedPracticeCount);
         vo.setCheckedInToday(LocalDate.now().equals(stats.getLastCheckinDate()));
-        vo.setGrowthTasks(buildGrowthTasks(vo.getCheckedInToday(), todayArticleCount, todayPracticeCount,
+        vo.setGrowthTasks(buildGrowthTasks(vo.getCheckedInToday(), todayArticleCount, todayQuoteCount, todayPracticeCount,
                 value(stats.getTodayOnlineSeconds())));
         vo.setMedals(userMedalMapper.selectList(new LambdaQueryWrapper<UserMedal>()
                         .eq(UserMedal::getUserId, stats.getUserId())
@@ -311,6 +313,18 @@ public class ActivityServiceImpl implements ActivityService {
     private long countPublishedArticles(Long userId, LocalDateTime since) {
         LambdaQueryWrapper<Content> wrapper = new LambdaQueryWrapper<Content>()
                 .eq(Content::getUserId, userId)
+                .eq(Content::getStatus, 1)
+                .ne(Content::getContentType, "quote");
+        if (since != null) {
+            wrapper.ge(Content::getPublishTime, since);
+        }
+        return contentMapper.selectCount(wrapper);
+    }
+
+    private long countPublishedQuotes(Long userId, LocalDateTime since) {
+        LambdaQueryWrapper<Content> wrapper = new LambdaQueryWrapper<Content>()
+                .eq(Content::getUserId, userId)
+                .eq(Content::getContentType, "quote")
                 .eq(Content::getStatus, 1);
         if (since != null) {
             wrapper.ge(Content::getPublishTime, since);
@@ -319,11 +333,12 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
 
-    private int calculateGrowthExperience(UserActivityStats stats, long articleCount, long practiceCount) {
+    private int calculateGrowthExperience(UserActivityStats stats, long articleCount, long quoteCount, long practiceCount) {
         long experience = (long) value(stats.getTotalLoginDays()) * 20
                 + (long) value(stats.getMaxContinuousLoginDays()) * 10
                 + value(stats.getTotalOnlineSeconds()) / 1800 * 5
                 + articleCount * 40
+                + quoteCount * 15
                 + practiceCount * 25;
         return (int) Math.min(Integer.MAX_VALUE, experience);
     }
@@ -337,7 +352,7 @@ public class ActivityServiceImpl implements ActivityService {
         return 0;
     }
 
-    private List<GrowthTaskVO> buildGrowthTasks(boolean checkedInToday, long articleCount,
+    private List<GrowthTaskVO> buildGrowthTasks(boolean checkedInToday, long articleCount, long quoteCount,
                                                   long practiceCount, long todayOnlineSeconds) {
         int onlineMinutes = (int) (todayOnlineSeconds / 60);
         return List.of(
@@ -345,6 +360,8 @@ public class ActivityServiceImpl implements ActivityService {
                         checkedInToday ? 1 : 0, 1, 20, checkedInToday, "/DailyCheckin"),
                 new GrowthTaskVO("publish", "发表文章", "把一次思考整理成文字", "EditPen",
                         (int) articleCount, 1, 40, articleCount >= 1, "/Publish"),
+                new GrowthTaskVO("quote", "发表每日寄语", "留下一句今天的心情或鼓励", "EditPen",
+                        (int) quoteCount, 1, 15, quoteCount >= 1, "/home#daily-quote"),
                 new GrowthTaskVO("practice", "完成练习", "完成一次在线练习或考试", "MagicStick",
                         (int) practiceCount, 1, 25, practiceCount >= 1, "/StudyDashboard?tab=practice"),
                 new GrowthTaskVO("online", "专注在线", "累计在线学习 30 分钟", "Timer",

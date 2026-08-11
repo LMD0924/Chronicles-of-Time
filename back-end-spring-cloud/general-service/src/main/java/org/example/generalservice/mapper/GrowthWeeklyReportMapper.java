@@ -1,0 +1,11 @@
+package org.example.generalservice.mapper;
+
+import com.baomidou.dynamic.datasource.annotation.DS;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
+import org.example.generalservice.entity.GrowthWeeklyReport;
+
+@Mapper
+@DS("cot_content")
+public interface GrowthWeeklyReportMapper extends BaseMapper<GrowthWeeklyReport> {
+}

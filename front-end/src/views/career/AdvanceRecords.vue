@@ -6,6 +6,12 @@ import Nav from '@/components/Nav.vue'
 import request from '@/utils/request'
 
 const { isDark } = useTheme()
+const menuItems = [
+  { key: 'advance', label: '进阶总览', icon: '🚀', path: '/AdvanceRecords' },
+  { key: 'milestones', label: '里程碑', icon: '🏁', section: 'milestones' },
+  { key: 'skills', label: '技能训练', icon: '🧠', section: 'skills' },
+  { key: 'mentors', label: '导师反馈', icon: '🤝', section: 'mentors' },
+]
 const loading = ref(false)
 const dashboard = ref({})
 const roadmaps = ref([])
@@ -116,7 +122,7 @@ onMounted(loadAll)
 
 <template>
   <div class="app-shell overflow-x-hidden" :class="isDark ? 'app-shell-dark' : 'app-shell-light'">
-    <Nav :isDark="isDark" />
+    <Nav :isDark="isDark" :menuItems="menuItems" />
     <main class="app-main">
       <div class="app-container space-y-6">
         <header class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -140,7 +146,7 @@ onMounted(loadAll)
           </div>
         </section>
 
-        <section class="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+        <section id="roadmap" class="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
           <div class="app-card-surface p-5">
             <div class="mb-4 flex items-center justify-between"><h2 class="text-lg font-bold">路线图</h2><button type="button" class="app-btn-secondary !px-3 !py-2" @click="roadmapForm = emptyRoadmap()">新路线</button></div>
             <div class="grid gap-3 md:grid-cols-2">
@@ -168,7 +174,7 @@ onMounted(loadAll)
           </div>
         </section>
 
-        <section class="grid gap-6 xl:grid-cols-2">
+        <section id="milestones" class="grid gap-6 xl:grid-cols-2">
           <div class="app-card-surface p-5">
             <div class="mb-4 flex items-center justify-between"><h2 class="text-lg font-bold">里程碑</h2><button type="button" class="app-btn-secondary !px-3 !py-2" @click="milestoneForm = { ...emptyMilestone(), roadmapId: activeRoadmaps[0]?.id || null }">新里程碑</button></div>
             <div class="grid gap-3 md:grid-cols-2">
@@ -185,7 +191,7 @@ onMounted(loadAll)
             <div class="mt-5 space-y-3"><article v-for="item in milestones" :key="item.id" class="list-row"><div><h3 class="font-semibold">{{ item.milestoneName }}</h3><p class="mt-1 text-sm text-zinc-500">{{ roadmapName(item.roadmapId) }} · {{ statusText[item.status] || item.status }} · {{ item.dueDate || '-' }}</p></div><div class="flex gap-2"><button v-if="item.status !== 'DONE'" type="button" class="mini-btn" @click="doneMilestone(item)">完成</button><button type="button" class="mini-btn" @click="editMilestone(item)">编辑</button></div></article><p v-if="!milestones.length" class="empty-text">还没有里程碑。</p></div>
           </div>
 
-          <div class="app-card-surface p-5">
+          <div id="skills" class="app-card-surface p-5">
             <div class="mb-4 flex items-center justify-between"><h2 class="text-lg font-bold">技能训练</h2><button type="button" class="app-btn-secondary !px-3 !py-2" @click="skillForm = { ...emptySkill(), roadmapId: activeRoadmaps[0]?.id || null }">新技能</button></div>
             <div class="grid gap-3 md:grid-cols-2">
               <input v-model="skillForm.skillName" class="field" placeholder="技能名称" />
@@ -204,7 +210,7 @@ onMounted(loadAll)
           </div>
         </section>
 
-        <section class="app-card-surface p-5">
+        <section id="mentors" class="app-card-surface p-5">
           <div class="mb-4 flex items-center justify-between"><h2 class="text-lg font-bold">导师会话</h2><button type="button" class="app-btn-secondary !px-3 !py-2" @click="sessionForm = { ...emptySession(), roadmapId: activeRoadmaps[0]?.id || null }">新会话</button></div>
           <div class="grid gap-3 md:grid-cols-4">
             <input v-model="sessionForm.mentorName" class="field" placeholder="导师/反馈人" />
