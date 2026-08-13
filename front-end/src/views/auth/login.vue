@@ -281,7 +281,12 @@ const handleLogin = async () => {
     // 登录成功后跳转
     navigateWithTransition('/home')
   } catch (error) {
-    messageApi.error('登录失败')
+    const message = error?.msg
+      || error?.message
+      || error?.response?.data?.msg
+      || error?.response?.data?.message
+      || '登录失败'
+    messageApi.error(message)
   }
 }
 

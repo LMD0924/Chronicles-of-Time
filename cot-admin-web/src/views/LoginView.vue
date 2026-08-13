@@ -27,6 +27,8 @@ const submit = async () => {
     await userStore.login(form)
     ElMessage.success('登录成功')
     router.push(route.query.redirect ? decodeURIComponent(route.query.redirect) : '/dashboard')
+  } catch {
+    // 请求拦截器已经展示错误信息，这里阻止事件处理器产生未捕获异常。
   } finally {
     loading.value = false
   }

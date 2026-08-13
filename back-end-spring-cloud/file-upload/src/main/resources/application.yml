@@ -17,7 +17,7 @@ spring:
 file:
   upload:
     # 基础上传目录
-    base-path: E:/GitHub/Chronicles-Of-Time/back-end-spring-cloud/file-upload/uploads/
+    base-path: D:/mdliu9/Chronicles-Of-Time/back-end-spring-cloud/file-upload/uploads/
     # 图片子目录
     image-path: images/
     # 视频子目录

@@ -34,12 +34,29 @@ public class AuthController {
      * 用户登录
      */
     @PostMapping("/login")
-    public RestBean<LoginVO> login(@RequestBody AuthDTO authDTO) {
+    public RestBean<LoginVO> login(@RequestBody(required = false) AuthDTO authDTO) {
         log.info("========== 收到登录请求 ==========");  // ✅ 添加日志
-        log.info("用户名: {}", authDTO.getUsername());
-        return RestBean.success("登录成功",authService.login(authDTO));
+        log.info("用户名: {}", authDTO == null ? null : authDTO.getUsername());
+        try {
+            return RestBean.success("登录成功", authService.login(authDTO));
+        } catch (RuntimeException e) {
+            String message = e.getMessage();
+            if ("用户不存在".equals(message)) {
+                return RestBean.fail(ResultCodeEnum.NOT_FOUND.getCode(), message);
+            }
+            if ("密码错误".equals(message)) {
+                return RestBean.fail(ResultCodeEnum.LOGIN_FAIL.getCode(), "账号或密码错误");
+            }
+            if ("用户已被禁用".equals(message)) {
+                return RestBean.fail(ResultCodeEnum.USER_DISABLED.getCode(), message);
+            }
+            if ("用户名或密码不能为空".equals(message)) {
+                return RestBean.fail(ResultCodeEnum.PARAM_ERROR.getCode(), message);
+            }
+            log.error("用户登录失败", e);
+            return RestBean.fail(ResultCodeEnum.SERVER_ERROR.getCode(), "登录服务暂时不可用，请稍后重试");
+        }
     }
-
     /**
      * 用户注册
      */

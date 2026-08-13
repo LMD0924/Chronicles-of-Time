@@ -1,0 +1,17 @@
+[2m17:17:48[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/auth/login[39m
+Error: connect ECONNREFUSED 127.0.0.1:8500
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m17:17:50[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/admin/data/dashboard[39m
+Error: connect ECONNREFUSED 127.0.0.1:8500
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m17:17:52[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/admin/data/modules?moduleKey=content-article&page=1&pageSize=3[39m
+Error: connect ECONNREFUSED 127.0.0.1:8500
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m17:36:50[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/auth/login[39m
+Error: Parse Error: Data after `Connection: close`
+    at Socket.socketOnData (node:_http_client:633:22)
+    at Socket.emit (node:events:509:28)
+    at addChunk (node:internal/streams/readable:563:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+    at Readable.push (node:internal/streams/readable:394:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:189:23)

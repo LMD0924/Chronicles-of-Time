@@ -110,6 +110,7 @@ export const adminMenus = [
       { path: '/stage/high-school', name: 'HighSchoolStage', title: '高中阶段管理', icon: 'Reading', component: 'stage/HighSchoolStage' },
       { path: '/stage/university', name: 'UniversityStage', title: '大学阶段管理', icon: 'School', component: 'stage/UniversityStage' },
       { path: '/stage/workplace', name: 'WorkplaceStage', title: '职场阶段管理', icon: 'Briefcase', component: 'stage/WorkplaceStage' },
+      { path: '/stage/workplace-tasks', name: 'WorkTaskManage', title: '职场任务管理', icon: 'List', component: 'workplace/TaskManage' },
       { path: '/stage/advanced', name: 'AdvancedStage', title: '进阶成长管理', icon: 'TrendCharts', component: 'stage/AdvancedStage' },
     ],
   },
@@ -137,7 +138,11 @@ export const adminMenus = [
   {
     path: '/community', title: '社区互动管理', icon: 'ChatDotRound', children: [
       { path: '/community/activity-medals', name: 'ActivityMedalManage', title: '打卡勋章管理', icon: 'Trophy', component: 'community/ActivityMedalManage' },
-      { path: '/community/chat', name: 'ChatManage', title: '在线聊天管理', icon: 'ChatDotRound', component: 'community/ChatManage' },
+      { path: '/community/chat', name: 'ChatManage', title: '在线聊天概览', icon: 'ChatDotRound', component: 'community/ChatManage' },
+      { path: '/community/chat-groups', name: 'ChatGroupManage', title: '聊天群组管理', icon: 'ChatDotRound', component: 'community/ChatGroupManage' },
+      { path: '/community/chat-members', name: 'ChatGroupMemberManage', title: '群成员管理', icon: 'UserFilled', component: 'community/ChatGroupMemberManage' },
+      { path: '/community/chat-friends', name: 'ChatFriendManage', title: '好友关系管理', icon: 'User', component: 'community/ChatFriendManage' },
+      { path: '/community/chat-messages', name: 'ChatMessageManage', title: '聊天消息审查', icon: 'Tickets', component: 'community/ChatMessageManage' },
     ],
   },
   {
@@ -153,6 +158,12 @@ export const adminMenus = [
     ],
   },
   { path: '/resources', name: 'ResourceManage', title: '文件资源管理', icon: 'FolderOpened', component: 'resource/ResourceManage' },
+  {
+    path: '/operations', title: '运营数据管理', icon: 'DataAnalysis', children: [
+      { path: '/operations/notifications', name: 'NotificationManage', title: '通知中心管理', icon: 'Bell', component: 'operations/NotificationManage' },
+      { path: '/operations/weekly-reports', name: 'WeeklyReportManage', title: '成长周报管理', icon: 'TrendCharts', component: 'operations/WeeklyReportManage' },
+    ],
+  },
   {
     path: '/monitor', title: '系统监控', icon: 'Monitor', children: [
       { path: '/monitor/services', name: 'ServiceMonitor', title: '服务状态监控', icon: 'Platform', component: 'monitor/ServiceMonitor' },
