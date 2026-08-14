@@ -1,6 +1,5 @@
+import messageApi from '@/utils/messageApi'
 import { createRouter, createWebHistory } from 'vue-router'
-import { ElMessage } from 'element-plus'
-
 // Token 获取函数
 const getToken = () => {
   return sessionStorage.getItem('token') || localStorage.getItem('token')
@@ -194,7 +193,7 @@ router.beforeEach((to, from, next) => {
 
   // 其他所有路径都需要登录
   if (!token) {
-    ElMessage.warning('请先登录')
+    messageApi.warning('请先登录')
     next('/login')
   } else {
     next()

@@ -186,6 +186,12 @@ const handleStageClick = (stage, idx) => {
 
 // 时光轴数据
 const timelineData = ref([])
+const timelinePreviewRef = ref(null)
+const timelinePreviewPaused = ref(false)
+let timelinePreviewFrame = null
+let timelinePreviewLastFrame = 0
+let stopThemeListen = null
+
 const fallbackTimelineItems = motivationalTimelineNodes.map((node) => ({
   source: 'fallback',
   date: node.year,
@@ -202,51 +208,167 @@ const timelineItems = computed(() => {
 })
 
 const timelineDate = value => value ? String(value).slice(0, 10) : ''
+const localToday = () => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 const listFromResult = (result) => {
   if (result.status !== 'fulfilled') return []
+  if (Array.isArray(result.value)) return result.value
   const data = result.value?.data
   if (Array.isArray(data)) return data
   return data?.records || data?.list || []
 }
-const recentItems = (items, dateOf, limit = 4) => items
+const allDatedItems = (items, dateOf) => items
   .filter((item) => dateOf(item))
   .sort((a, b) => String(dateOf(b)).localeCompare(String(dateOf(a))))
-  .slice(0, limit)
+
+const fetchAllTimelinePages = async (url, method = 'get') => {
+  const pageSize = 100
+  const records = []
+  let pageNum = 1
+  let pageCount
+
+  do {
+    const params = { pageNum, pageSize }
+    const response = method === 'post'
+      ? await request.post(url, params)
+      : await request.get(url, params)
+    const data = response?.data
+    const batch = Array.isArray(data) ? data : (data?.records || data?.list || [])
+    records.push(...batch)
+
+    if (Array.isArray(data)) break
+    const declaredPages = Number(data?.pages)
+    pageCount = Number.isFinite(declaredPages) && declaredPages > 0
+      ? declaredPages
+      : Math.max(1, Math.ceil(Number(data?.total || batch.length) / pageSize))
+    pageNum += 1
+  } while (pageNum <= pageCount)
+
+  return records
+}
+
+const addTimelineItem = (items, item) => {
+  const date = timelineDate(item.sortDate)
+  if (!date || !item.title) return
+  items.push({ ...item, date })
+}
+
 const loadTimeline = async (userId) => {
   if (!userId) return
-  const [scoreResult, growthResult, articleResult, interviewResult, goalResult] = await Promise.allSettled([
+  const [
+    scoreResult,
+    growthResult,
+    articleResult,
+    interviewResult,
+    goalResult,
+    taskResult,
+    reviewResult,
+    examResult,
+    milestoneResult,
+    activityResult,
+  ] = await Promise.allSettled([
     request.get(`/score/list/${userId}`),
-    request.post('/growth/list', { page: 1, size: 12 }),
-    request.get(`/content/user/${userId}`, { pageNum: 1, pageSize: 8 }),
+    fetchAllTimelinePages('/growth/list', 'post'),
+    fetchAllTimelinePages('/content/my/list'),
     request.get('/workplace/interviews'),
     request.get('/workplace/goals'),
+    request.get('/workplace/tasks'),
+    request.get('/workplace/reviews'),
+    request.get(`/question/exam/history/${userId}`),
+    request.get('/advanced/milestones'),
+    request.get('/activity/summary'),
   ])
   const items = []
   if (UserInfo.value?.createTime) {
-    items.push({ source: 'account', date: timelineDate(UserInfo.value.createTime), stage: '成长', stageClass: 'growth', title: '加入拾光记', description: '开始建立自己的学习与成长记录。', tags: ['成长'], sortDate: UserInfo.value.createTime })
+    addTimelineItem(items, { source: 'account', id: UserInfo.value.id, stage: '成长', stageClass: 'growth', title: '加入拾光记', description: '开始建立自己的学习与成长记录。', tags: ['成长'], sortDate: UserInfo.value.createTime })
   }
-  const scores = recentItems(listFromResult(scoreResult), (item) => item.examDate, 3)
-  scores.forEach((item) => items.push({ source: 'score', date: timelineDate(item.examDate), stage: '高中', stageClass: 'highschool', title: item.examName || '模考记录', description: `${item.subjectName || '学科'} ${item.score ?? '-'} 分，已纳入模考诊断。`, tags: ['模考', '成绩'], sortDate: item.examDate }))
-  const growthRecords = recentItems(listFromResult(growthResult), (item) => item.recordDate, 4)
-  growthRecords.forEach((item) => items.push({ source: 'growth', date: timelineDate(item.recordDate), stage: item.stage || '成长', stageClass: 'growth', title: item.examName || item.activityName || item.companyName || '成长记录', description: item.achievementThisPeriod || item.jobContent || (item.studyHours ? `日均学习 ${item.studyHours} 小时。` : '记录了一段真实的成长经历。'), tags: ['成长记录'], sortDate: item.recordDate }))
-  const articles = recentItems(listFromResult(articleResult), (item) => item.publishTime || item.createdAt || item.createTime, 4)
-  articles.forEach((item) => items.push({ source: 'article', date: timelineDate(item.publishTime || item.createdAt || item.createTime), stage: '文章', stageClass: 'article', title: item.title || '发布了一篇文章', description: item.summary || '把思考写下来，让成长留下可以回看的证据。', tags: ['文章', '表达'], sortDate: item.publishTime || item.createdAt || item.createTime }))
-  const interviews = recentItems(listFromResult(interviewResult), (item) => item.interviewDate, 3)
-  interviews.forEach((item) => items.push({ source: 'interview', date: timelineDate(item.interviewDate), stage: '职场', stageClass: 'work', title: `${item.companyName || '目标公司'} · ${item.positionName || '面试准备'}`, description: `${item.interviewRound || '面试'} · ${item.status || '准备中'}`, tags: ['面试', '职场'], sortDate: item.interviewDate }))
-  const goals = recentItems(listFromResult(goalResult), (item) => item.targetDate || item.updatedAt || item.createdAt, 3)
-  goals.forEach((item) => items.push({ source: 'goal', date: timelineDate(item.targetDate || item.updatedAt || item.createdAt), stage: '职场', stageClass: 'work', title: item.goalName || '职业目标', description: item.metric || item.notes || '职业目标正在推进中。', tags: ['目标', '职业'], sortDate: item.targetDate || item.updatedAt || item.createdAt }))
+
+  allDatedItems(listFromResult(scoreResult), (item) => item.examDate)
+    .forEach((item) => addTimelineItem(items, { source: 'score', id: item.id, stage: '成绩', stageClass: 'highschool', title: item.examName || '模考记录', description: `${item.subjectName || '学科'} ${item.score ?? '-'} 分，已纳入模考诊断。`, tags: ['模考', '成绩'], sortDate: item.examDate }))
+
+  allDatedItems(listFromResult(growthResult), (item) => item.recordDate)
+    .forEach((item) => addTimelineItem(items, { source: 'growth', id: item.id, stage: item.stage || '成长', stageClass: 'growth', title: item.examName || item.activityName || item.companyName || item.milestoneName || '成长记录', description: item.achievementThisPeriod || item.jobContent || (item.studyHours ? `日均学习 ${item.studyHours} 小时。` : '记录了一段真实的成长经历。'), tags: ['成长记录'], sortDate: item.recordDate }))
+
+  allDatedItems(listFromResult(articleResult), (item) => item.publishTime || item.createTime || item.createdAt)
+    .forEach((item) => {
+      const isQuote = item.contentType === 'quote'
+      addTimelineItem(items, { source: isQuote ? 'quote' : 'article', id: item.id, stage: isQuote ? '寄语' : '文章', stageClass: 'article', title: isQuote ? '发表每日寄语' : (item.title || '发布了一篇文章'), description: item.summary || item.content || '把思考写下来，让成长留下可以回看的证据。', tags: isQuote ? ['寄语'] : ['文章', '表达'], sortDate: item.publishTime || item.createTime || item.createdAt })
+    })
+
+  allDatedItems(listFromResult(interviewResult), (item) => item.interviewDate || item.createdAt)
+    .forEach((item) => addTimelineItem(items, { source: 'interview', id: item.id, stage: '面试', stageClass: 'work', title: `${item.companyName || '目标公司'} · ${item.positionName || '面试准备'}`, description: `${item.interviewRound || '面试'} · ${item.status || '准备中'}`, tags: ['面试', '职场'], sortDate: item.interviewDate || item.createdAt }))
+
+  allDatedItems(listFromResult(goalResult), (item) => item.createdAt || item.startDate || item.targetDate)
+    .forEach((item) => addTimelineItem(items, { source: 'goal', id: item.id, stage: '目标', stageClass: 'work', title: item.goalName || '职业目标', description: item.metric || item.notes || '职业目标正在推进中。', tags: ['目标', '职业'], sortDate: item.createdAt || item.startDate || item.targetDate }))
+
+  allDatedItems(listFromResult(taskResult), (item) => item.completedAt || item.createdAt || item.startDate || item.dueDate)
+    .forEach((item) => addTimelineItem(items, { source: 'task', id: item.id, stage: '任务', stageClass: 'study', title: `${item.status === 'DONE' ? '完成' : '创建'}任务 · ${item.taskName || '未命名任务'}`, description: item.outcome || item.notes || '任务已加入个人成长计划。', tags: ['任务'], sortDate: item.completedAt || item.createdAt || item.startDate || item.dueDate }))
+
+  allDatedItems(listFromResult(reviewResult), (item) => item.reviewDate || item.createdAt)
+    .forEach((item) => addTimelineItem(items, { source: 'review', id: item.id, stage: '复盘', stageClass: 'work', title: item.reviewType ? `${item.reviewType}复盘` : '完成工作复盘', description: item.learnings || item.wins || '沉淀了一次工作复盘。', tags: ['复盘', '职场'], sortDate: item.reviewDate || item.createdAt }))
+
+  allDatedItems(listFromResult(examResult), (item) => item.finishedAt || item.startedAt)
+    .forEach((item) => addTimelineItem(items, { source: 'exam', id: item.sessionId, stage: '考试', stageClass: 'study', title: item.title || `${item.subjectName || '在线'}考试`, description: `得分 ${item.scoreObtained ?? '-'} / ${item.scoreTotal ?? '-'}，正确率 ${item.scorePercent ?? '-'}%。`, tags: ['考试', '学习'], sortDate: item.finishedAt || item.startedAt }))
+
+  allDatedItems(listFromResult(milestoneResult), (item) => item.completedDate || item.createdAt || item.dueDate)
+    .forEach((item) => addTimelineItem(items, { source: 'milestone', id: item.id, stage: '里程碑', stageClass: 'growth', title: item.milestoneName || '达成一个里程碑', description: item.notes || `状态：${item.status || '进行中'}`, tags: ['里程碑'], sortDate: item.completedDate || item.createdAt || item.dueDate }))
+
+  if (activityResult.status === 'fulfilled') {
+    const activity = activityResult.value?.data || {}
+    if (activity.lastCheckinDate) {
+      addTimelineItem(items, { source: 'checkin', id: activity.lastCheckinDate, stage: '打卡', stageClass: 'growth', title: '完成每日打卡', description: `已累计打卡 ${activity.totalLoginDays || 1} 天。`, tags: ['打卡'], sortDate: activity.lastCheckinDate })
+    }
+    allDatedItems(activity.medals || [], (item) => item.awardedAt)
+      .forEach((item) => addTimelineItem(items, { source: 'medal', id: item.id || item.ruleId, stage: '成就', stageClass: 'growth', title: `获得成就 · ${item.medalName || item.name || '成长勋章'}`, description: item.description || '新的成长成就已解锁。', tags: ['成就'], sortDate: item.awardedAt }))
+  }
+
   timelineData.value = items.sort((a, b) => String(b.sortDate || '').localeCompare(String(a.sortDate || '')))
   await nextTick()
+  if (timelinePreviewRef.value) timelinePreviewRef.value.scrollTop = 0
   initScrollAnimation()
 }
 const hasTimelineActivity = computed(() => timelineData.value.some((item) => item.source !== 'account'))
 const timelineNodes = computed(() => {
-  if (!hasTimelineActivity.value) return motivationalTimelineNodes
-  return [...timelineData.value].slice(0, 4).reverse().map((item) => ({
-    year: item.date ? item.date.slice(0, 4) : '最近',
+  if (!timelineData.value.length) {
+    return [{ key: 'empty', date: localToday(), event: '还没有成长节点，今天就从第一条记录开始。', type: '成长', tone: 'growth' }]
+  }
+  return timelineData.value.map((item, index) => ({
+    key: `${item.source}-${item.id || index}-${item.date}`,
+    date: item.date,
     event: item.title,
+    type: item.stage,
+    tone: item.stageClass || 'growth',
   }))
 })
+const timelinePreviewCanLoop = computed(() => timelineNodes.value.length > 4)
+const timelinePreviewItems = computed(() => {
+  const nodes = timelineNodes.value.map((node) => ({ ...node, loopKey: `${node.key}-0`, duplicate: false }))
+  if (!timelinePreviewCanLoop.value) return nodes
+  return [
+    ...nodes,
+    ...timelineNodes.value.map((node) => ({ ...node, loopKey: `${node.key}-1`, duplicate: true })),
+  ]
+})
+
+const runTimelinePreview = (timestamp) => {
+  const viewport = timelinePreviewRef.value
+  if (viewport && timelinePreviewCanLoop.value && !timelinePreviewPaused.value) {
+    const elapsed = timelinePreviewLastFrame ? Math.min(timestamp - timelinePreviewLastFrame, 64) : 0
+    viewport.scrollTop += elapsed * 0.04
+    const loopHeight = viewport.scrollHeight / 2
+    if (loopHeight > 0 && viewport.scrollTop >= loopHeight) viewport.scrollTop -= loopHeight
+  }
+  timelinePreviewLastFrame = timestamp
+  timelinePreviewFrame = window.requestAnimationFrame(runTimelinePreview)
+}
+
+const pauseTimelinePreview = () => { timelinePreviewPaused.value = true }
+const resumeTimelinePreview = () => { timelinePreviewPaused.value = false }
 // 图谱总览数据
 const milestones = [
   { icon: '✒️', year: '2019', title: '初入文海', desc: '开始记录读书笔记', progress: 100, status: '已完成' },
@@ -519,6 +641,7 @@ onMounted(() => {
   window.addEventListener('click', handleClickOutside)
   window.addEventListener('click', handleClickOutsidePopup)
   window.addEventListener('app:stage-change', handleStageChange)
+  timelinePreviewFrame = window.requestAnimationFrame(runTimelinePreview)
   animateNumbers()
   setTimeout(initScrollAnimation, 100)
   if (window.location.hash === '#daily-quote') {
@@ -526,12 +649,8 @@ onMounted(() => {
   }
 
 
-  const stopListen = onThemeChange((theme) => {
+  stopThemeListen = onThemeChange((theme) => {
     handleThemeChange(theme)
-  })
-
-  onUnmounted(() => {
-    stopListen()
   })
 })
 
@@ -544,6 +663,12 @@ onUnmounted(() => {
     window.clearInterval(quoteRotationTimer)
     quoteRotationTimer = null
   }
+  if (timelinePreviewFrame) {
+    window.cancelAnimationFrame(timelinePreviewFrame)
+    timelinePreviewFrame = null
+  }
+  stopThemeListen?.()
+  stopThemeListen = null
   scrollAnimationObserver?.disconnect()
   scrollAnimationObserver = null
 })
@@ -786,12 +911,39 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/80 shadow-xl scroll-animate">
-              <div class="relative pl-8 min-h-[280px]">
-                <div class="absolute left-2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-brand-500 to-accent-500"></div>
-                <div v-for="(node, idx) in timelineNodes" :key="idx" class="absolute flex items-center gap-3" :style="{ top: `${idx * 25}%` }">
-                  <div class="w-3 h-3 bg-brand-500 rounded-full border-2 border-white shadow-[0_0_0_3px_rgba(var(--theme-primary-rgb),0.2)]"></div>
-                  <div class="text-sm font-medium">{{ node.year }} · {{ node.event }}</div>
+            <div class="timeline-preview-shell bg-white/10 backdrop-blur-xl rounded-2xl border border-white/80 shadow-xl scroll-animate">
+              <div class="timeline-preview-heading">
+                <span>我的成长节点</span>
+                <strong>{{ timelineNodes.length }}</strong>
+              </div>
+              <div
+                ref="timelinePreviewRef"
+                class="timeline-preview-viewport"
+                tabindex="0"
+                role="region"
+                aria-label="我的全部成长节点"
+                @mouseenter="pauseTimelinePreview"
+                @mouseleave="resumeTimelinePreview"
+                @focusin="pauseTimelinePreview"
+                @focusout="resumeTimelinePreview"
+              >
+                <div class="timeline-preview-track">
+                  <article
+                    v-for="node in timelinePreviewItems"
+                    :key="node.loopKey"
+                    class="timeline-preview-node"
+                    :class="`timeline-preview-node--${node.tone}`"
+                    :aria-hidden="node.duplicate ? 'true' : undefined"
+                  >
+                    <span class="timeline-preview-dot" aria-hidden="true"></span>
+                    <div class="timeline-preview-copy">
+                      <div class="timeline-preview-meta">
+                        <time :datetime="node.date">{{ node.date }}</time>
+                        <span>{{ node.type }}</span>
+                      </div>
+                      <p :title="node.event">{{ node.event }}</p>
+                    </div>
+                  </article>
                 </div>
               </div>
             </div>
@@ -827,7 +979,7 @@ onUnmounted(() => {
       </section>
 
       <!-- 时光轴区域 - 可点击标题 -->
-      <section v-if="stageVisible([&quot;all&quot;, &quot;high_school&quot;, &quot;university&quot;, &quot;workplace&quot;])" id="timeline" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
+      <section v-if="stageVisible(['all', 'high_school', 'university', 'workplace'])" id="timeline" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
           <div
             class="text-center mb-12 scroll-animate cursor-pointer group"
@@ -874,7 +1026,7 @@ onUnmounted(() => {
       </section>
 
       <!-- 图谱总览区域 - 可点击标题 -->
-      <section v-if="stageVisible([&quot;all&quot;, &quot;university&quot;, &quot;workplace&quot;])" id="milestone" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
+      <section v-if="stageVisible(['all', 'high_school', 'university', 'workplace'])" id="milestone" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
           <div
             class="text-center mb-12 scroll-animate cursor-pointer group"
@@ -930,7 +1082,7 @@ onUnmounted(() => {
       </section>
 
       <!-- 在线考试 -->
-      <section v-if="stageVisible([&quot;all&quot;, &quot;high_school&quot;, &quot;university&quot;])" id="exam" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
+      <section v-if="stageVisible(['all', 'high_school', 'university', 'workplace'])" id="exam" class="py-20" :class="isDark ? 'bg-black' : 'bg-white'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
           <div
             class="text-center mb-12 scroll-animate"
@@ -968,7 +1120,7 @@ onUnmounted(() => {
       </section>
 
       <!-- 云边小札 - 可点击标题 -->
-      <section v-if="stageVisible([&quot;all&quot;, &quot;university&quot;, &quot;workplace&quot;])" id="journal" class="py-20" :class="isDark ? 'bg-black' : 'bg-gray-50'">
+      <section v-if="stageVisible(['all', 'high_school', 'university', 'workplace'])" id="journal" class="py-20" :class="isDark ? 'bg-black' : 'bg-gray-50'">
         <div class="max-w-[1200px] mx-auto px-6 lg:px-8">
           <div
             class="text-center mb-12 scroll-animate cursor-pointer group"
@@ -1139,6 +1291,174 @@ onUnmounted(() => {
 
 .animation-delay-5000 {
   animation-delay: 5s;
+}
+
+.timeline-preview-shell {
+  height: 372px;
+  overflow: hidden;
+  padding: 22px 24px;
+}
+
+.timeline-preview-heading {
+  display: flex;
+  height: 28px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.timeline-preview-heading strong {
+  display: grid;
+  min-width: 28px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid rgb(var(--theme-primary-rgb) / 0.28);
+  border-radius: 6px;
+  background: rgb(var(--theme-primary-rgb) / 0.1);
+  color: var(--theme-primary);
+  font-size: 11px;
+}
+
+.timeline-preview-viewport {
+  height: 288px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: transparent transparent;
+  scrollbar-width: thin;
+}
+
+.timeline-preview-viewport:hover,
+.timeline-preview-viewport:focus-visible {
+  scrollbar-color: rgb(var(--theme-primary-rgb) / 0.55) transparent;
+}
+
+.timeline-preview-viewport:focus-visible {
+  outline: 2px solid rgb(var(--theme-primary-rgb) / 0.45);
+  outline-offset: -2px;
+}
+
+.timeline-preview-viewport::-webkit-scrollbar {
+  width: 6px;
+}
+
+.timeline-preview-viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.timeline-preview-viewport::-webkit-scrollbar-thumb {
+  border-radius: 6px;
+  background: transparent;
+}
+
+.timeline-preview-viewport:hover::-webkit-scrollbar-thumb,
+.timeline-preview-viewport:focus-visible::-webkit-scrollbar-thumb {
+  background: rgb(var(--theme-primary-rgb) / 0.55);
+}
+
+.timeline-preview-track {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline-preview-track::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 7px;
+  width: 1px;
+  background: rgb(148 163 184 / 0.55);
+  content: '';
+}
+
+.timeline-preview-node {
+  position: relative;
+  display: flex;
+  height: 72px;
+  align-items: center;
+  color: inherit;
+}
+
+.timeline-preview-dot {
+  position: absolute;
+  top: 29px;
+  left: -29px;
+  width: 13px;
+  height: 13px;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: var(--theme-primary);
+  box-shadow: 0 0 0 3px rgb(var(--theme-primary-rgb) / 0.2);
+}
+
+.timeline-preview-copy {
+  min-width: 0;
+  width: 100%;
+  padding-right: 10px;
+}
+
+.timeline-preview-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgb(148 163 184);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.timeline-preview-meta time {
+  color: inherit;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.timeline-preview-meta span {
+  overflow: hidden;
+  max-width: 88px;
+  border-radius: 4px;
+  padding: 3px 5px;
+  background: rgb(var(--theme-primary-rgb) / 0.12);
+  color: var(--theme-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-preview-copy p {
+  overflow: hidden;
+  margin-top: 7px;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-preview-node--highschool .timeline-preview-dot { background: #f59e0b; box-shadow: 0 0 0 3px rgb(245 158 11 / 0.2); }
+.timeline-preview-node--highschool .timeline-preview-meta span { background: rgb(245 158 11 / 0.13); color: #d97706; }
+.timeline-preview-node--article .timeline-preview-dot { background: #a855f7; box-shadow: 0 0 0 3px rgb(168 85 247 / 0.2); }
+.timeline-preview-node--article .timeline-preview-meta span { background: rgb(168 85 247 / 0.13); color: #9333ea; }
+.timeline-preview-node--work .timeline-preview-dot { background: #10b981; box-shadow: 0 0 0 3px rgb(16 185 129 / 0.2); }
+.timeline-preview-node--work .timeline-preview-meta span { background: rgb(16 185 129 / 0.13); color: #059669; }
+.timeline-preview-node--study .timeline-preview-dot { background: #06b6d4; box-shadow: 0 0 0 3px rgb(6 182 212 / 0.2); }
+.timeline-preview-node--study .timeline-preview-meta span { background: rgb(6 182 212 / 0.13); color: #0891b2; }
+
+.dark .timeline-preview-dot {
+  border-color: #111827;
+}
+
+@media (max-width: 640px) {
+  .timeline-preview-shell {
+    height: 340px;
+    padding: 18px;
+  }
+
+  .timeline-preview-viewport {
+    height: 256px;
+  }
 }
 
 .scroll-animate {

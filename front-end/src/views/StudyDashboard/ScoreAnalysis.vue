@@ -123,8 +123,8 @@
 </template>
 
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, onMounted, watch, nextTick } from 'vue'
-import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
 import request from '@/utils/request.js'
 
@@ -262,7 +262,7 @@ const addScore = async () => {
       examDate: newScore.value.examDate
     })
     if (res.code === 200) {
-      ElMessage.success('添加成功')
+      messageApi.success('添加成功')
       showAddModal.value = false
       newScore.value = {
         subjectName: '数学',
@@ -274,7 +274,7 @@ const addScore = async () => {
     }
   } catch (error) {
     console.error('添加成绩失败', error)
-    ElMessage.error('添加失败')
+    messageApi.error('添加失败')
   }
 }
 
@@ -283,13 +283,13 @@ const deleteScore = async (id) => {
     try {
       const res = await request.delete(`/score/delete/${id}`)
       if (res.code === 200) {
-        ElMessage.success('删除成功')
+        messageApi.success('删除成功')
         fetchData()
         if (trendChart) fetchTrend()
       }
     } catch (error) {
       console.error('删除成绩失败', error)
-      ElMessage.error('删除失败')
+      messageApi.error('删除失败')
     }
   }
 }

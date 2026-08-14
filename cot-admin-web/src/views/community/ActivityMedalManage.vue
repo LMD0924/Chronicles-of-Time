@@ -1,6 +1,6 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, onMounted, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 const loading = ref(false)
@@ -62,17 +62,17 @@ const openRule = (row) => {
 
 const saveRule = async () => {
   if (!ruleForm.name || !ruleForm.medalType || !ruleForm.thresholdValue) {
-    return ElMessage.warning('请填写规则名称、类型和阈值')
+    return messageApi.warning('请填写规则名称、类型和阈值')
   }
   await request.post('/activity/admin/medal-rules', ruleForm)
-  ElMessage.success('勋章规则已保存')
+  messageApi.success('勋章规则已保存')
   ruleDialog.value = false
   fetchRules()
 }
 
 const switchRule = async (row) => {
   await request.post(`/activity/admin/medal-rules/${row.id}/status`, { enabled: row.enabled })
-  ElMessage.success('状态已更新')
+  messageApi.success('状态已更新')
 }
 
 const formatDuration = (seconds = 0) => {

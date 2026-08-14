@@ -2,8 +2,9 @@
   文件说明：后台题目审核管理页面。
 -->
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, onMounted, reactive, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import { Check, Close, Refresh, Search } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
@@ -96,10 +97,10 @@ const auditQuestion = async (row, auditStatus) => {
       auditStatus,
       auditRemark,
     })
-    ElMessage.success(`已${action}`)
+    messageApi.success(`已${action}`)
     await fetchData()
   } catch (error) {
-    ElMessage.error('审核失败')
+    messageApi.error('审核失败')
   }
 }
 

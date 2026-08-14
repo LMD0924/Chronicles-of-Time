@@ -1,8 +1,8 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowRight, Calendar as CalendarCheck, ChatDotRound, Check, EditPen, MagicStick, Star, Timer, Trophy } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
 import Nav from '@/components/Nav.vue'
 import request from '@/utils/request.js'
 import { getStoredTheme, ThemeType } from '@/utils/theme.js'
@@ -86,7 +86,7 @@ const checkIn = async () => {
     const res = await request.post('/activity/checkin', {})
     summary.value = { ...summary.value, ...(res.data || {}) }
     const count = summary.value.newlyAwarded?.length || 0
-    ElMessage.success(count ? `打卡成功，获得 ${count} 枚新勋章` : '打卡成功')
+    messageApi.success(count ? `打卡成功，获得 ${count} 枚新勋章` : '打卡成功')
   } finally {
     checking.value = false
   }

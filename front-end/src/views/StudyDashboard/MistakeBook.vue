@@ -243,9 +243,9 @@
 </template>
 
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request.js'
 
 const props = defineProps({
@@ -354,14 +354,14 @@ const reviewMistake = async (id) => {
   try {
     const res = await request.put(`/mistake/review/${id}`)
     if (res.code === 200) {
-      ElMessage.success('复习记录已更新')
+      messageApi.success('复习记录已更新')
       fetchMistakes()
     } else {
-      ElMessage.error(res.message || '更新失败')
+      messageApi.error(res.message || '更新失败')
     }
   } catch (error) {
     console.error('复习失败', error)
-    ElMessage.error('更新失败，请稍后重试')
+    messageApi.error('更新失败，请稍后重试')
   }
 }
 
@@ -369,14 +369,14 @@ const markMastered = async (id) => {
   try {
     const res = await request.put(`/mistake/master/${id}`)
     if (res.code === 200) {
-      ElMessage.success('已标记为掌握')
+      messageApi.success('已标记为掌握')
       fetchMistakes()
     } else {
-      ElMessage.error(res.message || '标记失败')
+      messageApi.error(res.message || '标记失败')
     }
   } catch (error) {
     console.error('标记掌握失败', error)
-    ElMessage.error('标记失败，请稍后重试')
+    messageApi.error('标记失败，请稍后重试')
   }
 }
 
@@ -384,14 +384,14 @@ const markUnmastered = async (id) => {
   try {
     const res = await request.put(`/mistake/unmaster/${id}`)
     if (res.code === 200) {
-      ElMessage.success('已取消掌握')
+      messageApi.success('已取消掌握')
       fetchMistakes()
     } else {
-      ElMessage.error(res.message || '取消失败')
+      messageApi.error(res.message || '取消失败')
     }
   } catch (error) {
     console.error('取消掌握失败', error)
-    ElMessage.error('取消失败，请稍后重试')
+    messageApi.error('取消失败，请稍后重试')
   }
 }
 
@@ -403,7 +403,7 @@ const deleteMistake = async (id) => {
 }
 const addMistake = async () => {
   if (!newMistake.value.mistakeName || !newMistake.value.subjectName || !newMistake.value.correctAnswer) {
-    ElMessage.warning('请填写必要信息')
+    messageApi.warning('请填写必要信息')
     return
   }
   try {
@@ -424,11 +424,11 @@ const addMistake = async () => {
         questionOptions: '',
         answerAnalysis: ''
       }
-      ElMessage.success('添加成功')
+      messageApi.success('添加成功')
     }
   } catch (error) {
     console.error('添加失败', error)
-    ElMessage.error('添加失败，请稍后重试')
+    messageApi.error('添加失败，请稍后重试')
   }
 }
 const resetFilters = () => {

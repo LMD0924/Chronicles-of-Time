@@ -2,8 +2,9 @@
   文件说明：拾光记前台应用高中阶段页面组件，承载高中阶段场景的界面展示、交互操作和数据承接。
 -->
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
 import GuidanceEditDialog from './GuidanceEditDialog.vue'
 
@@ -52,7 +53,7 @@ const fetchList = async () => {
 }
 
 const submit = async () => {
-  if (!props.userId) return ElMessage.warning('用户信息未加载')
+  if (!props.userId) return messageApi.warning('用户信息未加载')
   const isCreating = !form.value.id
   saving.value = true
   try {
@@ -63,7 +64,7 @@ const submit = async () => {
     }
     const res = await request.post('/guidance/save', payload)
     if (res.code === 200) {
-      ElMessage.success('保存成功')
+      messageApi.success('保存成功')
       form.value.id = res.data?.id || form.value.id
       await fetchList()
       // 重置表单
@@ -103,7 +104,7 @@ const remove = async (id) => {
   await ElMessageBox.confirm('确认删除该指导记录？', '提示', { type: 'warning' })
   const res = await request.post('/guidance/delete', null, null, { params: { id } })
   if (res.code === 200) {
-    ElMessage.success('删除成功')
+    messageApi.success('删除成功')
     await fetchList()
   }
 }
@@ -111,7 +112,7 @@ const remove = async (id) => {
 const updateStatus = async (row, status) => {
   const res = await request.post('/guidance/status', null, null, { params: { id: row.id, status } })
   if (res.code === 200) {
-    ElMessage.success('状态已更新')
+    messageApi.success('状态已更新')
     await fetchList()
   }
 }

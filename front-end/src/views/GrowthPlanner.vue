@@ -1,9 +1,9 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 defineOptions({ name: 'GrowthPlanner' })
 
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import { ArrowRight, Bell, Calendar, Check, Download, EditPen, Refresh, Share, Trophy } from '@element-plus/icons-vue'
 import Nav from '@/components/Nav.vue'
 import request from '@/utils/request.js'
@@ -187,7 +187,7 @@ const loadData = async () => {
     await loadWeeklyReport()
   } catch (error) {
     console.error('加载成长规划中心失败', error)
-    ElMessage.error('成长规划数据加载失败')
+    messageApi.error('成长规划数据加载失败')
   } finally {
     loading.value = false
     refreshing.value = false
@@ -214,9 +214,9 @@ const saveWeeklyReport = async () => {
       reflection: reportDraft.value.reflection,
       nextWeekFocus: reportDraft.value.nextWeekFocus,
     })
-    ElMessage.success('本周复盘已保存')
+    messageApi.success('本周复盘已保存')
   } catch (error) {
-    ElMessage.error(error.message || '周报保存失败')
+    messageApi.error(error.message || '周报保存失败')
   } finally {
     reportSaving.value = false
   }
@@ -246,12 +246,15 @@ const markNotification = async (item) => {
 }
 const markAllNotifications = async () => { await request.put('/notifications/read-all'); await loadNotifications() }
 const dismissNotification = async (item) => { await request.delete(`/notifications/${item.id}`); await loadNotifications() }
+const handleRealtimeNotification = () => {
+  if (activeView.value === 'notifications') loadNotifications()
+}
 const savePreference = async () => {
   localStorage.setItem('preferred_stage', preferredStage.value)
   try {
     await request.put('/notifications/preference', { ...notificationPreference.value, preferredStage: preferredStage.value })
-    ElMessage.success('成长阶段与提醒偏好已保存')
-  } catch (_) { ElMessage.warning('已保存到本机，后端偏好暂时不可用') }
+    messageApi.success('成长阶段与提醒偏好已保存')
+  } catch (_) { messageApi.warning('已保存到本机，后端偏好暂时不可用') }
 }
 const addPlanItem = async (plan) => {
   if (planAdded.value.includes(plan.key)) return
@@ -259,8 +262,8 @@ const addPlanItem = async (plan) => {
   try {
     await request.post('/workplace/tasks', task)
     planAdded.value.push(plan.key)
-    ElMessage.success('已加入今日行动')
-  } catch (error) { ElMessage.error(error.message || '加入计划失败') }
+    messageApi.success('已加入今日行动')
+  } catch (error) { messageApi.error(error.message || '加入计划失败') }
 }
 const shiftWeek = async (amount) => { weekStart.value = addDays(weekStart.value, amount * 7); await loadWeeklyReport() }
 const shiftMonth = (amount) => { currentMonth.value = new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth() + amount, 1) }
@@ -276,9 +279,9 @@ const dropEvent = async (event, day) => {
     if (source.type === 'task') await request.post('/workplace/tasks', { ...source.item, dueDate: day.key })
     if (source.type === 'goal') await request.post('/workplace/goals', { ...source.item, targetDate: day.key })
     if (source.type === 'interview') await request.post('/workplace/interviews', { ...source.item, interviewDate: day.key })
-    ElMessage.success('日期已更新')
+    messageApi.success('日期已更新')
     await loadData()
-  } catch (error) { ElMessage.error(error.message || '日期更新失败') }
+  } catch (error) { messageApi.error(error.message || '日期更新失败') }
 }
 const downloadBlob = (content, filename, type) => { const url = URL.createObjectURL(new Blob([content], { type })); const link = document.createElement('a'); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url) }
 const exportJson = () => downloadBlob(JSON.stringify({ exportedAt: new Date().toISOString(), summary: summary.value, tasks: tasks.value, goals: goals.value, interviews: interviews.value, mistakes: mistakes.value, scores: scores.value, growthRecords: growthRecords.value, articles: articles.value }, null, 2), `拾光记备份-${dateKey(new Date())}.json`, 'application/json;charset=utf-8')
@@ -288,7 +291,7 @@ const exportExcel = () => {
 }
 const exportPdf = () => {
   const printWindow = window.open('', '_blank', 'width=920,height=720')
-  if (!printWindow) { ElMessage.warning('浏览器阻止了打印窗口，请允许弹窗后重试'); return }
+  if (!printWindow) { messageApi.warning('浏览器阻止了打印窗口，请允许弹窗后重试'); return }
   printWindow.document.write(`<html><head><title>拾光记成长周报</title><style>body{font-family:Arial,"Microsoft Yahei";padding:40px;color:#25162f}h1{margin-bottom:6px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.item{padding:16px;background:#faf5ff;border:1px solid #eadcff;border-radius:8px}small{color:#75677e}</style></head><body><h1>拾光记 · 成长周报</h1><small>${weekLabel.value}</small><div class="grid">${Object.entries(weeklyStats.value).map(([key, value]) => `<div class="item"><strong>${value}</strong><br><small>${key}</small></div>`).join('')}</div><h2>本周复盘</h2><p>${escapeHtml(reportDraft.value.reflection || '还没有填写复盘。')}</p><h2>下周重点</h2><p>${escapeHtml(reportDraft.value.nextWeekFocus || '还没有填写计划。')}</p></body></html>`)
   printWindow.document.close(); printWindow.focus(); printWindow.print()
 }
@@ -322,7 +325,9 @@ onMounted(() => {
   const requestedView = String(route.query.view || route.query.tab || '')
   if (['overview', 'plan', 'calendar', 'notifications', 'tools'].includes(requestedView)) activeView.value = requestedView
   loadData()
+  window.addEventListener('cot:notification', handleRealtimeNotification)
 })
+onUnmounted(() => window.removeEventListener('cot:notification', handleRealtimeNotification))
 </script>
 
 <template>

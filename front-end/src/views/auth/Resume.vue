@@ -4,7 +4,7 @@
 <script setup>
 import { ref, onMounted, computed, nextTick, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
 import { getStoredTheme, onThemeChange, ThemeType } from '@/utils/theme'
 import {message} from "ant-design-vue";

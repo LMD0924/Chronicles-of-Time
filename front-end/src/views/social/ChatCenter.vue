@@ -1,10 +1,11 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { Bell, ChatDotRound, Document, EditPen, FolderOpened, Picture, Plus, Promotion, Refresh, Search, UserFilled } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
 import Nav from '@/components/Nav.vue'
 import request from '@/utils/request.js'
 import { getStoredTheme, ThemeType } from '@/utils/theme.js'
+import { connectRealtime, subscribeRealtime } from '@/utils/realtime.js'
 
 const isDark = ref(getStoredTheme() === ThemeType.DARK)
 const conversations = ref([])
@@ -22,9 +23,7 @@ const groupForm = ref({ name: '', announcement: '', searchable: true })
 const loadingMessages = ref(false)
 const messagesLoaded = ref(false)
 const refreshingMessages = ref(false)
-const chatSocket = ref(null)
 const socketStatus = ref('connecting')
-const reconnectTimer = ref(null)
 const messageListRef = ref(null)
 const fileInputRef = ref(null)
 const remarkEditorVisible = ref(false)
@@ -37,8 +36,8 @@ const groupMemberKeyword = ref('')
 const groupMemberResults = ref([])
 const emojiPickerVisible = ref(false)
 const emojis = ['😀', '😁', '😂', '😍', '🤔', '👍', '👏', '🎉', '💪', '🔥', '📚', '✨']
-let socketStopped = false
-let reconnectAttempt = 0
+let unsubscribeChatMessage = null
+let unsubscribeSocketStatus = null
 
 const menuItems = [
   { key: 'chat', label: '在线聊天', icon: '💬', path: '/Chat' },
@@ -83,14 +82,6 @@ const hasCollectionChanges = (nextItems, currentItems, signature) => {
   return nextItems.some((item, index) => signature(item) !== signature(currentItems[index] || {}))
 }
 
-const getAccessToken = () => sessionStorage.getItem('token') || localStorage.getItem('token')
-
-const websocketUrl = () => {
-  const apiOrigin = import.meta.env.VITE_GATEWAY_ORIGIN || 'http://localhost:8500'
-  const wsOrigin = apiOrigin.replace(/^http/, 'ws').replace(/\/$/, '')
-  return `${wsOrigin}/api/ws/chat?access_token=${encodeURIComponent(getAccessToken())}`
-}
-
 const isNearBottom = () => !messageListRef.value
   || messageListRef.value.scrollHeight - messageListRef.value.scrollTop - messageListRef.value.clientHeight < 80
 
@@ -126,51 +117,6 @@ const appendRealtimeMessage = async (message) => {
   }
 }
 
-const handleSocketMessage = (event) => {
-  try {
-    const payload = JSON.parse(event.data)
-    if (payload.type === 'CHAT_MESSAGE') {
-      appendRealtimeMessage(payload.data)
-    }
-  } catch {
-    // Ignore malformed websocket payloads and keep REST refresh available.
-  }
-}
-
-const scheduleReconnect = () => {
-  if (socketStopped || reconnectTimer.value) return
-  socketStatus.value = 'reconnecting'
-  const delay = Math.min(10000, 1000 * 2 ** reconnectAttempt)
-  reconnectAttempt = Math.min(reconnectAttempt + 1, 4)
-  reconnectTimer.value = window.setTimeout(() => {
-    reconnectTimer.value = null
-    connectChatSocket()
-  }, delay)
-}
-
-const connectChatSocket = () => {
-  const token = getAccessToken()
-  if (!token || socketStopped) {
-    socketStatus.value = 'disconnected'
-    return
-  }
-
-  socketStatus.value = reconnectAttempt ? 'reconnecting' : 'connecting'
-  const socket = new WebSocket(websocketUrl())
-  chatSocket.value = socket
-  socket.onopen = () => {
-    if (chatSocket.value !== socket) return
-    reconnectAttempt = 0
-    socketStatus.value = 'connected'
-  }
-  socket.onmessage = handleSocketMessage
-  socket.onerror = () => socket.close()
-  socket.onclose = () => {
-    if (chatSocket.value !== socket) return
-    chatSocket.value = null
-    if (!socketStopped) scheduleReconnect()
-  }
-}
 const fetchAll = async () => {
   await Promise.all([fetchConversations(), fetchFriends(), fetchGroups()])
 }
@@ -204,7 +150,7 @@ const searchUsers = async () => {
 
 const addFriend = async (user) => {
   await request.post(`/chat/friends/${user.id}`, {})
-  ElMessage.success('好友已添加')
+  messageApi.success('好友已添加')
   userResults.value = []
   userKeyword.value = ''
   await fetchAll()
@@ -221,16 +167,16 @@ const searchGroups = async () => {
 
 const joinGroup = async (group) => {
   await request.post(`/chat/groups/join/${group.groupNo}`, {})
-  ElMessage.success('已加入群聊')
+  messageApi.success('已加入群聊')
   groupResults.value = []
   groupKeyword.value = ''
   await fetchAll()
 }
 
 const createGroup = async () => {
-  if (!groupForm.value.name.trim()) return ElMessage.warning('请输入群名称')
+  if (!groupForm.value.name.trim()) return messageApi.warning('请输入群名称')
   const res = await request.post('/chat/groups', groupForm.value)
-  ElMessage.success(`群聊已创建，群号 ${res.data?.groupNo || ''}`)
+  messageApi.success(`群聊已创建，群号 ${res.data?.groupNo || ''}`)
   createGroupVisible.value = false
   groupForm.value = { name: '', announcement: '', searchable: true }
   await fetchAll()
@@ -337,7 +283,7 @@ const sendChatPayload = async ({ contentType, content }, conversation = active.v
 }
 
 const sendMessage = async () => {
-  if (!active.value) return ElMessage.warning('请先选择会话')
+  if (!active.value) return messageApi.warning('请先选择会话')
   const content = messageText.value.trim()
   if (!content) return
   await sendChatPayload({ contentType: 'TEXT', content })
@@ -408,7 +354,7 @@ const saveRemark = async () => {
     : item)
   active.value = { ...active.value, title, remark: updated.remark, level: updated.level, levelName: updated.levelName, avatar: updated.avatar }
   remarkEditorVisible.value = false
-  ElMessage.success('备注已更新')
+  messageApi.success('备注已更新')
 }
 
 const fetchGroupMembers = async () => {
@@ -461,38 +407,38 @@ const inviteGroupMember = async (user) => {
   await fetchGroupMembers()
   groupMemberResults.value = []
   groupMemberKeyword.value = ''
-  ElMessage.success('已邀请成员入群')
+  messageApi.success('已邀请成员入群')
 }
 
 const removeGroupMember = async (member) => {
   await request.delete(`/chat/groups/${active.value.targetId}/members/${member.userId}`)
   await fetchGroupMembers()
   await fetchAll()
-  ElMessage.success('成员已移出群聊')
+  messageApi.success('成员已移出群聊')
 }
 
 const muteGroupMember = async (member, minutes) => {
   await request.put(`/chat/groups/${active.value.targetId}/members/${member.userId}/mute`, { muteMinutes: minutes })
   await fetchGroupMembers()
-  ElMessage.success(minutes ? `已禁言 ${minutes} 分钟` : '已解除禁言')
+  messageApi.success(minutes ? `已禁言 ${minutes} 分钟` : '已解除禁言')
 }
 
 const toggleGroupMuteAll = async () => {
   const res = await request.put(`/chat/groups/${active.value.targetId}/mute-all`, { enabled: !active.value.mutedAll })
   await syncGroupState(res.data)
-  ElMessage.success(res.data.mutedAll ? '已开启全员禁言' : '已解除全员禁言')
+  messageApi.success(res.data.mutedAll ? '已开启全员禁言' : '已解除全员禁言')
 }
 
 const pinGroupMessage = async (messageId) => {
   const res = await request.put(`/chat/groups/${active.value.targetId}/pinned-message`, { messageId })
   await syncGroupState(res.data)
-  ElMessage.success('消息已置顶')
+  messageApi.success('消息已置顶')
 }
 
 const unpinGroupMessage = async () => {
   const res = await request.put(`/chat/groups/${active.value.targetId}/pinned-message`, { messageId: null })
   await syncGroupState(res.data)
-  ElMessage.success('已取消置顶')
+  messageApi.success('已取消置顶')
 }
 
 const isMemberMuted = member => member?.mutedUntil && new Date(member.mutedUntil) > new Date()
@@ -501,7 +447,7 @@ const canManageMember = member => isGroupOwner.value || (isGroupManager.value &&
 const updateGroupMemberRole = async (member, role) => {
   await request.put(`/chat/groups/${active.value.targetId}/members/${member.userId}/role`, { role })
   await fetchGroupMembers()
-  ElMessage.success(role === 'ADMIN' ? '已设为管理员' : '已取消管理员')
+  messageApi.success(role === 'ADMIN' ? '已设为管理员' : '已取消管理员')
 }
 
 const sendEmoji = async (emoji) => {
@@ -534,19 +480,17 @@ const sameConversation = (item) => active.value
 const formatTime = (value) => value ? value.replace('T', ' ').slice(5, 16) : ''
 
 onMounted(() => {
-  socketStopped = false
   fetchAll()
-  connectChatSocket()
+  unsubscribeChatMessage = subscribeRealtime('CHAT_MESSAGE', appendRealtimeMessage)
+  unsubscribeSocketStatus = subscribeRealtime('CONNECTION_STATUS', (status) => {
+    socketStatus.value = status
+  })
+  connectRealtime()
 })
 
 onUnmounted(() => {
-  socketStopped = true
-  if (reconnectTimer.value) {
-    clearTimeout(reconnectTimer.value)
-  }
-  reconnectTimer.value = null
-  chatSocket.value?.close()
-  chatSocket.value = null
+  unsubscribeChatMessage?.()
+  unsubscribeSocketStatus?.()
 })
 </script>
 

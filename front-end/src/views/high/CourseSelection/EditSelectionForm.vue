@@ -2,8 +2,8 @@
   文件说明：拾光记前台应用高中阶段页面组件，承载高中阶段场景的界面展示、交互操作和数据承接。
 -->
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 const props = defineProps({
@@ -43,11 +43,11 @@ const submit = async () => {
   try {
     const res = await request.put('/selection/modify', form.value)
     if (res.code === 200) {
-      ElMessage.success('修改成功')
+      messageApi.success('修改成功')
       emit('success')
     }
   } catch (e) {
-    ElMessage.error('修改失败')
+    messageApi.error('修改失败')
   } finally {
     saving.value = false
   }

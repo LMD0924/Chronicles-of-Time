@@ -236,7 +236,7 @@ import { useRouter } from 'vue-router'
 import ThemeToggleButton from '@/components/ThemeToggleButton.vue'
 import { getStoredTheme, ThemeType, onThemeChange } from "@/utils/theme.js"
 import request from "@/utils/request.js"
-import { message } from "ant-design-vue"
+import messageApi from '@/utils/messageApi'
 
 const router = useRouter()
 const isDark = ref(getStoredTheme() === ThemeType.DARK)
@@ -454,15 +454,15 @@ const getUserInfoData = async () => {
 const handleSubmit = async () => {
   // 验证
   if (!formData.value.university) {
-    message.warning('请输入大学名称')
+    messageApi.warning('请输入大学名称')
     return
   }
   if (!formData.value.major) {
-    message.warning('请输入专业名称')
+    messageApi.warning('请输入专业名称')
     return
   }
   if (!formData.value.choose) {
-    message.warning('请选择发展规划')
+    messageApi.warning('请选择发展规划')
     return
   }
 
@@ -487,15 +487,15 @@ const handleSubmit = async () => {
     }
 
     if (res && res.data && res.data.code === 200) {
-      message.success(res.data.message || '保存成功')
+      messageApi.success(res.data.message || '保存成功')
       // 刷新数据
       await getUserInfoData()
     } else {
-      message.error(res?.data?.message || '保存失败')
+      messageApi.error(res?.data?.message || '保存失败')
     }
   } catch (error) {
     console.error('提交失败', error)
-    message.error('提交失败，请稍后重试')
+    messageApi.error('提交失败，请稍后重试')
   } finally {
     loading.value = false
   }

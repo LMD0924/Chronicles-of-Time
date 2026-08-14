@@ -1,4 +1,4 @@
-﻿<!--
+<!--
   文件说明：拾光记前台应用高中阶段页面组件，承载高中阶段场景的界面展示、交互操作和数据承接。
 -->
 <template>
@@ -428,8 +428,9 @@
 </template>
 
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, computed, onMounted, watch, inject } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
 import AiInsightPanel from '@/views/high/components/AiInsightPanel.vue'
 
@@ -530,14 +531,14 @@ const submitPlan = async () => {
     if (planModalType.value === 'add') {
       const res = await request.post('/volunteer/plan/save', planForm.value)
       if (res.code === 200) {
-        ElMessage.success('创建成功')
+        messageApi.success('创建成功')
         await getVolunteerPlans()
         showPlanModal.value = false
       }
     } else {
       const res = await request.put('/volunteer/plan/update', planForm.value)
       if (res.code === 200) {
-        ElMessage.success('更新成功')
+        messageApi.success('更新成功')
         await getVolunteerPlans()
         showPlanModal.value = false
       }
@@ -579,7 +580,7 @@ const confirmDelete = async () => {
     if (target.type === 'plan') {
       const res = await request.delete(`/volunteer/plan/delete/${target.id}`)
       if (res.code === 200) {
-        ElMessage.success('删除成功')
+        messageApi.success('删除成功')
         await getVolunteerPlans()
         if (selectedPlan.value?.id === target.id) {
           selectedPlan.value = null
@@ -590,7 +591,7 @@ const confirmDelete = async () => {
     } else if (target.type === 'detail') {
       const res = await request.delete(`/volunteer/detail/delete/${target.id}`)
       if (res.code === 200) {
-        ElMessage.success('删除成功')
+        messageApi.success('删除成功')
         await selectPlan(selectedPlan.value)
         closeDeleteConfirm()
       }
@@ -620,14 +621,14 @@ const submitDetail = async () => {
       detailForm.value.volunteerId = selectedPlan.value.id
       const res = await request.post('/volunteer/detail/add', detailForm.value)
       if (res.code === 200) {
-        ElMessage.success('添加成功')
+        messageApi.success('添加成功')
         await selectPlan(selectedPlan.value)
         showDetailModal.value = false
       }
     } else {
       const res = await request.put('/volunteer/detail/update', { ...detailForm.value, id: editingDetailId.value })
       if (res.code === 200) {
-        ElMessage.success('更新成功')
+        messageApi.success('更新成功')
         await selectPlan(selectedPlan.value)
         showDetailModal.value = false
       }
@@ -651,7 +652,7 @@ const batchAddDetails = async () => {
   try {
     const res = await request.post('/volunteer/detail/batchAdd', details)
     if (res.code === 200) {
-      ElMessage.success('批量添加成功')
+      messageApi.success('批量添加成功')
       await selectPlan(selectedPlan.value)
       showBatchModal.value = false
     }

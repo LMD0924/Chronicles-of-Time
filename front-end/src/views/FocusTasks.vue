@@ -1,8 +1,9 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Bell, Calendar, Check, EditPen, Plus, Search, Setting, Delete } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import Nav from '@/components/Nav.vue'
 import request from '@/utils/request'
 import { useTheme } from '@/composables/useTheme'
@@ -89,24 +90,24 @@ const openCreate = (quadrant) => { editingTask.value = null; form.value = emptyT
 const editTask = (task) => { editingTask.value = task; form.value = { ...emptyTask(task.quadrant), ...task, reminderAt: task.reminderAt || '' }; showForm.value = true }
 const closeForm = () => { showForm.value = false; editingTask.value = null }
 const saveTask = async () => {
-  if (!form.value.taskName.trim()) return ElMessage.warning('请填写任务名称')
+  if (!form.value.taskName.trim()) return messageApi.warning('请填写任务名称')
   saving.value = true
   try {
     await request.post('/workplace/tasks', { ...form.value, taskName: form.value.taskName.trim(), startDate: form.value.startDate || null, dueDate: form.value.dueDate || null, reminderEnabled: form.value.reminderEnabled ? 1 : 0, reminderAt: form.value.reminderEnabled ? (form.value.reminderAt || null) : null, tags: form.value.tags?.trim() || null, notes: form.value.notes?.trim() || null })
-    ElMessage.success(editingTask.value ? '任务已更新' : '任务已创建'); closeForm(); await loadData()
-  } catch (taskError) { ElMessage.error(taskError?.message || '任务保存失败') } finally { saving.value = false }
+    messageApi.success(editingTask.value ? '任务已更新' : '任务已创建'); closeForm(); await loadData()
+  } catch (taskError) { messageApi.error(taskError?.message || '任务保存失败') } finally { saving.value = false }
 }
-const saveStatus = async (task, status) => { try { await request.post('/workplace/tasks', { ...task, status }); await loadData(); ElMessage.success(status === 'DONE' ? '任务已完成' : '任务已恢复') } catch (taskError) { ElMessage.error(taskError?.message || '任务状态更新失败') } }
+const saveStatus = async (task, status) => { try { await request.post('/workplace/tasks', { ...task, status }); await loadData(); messageApi.success(status === 'DONE' ? '任务已完成' : '任务已恢复') } catch (taskError) { messageApi.error(taskError?.message || '任务状态更新失败') } }
 const deleteTask = async (task) => {
-  try { await ElMessageBox.confirm('确认删除任务“' + (task.taskName || '未命名任务') + '”？', '删除任务', { type: 'warning' }); await request.delete('/workplace/tasks/' + task.id); if (editingTask.value?.id === task.id) closeForm(); await loadData(); ElMessage.success('任务已删除') }
-  catch (taskError) { if (taskError !== 'cancel' && taskError !== 'close') ElMessage.error(taskError?.message || '删除失败') }
+  try { await ElMessageBox.confirm('确认删除任务“' + (task.taskName || '未命名任务') + '”？', '删除任务', { type: 'warning' }); await request.delete('/workplace/tasks/' + task.id); if (editingTask.value?.id === task.id) closeForm(); await loadData(); messageApi.success('任务已删除') }
+  catch (taskError) { if (taskError !== 'cancel' && taskError !== 'close') messageApi.error(taskError?.message || '删除失败') }
 }
 const startDrag = (event, task) => { draggedId.value = task.id; event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', String(task.id)) }
-const dropToQuadrant = async (event, quadrant) => { event.preventDefault(); const id = draggedId.value || event.dataTransfer.getData('text/plain'); const task = tasks.value.find((item) => String(item.id) === String(id)); draggedId.value = null; if (!task || task.quadrant === quadrant) return; try { await request.post('/workplace/tasks', { ...task, quadrant }); await loadData(); ElMessage.success('已移动到' + quadrantLabel(quadrant)) } catch (taskError) { ElMessage.error(taskError?.message || '移动失败') } }
+const dropToQuadrant = async (event, quadrant) => { event.preventDefault(); const id = draggedId.value || event.dataTransfer.getData('text/plain'); const task = tasks.value.find((item) => String(item.id) === String(id)); draggedId.value = null; if (!task || task.quadrant === quadrant) return; try { await request.post('/workplace/tasks', { ...task, quadrant }); await loadData(); messageApi.success('已移动到' + quadrantLabel(quadrant)) } catch (taskError) { messageApi.error(taskError?.message || '移动失败') } }
 const goView = (view) => { activeView.value = view; statusFilter.value = view === 'completed' ? 'DONE' : view === 'today' ? 'ACTIVE' : statusFilter.value; router.replace({ path: '/TaskMatrix', query: { view } }) }
-const savePreference = async () => { try { const response = await request.put('/notifications/preference', notificationPreference.value); notificationPreference.value = { ...notificationPreference.value, ...(response.data || {}) }; ElMessage.success('提醒偏好已保存') } catch (preferenceError) { ElMessage.error(preferenceError?.message || '提醒偏好保存失败') } }
-const requestBrowserPermission = async () => { if (!('Notification' in window)) return ElMessage.warning('当前浏览器不支持系统通知'); const permission = await Notification.requestPermission(); if (permission === 'granted') { notificationPreference.value.browserNotificationsEnabled = 1; await savePreference(); new Notification('拾光记提醒已开启', { body: '重要任务会在提醒时间通知你。' }) } else ElMessage.info('系统通知权限未开启') }
-const sendTestNotification = () => { if (!('Notification' in window) || Notification.permission !== 'granted') return ElMessage.warning('请先申请系统通知权限'); new Notification('拾光记测试通知', { body: '提醒通道工作正常。' }) }
+const savePreference = async () => { try { const response = await request.put('/notifications/preference', notificationPreference.value); notificationPreference.value = { ...notificationPreference.value, ...(response.data || {}) }; messageApi.success('提醒偏好已保存') } catch (preferenceError) { messageApi.error(preferenceError?.message || '提醒偏好保存失败') } }
+const requestBrowserPermission = async () => { if (!('Notification' in window)) return messageApi.warning('当前浏览器不支持系统通知'); const permission = await Notification.requestPermission(); if (permission === 'granted') { notificationPreference.value.browserNotificationsEnabled = 1; await savePreference(); new Notification('拾光记提醒已开启', { body: '重要任务会在提醒时间通知你。' }) } else messageApi.info('系统通知权限未开启') }
+const sendTestNotification = () => { if (!('Notification' in window) || Notification.permission !== 'granted') return messageApi.warning('请先申请系统通知权限'); new Notification('拾光记测试通知', { body: '提醒通道工作正常。' }) }
 const goalName = (id) => goals.value.find((item) => String(item.id) === String(id))?.goalName || '未关联目标'
 onMounted(() => { const view = String(route.query.view || 'matrix'); activeView.value = ['matrix', 'today', 'completed', 'report', 'settings'].includes(view) ? view : 'matrix'; statusFilter.value = view === 'completed' ? 'DONE' : 'ACTIVE'; loadData() })
 </script>

@@ -1,8 +1,8 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowRight, Calendar as CalendarCheck, Check, EditPen, MagicStick, Refresh, Star, Trophy } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
 import Nav from '@/components/Nav.vue'
 import request from '@/utils/request.js'
 import { getStoredTheme, ThemeType } from '@/utils/theme.js'
@@ -156,27 +156,27 @@ const checkIn = async () => {
   try {
     const response = await request.post('/activity/checkin', {})
     summary.value = { ...summary.value, ...(response.data || {}) }
-    ElMessage.success('今天的成长足迹已留下')
+    messageApi.success('今天的成长足迹已留下')
   } catch (checkinError) {
-    ElMessage.error(checkinError.message || '打卡失败，请稍后重试')
+    messageApi.error(checkinError.message || '打卡失败，请稍后重试')
   }
 }
 const completeTask = async (item) => {
   try {
     await request.post('/workplace/tasks', { ...item, status: 'DONE' })
-    ElMessage.success('任务已完成')
+    messageApi.success('任务已完成')
     await loadData()
   } catch (taskError) {
-    ElMessage.error(taskError.message || '任务更新失败')
+    messageApi.error(taskError.message || '任务更新失败')
   }
 }
 const reviewMistake = async (item) => {
   try {
     await request.put('/mistake/review/' + item.id)
-    ElMessage.success('已记录本次复习')
+    messageApi.success('已记录本次复习')
     await loadData()
   } catch (reviewError) {
-    ElMessage.error(reviewError.message || '复习记录失败')
+    messageApi.error(reviewError.message || '复习记录失败')
   }
 }
 const go = (path) => { if (path) router.push(path) }

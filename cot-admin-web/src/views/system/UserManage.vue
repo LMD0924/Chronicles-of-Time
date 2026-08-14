@@ -1,6 +1,7 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, onMounted, reactive, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import { Delete, Edit, Key, Plus, Refresh, Search } from '@element-plus/icons-vue'
 import { adminUserApi } from '@/api/adminUsers'
 
@@ -166,10 +167,10 @@ const submit = async () => {
   }
   if (dialogMode.value === 'create') {
     await adminUserApi.create(payload)
-    ElMessage.success('用户已创建')
+    messageApi.success('用户已创建')
   } else {
     await adminUserApi.update(form.id, payload)
-    ElMessage.success('用户已更新')
+    messageApi.success('用户已更新')
   }
   dialogVisible.value = false
   fetchData()
@@ -178,7 +179,7 @@ const submit = async () => {
 const toggleStatus = async (row) => {
   const nextStatus = row.status === 1 ? 0 : 1
   await adminUserApi.updateStatus(row.id, nextStatus)
-  ElMessage.success(nextStatus === 1 ? '用户已启用' : '用户已禁用')
+  messageApi.success(nextStatus === 1 ? '用户已启用' : '用户已禁用')
   fetchData()
 }
 
@@ -188,16 +189,16 @@ const openResetPassword = (row) => {
 }
 
 const submitPassword = async () => {
-  if (!passwordForm.password) return ElMessage.warning('请输入新密码')
+  if (!passwordForm.password) return messageApi.warning('请输入新密码')
   await adminUserApi.resetPassword(passwordForm.id, passwordForm.password)
-  ElMessage.success('密码已重置')
+  messageApi.success('密码已重置')
   passwordDialog.value = false
 }
 
 const remove = async (row) => {
   await ElMessageBox.confirm(`确认删除用户 ${row.username}？`, '删除确认', { type: 'warning' })
   await adminUserApi.remove(row.id)
-  ElMessage.success('用户已删除')
+  messageApi.success('用户已删除')
   fetchData()
 }
 

@@ -6,8 +6,8 @@ import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import request from '@/utils/request'
-import { message } from 'ant-design-vue'
-import Nav from '@/components/Nav.vue';
+import messageApi from '@/utils/messageApi'
+import Nav from '@/components/Nav.vue'
 
 const router = useRouter()
 const isDark = ref(false)
@@ -170,7 +170,7 @@ const loadData = async () => {
     ])
   } catch (error) {
     console.error('加载数据失败', error)
-    message.error('加载知识图谱失败')
+    messageApi.error('加载知识图谱失败')
   } finally {
     loading.value = false
   }

@@ -2,9 +2,9 @@
   文件说明：拾光记后台管理系统拾光记项目页面组件，承载拾光记项目场景的界面展示、交互操作和数据承接。
 -->
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import { Lock, User } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 
@@ -25,7 +25,7 @@ const submit = async () => {
   loading.value = true
   try {
     await userStore.login(form)
-    ElMessage.success('登录成功')
+    messageApi.success('登录成功')
     router.push(route.query.redirect ? decodeURIComponent(route.query.redirect) : '/dashboard')
   } catch {
     // 请求拦截器已经展示错误信息，这里阻止事件处理器产生未捕获异常。

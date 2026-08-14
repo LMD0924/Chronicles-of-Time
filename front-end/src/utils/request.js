@@ -1,9 +1,10 @@
+import messageApi from '@/utils/messageApi'
 /**
  * 文件说明：拾光记前台应用通用工具脚本模块，封装通用工具相关的配置、状态、路由或工具逻辑。
  */
 import axios from 'axios';
 import JSONbig from 'json-bigint';  // 🔥 新增：处理超大数字
-import { ElMessage } from "element-plus";
+
 import router from '@/router';
 
 // Token 工具函数
@@ -73,7 +74,7 @@ const processQueue = (error, token = null) => {
 // 统一登出
 const handleUnauthorized = () => {
   clearToken()
-  ElMessage.warning('登录已过期，请重新登录')
+  messageApi.warning('登录已过期，请重新登录')
   router.push('/login')
 }
 
@@ -141,7 +142,7 @@ service.interceptors.request.use(
     return config
   },
   (error) => {
-    ElMessage.error('请求异常')
+    messageApi.error('请求异常')
     return Promise.reject(error)
   }
 )
@@ -197,7 +198,7 @@ service.interceptors.response.use(
       }
 
       if (!silentError) {
-        ElMessage.error(res.msg || res.message || '请求失败')
+        messageApi.error(res.msg || res.message || '请求失败')
       }
       return Promise.reject(res)
     }
@@ -208,7 +209,7 @@ service.interceptors.response.use(
     if (error.response?.status === 401) {
       if (!silentError) handleUnauthorized()
     } else if (!silentError) {
-      ElMessage.error('网络或服务器异常')
+      messageApi.error('网络或服务器异常')
     }
     return Promise.reject(error)
   }

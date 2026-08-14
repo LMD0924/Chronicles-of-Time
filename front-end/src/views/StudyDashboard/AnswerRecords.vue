@@ -215,8 +215,8 @@
 </template>
 
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request.js'
 
 const props = defineProps({
@@ -333,7 +333,7 @@ const fetchRecords = async () => {
     }
   } catch (error) {
     console.error('获取答题记录失败', error)
-    ElMessage.error('加载失败，请检查网络')
+    messageApi.error('加载失败，请检查网络')
   } finally {
     loading.value = false
   }

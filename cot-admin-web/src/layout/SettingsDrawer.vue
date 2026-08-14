@@ -2,8 +2,8 @@
   文件说明：拾光记后台管理系统后台框架布局页面组件，承载后台框架布局场景的界面展示、交互操作和数据承接。
 -->
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, ref } from 'vue'
-import { ElMessage } from 'element-plus'
 import { useAppStore } from '@/stores/app'
 
 const visible = defineModel({ type: Boolean, default: false })
@@ -14,11 +14,11 @@ const customColor = ref(settings.value.primaryColor)
 
 const applyCustomColor = () => {
   if (!/^#[0-9a-fA-F]{6}$/.test(customColor.value)) {
-    ElMessage.warning('请输入正确的 HEX 颜色值，例如 #2f9e8f')
+    messageApi.warning('请输入正确的 HEX 颜色值，例如 #2f9e8f')
     return
   }
   appStore.setPrimaryColor(customColor.value)
-  ElMessage.success('自定义换肤已应用')
+  messageApi.success('自定义换肤已应用')
 }
 </script>
 

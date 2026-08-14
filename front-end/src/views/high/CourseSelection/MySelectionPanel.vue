@@ -2,8 +2,9 @@
   文件说明：拾光记前台应用高中阶段页面组件，承载高中阶段场景的界面展示、交互操作和数据承接。
 -->
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
 
 const props = defineProps({
@@ -29,7 +30,7 @@ const fetchSelections = async () => {
       selections.value = res.data || []
     }
   } catch (error) {
-    ElMessage.error('获取选课记录失败')
+    messageApi.error('获取选课记录失败')
   } finally {
     loading.value = false
   }
@@ -45,12 +46,12 @@ const confirmSelection = async (id) => {
     try {
       const res = await request.put(`/selection/confirm/${id}`)
       if (res.code === 200) {
-        ElMessage.success('确认成功')
+        messageApi.success('确认成功')
         fetchSelections()
         emit('refresh')
       }
     } catch (error) {
-      ElMessage.error('确认失败')
+      messageApi.error('确认失败')
     }
   })
 }
@@ -65,12 +66,12 @@ const cancelSelection = async (id) => {
     try {
       const res = await request.delete(`/selection/cancel/${id}`, { reason: value })
       if (res.code === 200) {
-        ElMessage.success('退选成功')
+        messageApi.success('退选成功')
         fetchSelections()
         emit('refresh')
       }
     } catch (error) {
-      ElMessage.error('退选失败')
+      messageApi.error('退选失败')
     }
   })
 }
@@ -83,11 +84,11 @@ const updatePublicStatus = async (item) => {
     })
     if (res.code !== 200) {
       item.isPublic = !item.isPublic
-      ElMessage.error('更新失败')
+      messageApi.error('更新失败')
     }
   } catch (error) {
     item.isPublic = !item.isPublic
-    ElMessage.error('更新失败')
+    messageApi.error('更新失败')
   }
 }
 

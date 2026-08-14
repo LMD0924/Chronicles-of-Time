@@ -249,13 +249,37 @@ public class ChatController {
     }
 
     @GetMapping("/admin/groups")
-    public RestBean<List<GroupVO>> adminGroups(@RequestParam(required = false) String keyword) {
+    public RestBean<List<GroupVO>> adminGroups(@RequestParam(required = false) String keyword,
+                                                HttpServletRequest request) {
+        if (!isAdmin(request)) {
+            return RestBean.fail(403, "需要管理员权限");
+        }
         return RestBean.success(chatService.adminGroups(keyword));
     }
 
     @GetMapping("/admin/friends")
-    public RestBean<List<FriendVO>> adminFriends(@RequestParam(required = false) String keyword) {
+    public RestBean<List<FriendVO>> adminFriends(@RequestParam(required = false) String keyword,
+                                                 HttpServletRequest request) {
+        if (!isAdmin(request)) {
+            return RestBean.fail(403, "需要管理员权限");
+        }
         return RestBean.success(chatService.adminFriendships(keyword));
+    }
+
+    private boolean isAdmin(HttpServletRequest request) {
+        String roles = String.join(",",
+                valueOrEmpty(request.getHeader("X-User-Role")),
+                valueOrEmpty(request.getHeader("X-User-Roles")));
+        for (String role : roles.split("[,\\s]+")) {
+            if ("ADMIN".equalsIgnoreCase(role) || "SUPER_ADMIN".equalsIgnoreCase(role)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String valueOrEmpty(String value) {
+        return value == null ? "" : value;
     }
 
     private Long currentUserId(HttpServletRequest request) {

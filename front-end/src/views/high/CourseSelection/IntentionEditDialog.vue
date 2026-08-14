@@ -1,6 +1,6 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 const props = defineProps({
@@ -61,11 +61,11 @@ const closeDialog = () => {
 
 const submit = async () => {
   if (!props.userId) {
-    ElMessage.warning('用户信息未加载')
+    messageApi.warning('用户信息未加载')
     return
   }
   if (!form.value.secondSubjectIntention1 || !form.value.secondSubjectIntention2) {
-    ElMessage.warning('请至少填写两门再选科目')
+    messageApi.warning('请至少填写两门再选科目')
     return
   }
 
@@ -78,7 +78,7 @@ const submit = async () => {
     }
     const res = await request.post('/intention/save', payload)
     if (res.code === 200) {
-      ElMessage.success('保存成功')
+      messageApi.success('保存成功')
       emit('saved', res.data)
       closeDialog()
     }

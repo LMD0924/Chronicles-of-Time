@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="volunteer-panel space-y-6">
     <section class="panel-shell panel-shell-hero" :class="isDark ? 'panel-shell-dark' : 'panel-shell-light'">
       <div class="panel-head">
@@ -229,8 +229,8 @@
 </template>
 
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, computed, inject, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 import AiInsightPanel from '@/views/high/components/AiInsightPanel.vue'
 
@@ -353,7 +353,7 @@ const toggleSubject = (subject) => {
 
 const getRecommendations = async () => {
   if (!recommendParams.value.score) {
-    ElMessage.warning('请先填写高考分数')
+    messageApi.warning('请先填写高考分数')
     return
   }
   loading.value = true
@@ -368,7 +368,7 @@ const getRecommendations = async () => {
     const res = await request.post('/volunteer/recommend/universities', recommendParams.value.subjects, queryParams)
     if (res.code === 200) {
       recommendations.value = res.data || []
-      if (recommendations.value.length === 0) ElMessage.warning('未找到匹配的推荐结果')
+      if (recommendations.value.length === 0) messageApi.warning('未找到匹配的推荐结果')
     }
   } catch (error) {
     console.error('获取推荐失败', error)
@@ -379,14 +379,14 @@ const getRecommendations = async () => {
 
 const getRecommendByMajor = async () => {
   if (!recommendByMajorParams.value.majorCode || !recommendByMajorParams.value.score) {
-    ElMessage.warning('请先填写专业代码和分数')
+    messageApi.warning('请先填写专业代码和分数')
     return
   }
   try {
     const res = await request.get('/volunteer/recommend/byMajor', recommendByMajorParams.value)
     if (res.code === 200) {
       recommendByMajorResults.value = res.data || []
-      if (recommendByMajorResults.value.length === 0) ElMessage.warning('未找到相关专业推荐')
+      if (recommendByMajorResults.value.length === 0) messageApi.warning('未找到相关专业推荐')
     }
   } catch (error) {
     console.error('按专业推荐失败', error)
@@ -419,7 +419,7 @@ const getChance = async (universityId, majorId) => {
 }
 
 const addToPlan = async (item) => {
-  ElMessage.info(`已将 ${item.universityName} - ${item.majorName} 加入志愿，请在“志愿方案”页面完善`)
+  messageApi.info(`已将 ${item.universityName} - ${item.majorName} 加入志愿，请在“志愿方案”页面完善`)
 }
 
 const loadFilters = async () => {

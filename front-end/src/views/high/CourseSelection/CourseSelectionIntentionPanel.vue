@@ -2,8 +2,9 @@
   文件说明：拾光记前台应用高中阶段页面组件，承载高中阶段场景的界面展示、交互操作和数据承接。
 -->
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
 import IntentionEditDialog from './IntentionEditDialog.vue'
 
@@ -50,9 +51,9 @@ const fetchList = async () => {
 }
 
 const submit = async () => {
-  if (!props.userId) return ElMessage.warning('用户信息未加载')
+  if (!props.userId) return messageApi.warning('用户信息未加载')
   if (!form.value.secondSubjectIntention1 || !form.value.secondSubjectIntention2) {
-    return ElMessage.warning('请至少填写两门再选科目意向')
+    return messageApi.warning('请至少填写两门再选科目意向')
   }
   const isCreating = !form.value.id
   saving.value = true
@@ -64,7 +65,7 @@ const submit = async () => {
     }
     const res = await request.post('/intention/save', payload)
     if (res.code === 200) {
-      ElMessage.success('保存成功')
+      messageApi.success('保存成功')
       form.value.id = res.data?.id || form.value.id
       await fetchList()
       // 重置表单（如果是新增）
@@ -102,7 +103,7 @@ const remove = async (id) => {
   await ElMessageBox.confirm('确认删除该意向记录？', '提示', { type: 'warning' })
   const res = await request.post('/intention/delete', null, null, { params: { id } })
   if (res.code === 200) {
-    ElMessage.success('删除成功')
+    messageApi.success('删除成功')
     await fetchList()
   }
 }
@@ -110,7 +111,7 @@ const remove = async (id) => {
 const updateStatus = async (row, status) => {
   const res = await request.post('/intention/status', null, null, { params: { id: row.id, status } })
   if (res.code === 200) {
-    ElMessage.success('状态已更新')
+    messageApi.success('状态已更新')
     await fetchList()
   }
 }

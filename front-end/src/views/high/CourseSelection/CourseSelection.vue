@@ -176,8 +176,8 @@
 </template>
 
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, onMounted, watch } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 import Nav from '@/components/Nav.vue'
 import MySelectionPanel from '@/views/high/CourseSelection/MySelectionPanel.vue'
@@ -279,7 +279,7 @@ const handleSelectionSuccess = () => {
   activeTab.value = 'mySelection'
   fetchMySelection()
   fetchStatistics()
-  ElMessage.success('选课成功')
+  messageApi.success('选课成功')
 }
 
 const openEditDialog = (selection) => {
@@ -292,7 +292,7 @@ const handleEditSuccess = () => {
   selectionRefreshToken.value += 1
   fetchMySelection()
   fetchStatistics()
-  ElMessage.success('修改成功')
+  messageApi.success('修改成功')
 }
 
 watch(activeTab, (newValue, oldValue) => {

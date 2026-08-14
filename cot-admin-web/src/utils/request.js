@@ -1,8 +1,8 @@
+import messageApi from '@/utils/messageApi'
 /**
  * 文件说明：拾光记后台管理系统通用工具脚本模块，封装通用工具相关的配置、状态、路由或工具逻辑。
  */
 import axios from 'axios'
-import { ElMessage } from 'element-plus'
 import { getToken, clearToken } from '@/utils/auth'
 
 // 所有后台接口统一走 /api 网关前缀，方便对接 Spring Cloud Gateway。
@@ -28,19 +28,20 @@ service.interceptors.response.use(
     const data = response.data
     if (data && typeof data === 'object' && 'code' in data) {
       if ([200, 0].includes(data.code)) return data.data ?? data
-      ElMessage.error(data.msg || data.message || '请求处理失败')
+      if (!response.config.silentError) messageApi.error(data.msg || data.message || '请求处理失败')
       return Promise.reject(data)
     }
     return data
   },
   // 401 说明登录态已经失效，清理本地 token 后回到登录页重新认证。
   (error) => {
+    const silentError = error.config?.silentError
     if (error.response?.status === 401) {
       clearToken()
-      ElMessage.error('登录已过期，请重新登录')
+      messageApi.error('登录已过期，请重新登录')
       window.location.href = '/login'
-    } else {
-      ElMessage.error(error.message || '网络异常，请稍后重试')
+    } else if (!silentError) {
+      messageApi.error(error.message || '网络异常，请稍后重试')
     }
     return Promise.reject(error)
   },

@@ -1,6 +1,6 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 const props = defineProps({
@@ -71,7 +71,7 @@ const closeDialog = () => {
 
 const submit = async () => {
   if (!props.userId) {
-    ElMessage.warning('用户信息未加载')
+    messageApi.warning('用户信息未加载')
     return
   }
 
@@ -84,7 +84,7 @@ const submit = async () => {
     }
     const res = await request.post('/guidance/save', payload)
     if (res.code === 200) {
-      ElMessage.success('保存成功')
+      messageApi.success('保存成功')
       emit('saved', res.data)
       closeDialog()
     }

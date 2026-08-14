@@ -6,12 +6,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.example.commoncore.auth.AuthContext;
 import org.example.commoncore.auth.AuthUser;
+import org.example.commoncore.auth.RoleCodes;
 import org.example.commondb.utils.RestBean;
 import org.example.generalservice.dto.notification.NotificationSyncItem;
 import org.example.generalservice.entity.NotificationPreference;
 import org.example.generalservice.entity.SystemNotification;
 import org.example.generalservice.mapper.NotificationMapper;
 import org.example.generalservice.mapper.NotificationPreferenceMapper;
+import org.example.generalservice.websocket.notification.NotificationRealtimePublisher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +43,7 @@ public class NotificationController {
 
     private final NotificationMapper notificationMapper;
     private final NotificationPreferenceMapper preferenceMapper;
+    private final NotificationRealtimePublisher realtimePublisher;
 
     @GetMapping
     public RestBean<Map<String, Object>> list(@RequestParam(defaultValue = "false") boolean unreadOnly,
@@ -85,6 +88,7 @@ public class NotificationController {
                 .toList();
         Set<String> incomingKeys = safeItems.stream().map(NotificationSyncItem::getDedupeKey).collect(Collectors.toSet());
         LocalDateTime now = LocalDateTime.now();
+        List<SystemNotification> createdNotifications = new ArrayList<>();
 
         for (NotificationSyncItem item : safeItems) {
             SystemNotification notification = notificationMapper.selectOne(new QueryWrapper<SystemNotification>()
@@ -108,6 +112,7 @@ public class NotificationController {
             notification.setDismissedAt(null);
             if (notification.getId() == null) {
                 notificationMapper.insert(notification);
+                createdNotifications.add(notification);
             } else {
                 notificationMapper.updateById(notification);
             }
@@ -123,7 +128,25 @@ public class NotificationController {
                 notificationMapper.updateById(notification);
             }
         }
+        createdNotifications.forEach(realtimePublisher::publish);
         return RestBean.success("提醒已同步", safeItems.size());
+    }
+
+    @PostMapping("/admin/{id}/publish")
+    public RestBean<Boolean> publishSavedNotification(@PathVariable Long id, HttpServletRequest request) {
+        AuthUser user = AuthContext.currentUser(request);
+        if (user == null || !user.isLogin()) {
+            return RestBean.fail(401, "用户未登录");
+        }
+        if (!user.hasAnyRole(RoleCodes.SUPER_ADMIN, RoleCodes.ADMIN)) {
+            return RestBean.fail(403, "需要管理员权限");
+        }
+        SystemNotification notification = notificationMapper.selectById(id);
+        if (notification == null || notification.getDismissedAt() != null) {
+            return RestBean.fail(404, "通知不存在或已被移除");
+        }
+        realtimePublisher.publish(notification);
+        return RestBean.success("通知已实时推送", true);
     }
 
     @PutMapping("/{id}/read")

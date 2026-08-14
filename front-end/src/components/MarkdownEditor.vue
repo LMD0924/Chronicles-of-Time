@@ -3,7 +3,7 @@
 -->
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
-import { message } from 'ant-design-vue'
+import messageApi from '@/utils/messageApi'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github-dark.css'
@@ -153,7 +153,7 @@ const renderMarkdown = (content) => {
 // 预览
 const previewMarkdown = () => {
   if (!localContent.value.trim()) {
-    message.warning('请先输入内容')
+    messageApi.warning('请先输入内容')
     return
   }
   showPreview.value = true

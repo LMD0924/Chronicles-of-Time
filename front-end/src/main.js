@@ -14,6 +14,7 @@ import router from './router'
 import axios from "axios";
 import Typewriter from "@/components/Typewriter.vue";
 import { initTheme, setTheme } from './utils/theme'
+import { installRealtimeNotifications } from './utils/realtime'
 
 // 1. 初始化主题（应用启动时立即生效）
 initTheme();
@@ -29,6 +30,7 @@ app.config.globalProperties.$axios = axios
 app.use(createPinia())
 app.use(router).use(ElementPlus).use(Antd);
 app.component('Typewriter', Typewriter)
+installRealtimeNotifications(router)
 
 app.mount('#app')
 

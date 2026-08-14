@@ -374,6 +374,10 @@ const getNotificationCount = async () => {
   }
 }
 
+const handleRealtimeNotification = () => {
+  getNotificationCount()
+}
+
 const openGlobalSearch = () => {
   window.dispatchEvent(new CustomEvent('app:open-search'))
 }
@@ -489,6 +493,7 @@ onMounted(() => {
   getNotificationCount()
   window.addEventListener('scroll', handleScroll)
   window.addEventListener('click', handleClickOutside)
+  window.addEventListener('cot:notification', handleRealtimeNotification)
   updateActiveNav()
 })
 
@@ -503,6 +508,7 @@ watch(() => route.query, () => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('cot:notification', handleRealtimeNotification)
 })
 </script>
 

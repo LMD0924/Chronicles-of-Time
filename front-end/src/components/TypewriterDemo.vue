@@ -160,6 +160,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import AdvancedTypewriter from '@/components/Typewriter.vue'
+import messageApi from '@/utils/messageApi'
 
 // 示例数据
 const basicTexts = ['Hello Vue3!', '欢迎使用打字机组件', '开箱即用', '简单高效']
@@ -209,11 +210,11 @@ const addLog = (message: string) => {
 }
 
 const handleGetStarted = () => {
-  alert('开始体验打字机效果！')
+  messageApi.info('开始体验打字机效果！')
 }
 
 const handleSubmit = () => {
-  alert(`注册成功！用户名：${formData.value.username}`)
+  messageApi.success(`注册成功！用户名：${formData.value.username}`)
   formData.value = { username: '', email: '' }
 }
 </script>

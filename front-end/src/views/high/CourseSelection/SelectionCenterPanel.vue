@@ -2,8 +2,8 @@
   文件说明：拾光记前台应用高中阶段页面组件，承载高中阶段场景的界面展示、交互操作和数据承接。
 -->
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, watch, computed } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 import AiInsightPanel from '@/views/high/components/AiInsightPanel.vue'
 
@@ -67,7 +67,7 @@ const toggleSecondSubject = (subject) => {
     selectedSecondSubjects.value.splice(index, 1)
   } else {
     if (selectedSecondSubjects.value.length >= 2) {
-      ElMessage.warning('最多只能选择2门再选科目')
+      messageApi.warning('最多只能选择2门再选科目')
       return
     }
     selectedSecondSubjects.value.push(subject)
@@ -112,22 +112,22 @@ const checkIfSelected = async () => {
 // 提交选课
 const submitSelection = async () => {
   if (!selectedFirstSubject.value) {
-    ElMessage.warning('请选择首选科目')
+    messageApi.warning('请选择首选科目')
     return
   }
   if (selectedSecondSubjects.value.length !== 2) {
-    ElMessage.warning('请选择2门再选科目')
+    messageApi.warning('请选择2门再选科目')
     return
   }
   if (!selectionReason.value) {
-    ElMessage.warning('请填写选课理由')
+    messageApi.warning('请填写选课理由')
     return
   }
 
   // 检查是否已经选过课
   const hasSelected = await checkIfSelected()
   if (hasSelected) {
-    ElMessage.warning('您已经选过课，不能重复选课。请在"我的选课"中修改。')
+    messageApi.warning('您已经选过课，不能重复选课。请在"我的选课"中修改。')
     return
   }
 
@@ -151,14 +151,14 @@ const submitSelection = async () => {
 
     const res = await request.post('/selection/add', selectionData)
     if (res.code === 200) {
-      ElMessage.success('选课提交成功')
+      messageApi.success('选课提交成功')
       resetForm()
       emit('success')
     } else {
-      ElMessage.error(res.message || '选课失败')
+      messageApi.error(res.message || '选课失败')
     }
   } catch (error) {
-    ElMessage.error('提交失败')
+    messageApi.error('提交失败')
   } finally {
     submitting.value = false
   }

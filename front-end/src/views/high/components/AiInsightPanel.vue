@@ -2,8 +2,8 @@
   文件说明：高中模块 AI 辅助分析组件，统一承接选科、专业和志愿场景的分析请求与结果展示。
 -->
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, ref } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 const props = defineProps({
@@ -59,7 +59,7 @@ const analyze = async () => {
     if (res.code === 200) {
       analysis.value = res.data
       if (!res.data?.aiEnabled) {
-        ElMessage.info(res.data?.providerStatus || '当前使用本地规则分析')
+        messageApi.info(res.data?.providerStatus || '当前使用本地规则分析')
       }
     }
   } catch (error) {

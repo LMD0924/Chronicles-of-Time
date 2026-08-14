@@ -176,8 +176,8 @@
 </template>
 
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 const props = defineProps({
@@ -239,19 +239,19 @@ const openDetail = async (id) => {
 }
 const saveMajor = async () => {
   const res = await request.post('/major/save', form.value)
-  if (res.code === 200) { ElMessage.success('保存成功'); fetchMajors() }
+  if (res.code === 200) { messageApi.success('保存成功'); fetchMajors() }
 }
 const deleteMajor = async (id) => {
   const res = await request.post('/major/delete', null, null, { params: { id } })
-  if (res.code === 200) { ElMessage.success('删除成功'); fetchMajors() }
+  if (res.code === 200) { messageApi.success('删除成功'); fetchMajors() }
 }
 const saveMatching = async () => {
   const res = await request.post('/major/matching/save', matchForm.value)
-  if (res.code === 200) { ElMessage.success('匹配保存成功'); fetchMatchings() }
+  if (res.code === 200) { messageApi.success('匹配保存成功'); fetchMatchings() }
 }
 const deleteMatching = async (id) => {
   const res = await request.post('/major/matching/delete', null, null, { params: { id } })
-  if (res.code === 200) { ElMessage.success('删除成功'); fetchMatchings() }
+  if (res.code === 200) { messageApi.success('删除成功'); fetchMatchings() }
 }
 const editMajor = (r) => form.value = { ...r }
 const editMatching = (r) => matchForm.value = { ...r }

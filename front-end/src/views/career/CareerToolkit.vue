@@ -1,6 +1,6 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
 import Nav from '@/components/Nav.vue'
@@ -74,9 +74,9 @@ const selectTemplate = (template) => {
 const copyTemplate = async () => {
   try {
     await navigator.clipboard.writeText(templateText.value)
-    ElMessage.success('模板已复制，可以直接粘贴使用')
+    messageApi.success('模板已复制，可以直接粘贴使用')
   } catch {
-    ElMessage.info('请手动选中文本复制')
+    messageApi.info('请手动选中文本复制')
   }
 }
 
@@ -91,7 +91,7 @@ const toggleTimer = () => {
     timer = window.setInterval(() => {
       if (remainingSeconds.value <= 1) {
         stopTimer()
-        ElMessage.success('专注完成，起来活动一下吧')
+        messageApi.success('专注完成，起来活动一下吧')
       } else {
         remainingSeconds.value -= 1
       }

@@ -1,6 +1,6 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, onMounted, ref } from 'vue'
-import { ElMessage } from 'element-plus'
 import { Bell, Document, Histogram, Notebook, User, UserFilled } from '@element-plus/icons-vue'
 import BaseChart from '@/components/charts/BaseChart.vue'
 import CountTo from '@/components/charts/CountTo.vue'
@@ -16,7 +16,7 @@ const refresh = async (notify = true) => {
   try {
     overview.value = await adminDataApi.dashboard()
     refreshedAt.value = new Date().toLocaleTimeString()
-    if (notify) ElMessage.success('真实数据已刷新')
+    if (notify) messageApi.success('真实数据已刷新')
   } finally { loading.value = false }
 }
 

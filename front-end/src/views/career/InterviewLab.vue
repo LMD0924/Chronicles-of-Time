@@ -1,7 +1,7 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import Nav from '@/components/Nav.vue'
 import request from '@/utils/request'
 import { getStoredTheme, ThemeType } from '@/utils/theme'
@@ -55,7 +55,7 @@ const start = async () => {
 
 const submitAnswer = async () => {
   const content = answer.value.trim()
-  if (!content) return ElMessage.warning('请先输入你的回答')
+  if (!content) return messageApi.warning('请先输入你的回答')
   submitting.value = true
   try {
     history.value.push({ role: 'candidate', content })

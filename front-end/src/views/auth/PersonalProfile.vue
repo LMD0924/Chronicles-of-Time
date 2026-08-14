@@ -4,7 +4,7 @@
 <script setup>
 import { ref, onMounted, computed, nextTick, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
 import { getStoredTheme, onThemeChange, ThemeType } from '@/utils/theme'
 import { message } from 'ant-design-vue'
@@ -450,7 +450,7 @@ const handleLogout = async () => {
     localStorage.removeItem('token')
     localStorage.removeItem('refresh_token')
     localStorage.removeItem('user_info')
-    ElMessage.success('已退出登录')
+    messageApi.success('已退出登录')
     router.push('/login')
   } catch (_) {
     // 用户取消退出

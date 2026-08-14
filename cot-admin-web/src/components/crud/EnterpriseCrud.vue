@@ -1,6 +1,7 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, reactive, ref, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import { Delete, Download, Edit, Plus, Refresh, Search, View } from '@element-plus/icons-vue'
 import BaseChart from '@/components/charts/BaseChart.vue'
 import { adminDataApi } from '@/api/adminData'
@@ -87,13 +88,28 @@ const openRecord = async (row, mode) => {
 }
 const saveRecord = async () => {
   const missing = formFields.value.find((field) => field.required && (form.value[field.name] === '' || form.value[field.name] == null))
-  if (missing) return ElMessage.warning(`请填写${missing.label}`)
+  if (missing) return messageApi.warning(`请填写${missing.label}`)
   saving.value = true
   try {
     const payload = Object.fromEntries(formFields.value.map((field) => [field.name, form.value[field.name]]))
-    if (dialogMode.value === 'create') await adminDataApi.create(props.module.key, payload)
-    else await adminDataApi.update(props.module.key, editingId.value, payload)
-    ElMessage.success(dialogMode.value === 'create' ? '新增成功' : '保存成功')
+    let realtimePublished = true
+    if (dialogMode.value === 'create') {
+      const created = await adminDataApi.create(props.module.key, payload)
+      if (props.module.key === 'ops-notification' && created?.id) {
+        try {
+          await adminDataApi.publishNotification(created.id)
+        } catch {
+          realtimePublished = false
+        }
+      }
+    } else {
+      await adminDataApi.update(props.module.key, editingId.value, payload)
+    }
+    if (!realtimePublished) {
+      messageApi.warning('通知已保存，实时推送失败，用户仍可在通知中心查看')
+    } else {
+      messageApi.success(dialogMode.value === 'create' ? '新增成功' : '保存成功')
+    }
     dialogVisible.value = false
     await fetchData()
   } finally {
@@ -107,12 +123,12 @@ const removeRecord = async (row) => {
     return
   }
   await adminDataApi.remove(props.module.key, row.id)
-  ElMessage.success('删除成功')
+  messageApi.success('删除成功')
   if (rows.value.length === 1 && query.page > 1) query.page -= 1
   await fetchData()
 }
 const exportData = () => {
-  if (!rows.value.length) return ElMessage.warning('当前没有可导出的数据')
+  if (!rows.value.length) return messageApi.warning('当前没有可导出的数据')
   const headers = ['编号', '标题 / 名称', '用户 / 负责人', '分类', '状态', '指标值', '创建时间', '更新时间']
   const values = rows.value.map((row) => [row.id, row.title, row.name, row.category, row.status, row.metric, row.createdAt, row.updatedAt])
   const escapeCell = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`

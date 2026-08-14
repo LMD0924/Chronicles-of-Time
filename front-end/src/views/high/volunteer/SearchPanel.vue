@@ -231,8 +231,8 @@
 </template>
 
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, inject, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 const isDark = inject('isDark', ref(false))
@@ -281,12 +281,12 @@ const searchUniversities = async () => {
     if (res.code === 200) {
       universities.value = res.data || []
       if (universities.value.length === 0) {
-        ElMessage.info('未找到相关大学')
+        messageApi.info('未找到相关大学')
       }
     }
   } catch (error) {
     console.error('搜索大学失败', error)
-    ElMessage.error('搜索失败，请稍后重试')
+    messageApi.error('搜索失败，请稍后重试')
   } finally {
     universityLoading.value = false
   }
@@ -299,12 +299,12 @@ const searchMajors = async () => {
     if (res.code === 200) {
       majors.value = res.data || []
       if (majors.value.length === 0) {
-        ElMessage.info('未找到相关专业')
+        messageApi.info('未找到相关专业')
       }
     }
   } catch (error) {
     console.error('搜索专业失败', error)
-    ElMessage.error('搜索失败，请稍后重试')
+    messageApi.error('搜索失败，请稍后重试')
   } finally {
     majorLoading.value = false
   }
@@ -318,12 +318,12 @@ const getAdmissionHistory = async (majorId, universityId, year) => {
       admissionHistory.value = res.data || []
       showHistoryDialog.value = true
       if (admissionHistory.value.length === 0) {
-        ElMessage.info('暂无招生历史数据')
+        messageApi.info('暂无招生历史数据')
       }
     }
   } catch (error) {
     console.error('获取招生历史失败', error)
-    ElMessage.error('获取招生历史失败')
+    messageApi.error('获取招生历史失败')
   }
 }
 
@@ -333,12 +333,12 @@ const getAllHistory = async () => {
     if (res.code === 200) {
       admissionHistory.value = res.data || []
       if (admissionHistory.value.length === 0) {
-        ElMessage.info('暂无招生历史数据')
+        messageApi.info('暂无招生历史数据')
       }
     }
   } catch (error) {
     console.error('获取全部招生历史失败', error)
-    ElMessage.error('获取全部招生历史失败')
+    messageApi.error('获取全部招生历史失败')
   }
 }
 

@@ -1,6 +1,7 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, onMounted, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import { useTheme } from '@/composables/useTheme'
 import Nav from '@/components/Nav.vue'
 import request from '@/utils/request'
@@ -72,9 +73,9 @@ const loadAll = async () => {
 }
 
 const saveRoadmap = async () => {
-  if (!roadmapForm.value.roadmapName.trim()) return ElMessage.warning('请填写路线名称')
+  if (!roadmapForm.value.roadmapName.trim()) return messageApi.warning('请填写路线名称')
   await request.post('/advanced/roadmaps', roadmapForm.value)
-  ElMessage.success('路线已保存')
+  messageApi.success('路线已保存')
   roadmapForm.value = emptyRoadmap()
   await loadAll()
 }
@@ -82,14 +83,14 @@ const editRoadmap = (item) => { roadmapForm.value = { ...emptyRoadmap(), ...item
 const deleteRoadmap = async (item) => {
   await ElMessageBox.confirm(`确认删除路线「${item.roadmapName}」及其关联记录？`, '删除路线', { type: 'warning' })
   await request.delete(`/advanced/roadmaps/${item.id}`)
-  ElMessage.success('路线已删除')
+  messageApi.success('路线已删除')
   await loadAll()
 }
 
 const saveMilestone = async () => {
-  if (!milestoneForm.value.milestoneName.trim()) return ElMessage.warning('请填写里程碑名称')
+  if (!milestoneForm.value.milestoneName.trim()) return messageApi.warning('请填写里程碑名称')
   await request.post('/advanced/milestones', milestoneForm.value)
-  ElMessage.success('里程碑已保存')
+  messageApi.success('里程碑已保存')
   milestoneForm.value = { ...emptyMilestone(), roadmapId: activeRoadmaps.value[0]?.id || null }
   await loadAll()
 }
@@ -100,18 +101,18 @@ const doneMilestone = async (item) => {
 }
 
 const saveSkill = async () => {
-  if (!skillForm.value.skillName.trim()) return ElMessage.warning('请填写技能名称')
+  if (!skillForm.value.skillName.trim()) return messageApi.warning('请填写技能名称')
   await request.post('/advanced/skills', skillForm.value)
-  ElMessage.success('技能进度已保存')
+  messageApi.success('技能进度已保存')
   skillForm.value = { ...emptySkill(), roadmapId: activeRoadmaps.value[0]?.id || null }
   await loadAll()
 }
 const editSkill = (item) => { skillForm.value = { ...emptySkill(), ...item } }
 
 const saveSession = async () => {
-  if (!sessionForm.value.mentorName.trim() || !sessionForm.value.topic.trim()) return ElMessage.warning('请填写导师和主题')
+  if (!sessionForm.value.mentorName.trim() || !sessionForm.value.topic.trim()) return messageApi.warning('请填写导师和主题')
   await request.post('/advanced/mentor-sessions', sessionForm.value)
-  ElMessage.success('导师会话已保存')
+  messageApi.success('导师会话已保存')
   sessionForm.value = { ...emptySession(), roadmapId: activeRoadmaps.value[0]?.id || null }
   await loadAll()
 }

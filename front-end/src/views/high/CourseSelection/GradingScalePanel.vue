@@ -147,8 +147,8 @@
 </template>
 
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 const props = defineProps({
@@ -195,7 +195,7 @@ const edit = (row) => { form.value = { ...row } }
 const save = async () => {
   const res = await request.post('/grading/save', form.value)
   if (res.code === 200) {
-    ElMessage.success('保存成功')
+    messageApi.success('保存成功')
     await fetchList()
   }
 }
@@ -203,7 +203,7 @@ const save = async () => {
 const remove = async (id) => {
   const res = await request.post('/grading/delete', null, null, { params: { id } })
   if (res.code === 200) {
-    ElMessage.success('删除成功')
+    messageApi.success('删除成功')
     await fetchList()
   }
 }

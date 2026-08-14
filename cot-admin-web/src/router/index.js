@@ -1,9 +1,9 @@
+import messageApi from '@/utils/messageApi'
 /**
  * 文件说明：拾光记后台管理系统路由与菜单脚本模块，封装路由与菜单相关的配置、状态、路由或工具逻辑。
  */
 import { createRouter, createWebHistory } from 'vue-router'
 import NProgress from 'nprogress'
-import { ElMessage } from 'element-plus'
 import Layout from '@/layout/AdminLayout.vue'
 import { adminMenus, toRouteRecords } from './menus'
 import { useAppStore } from '@/stores/app'
@@ -40,7 +40,7 @@ router.beforeEach((to) => {
   if (to.meta.public) return true
   if (!userStore.isLogin) return `/login?redirect=${encodeURIComponent(to.fullPath)}`
   if (!userStore.isAdmin) {
-    ElMessage.warning('普通账号无后台访问权限')
+    messageApi.warning('普通账号无后台访问权限')
     return '/403'
   }
   if (to.meta.keepAlive) appStore.addCachedView(to.name)

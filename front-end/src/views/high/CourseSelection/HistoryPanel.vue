@@ -253,8 +253,8 @@
 </template>
 
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 const props = defineProps({
@@ -376,7 +376,7 @@ const openDetail = async (id) => {
       detailVisible.value = true
     }
   } catch (error) {
-    ElMessage.error('获取详情失败')
+    messageApi.error('获取详情失败')
   }
 }
 

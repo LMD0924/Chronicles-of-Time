@@ -2,8 +2,9 @@
   文件说明：拾光记前台应用高中阶段页面组件，承载高中阶段场景的界面展示、交互操作和数据承接。
 -->
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { ref, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
 
 const props = defineProps({
@@ -22,7 +23,7 @@ const fetchPendingList = async () => {
       pendingList.value = res.data || []
     }
   } catch (error) {
-    ElMessage.error('获取待审批列表失败')
+    messageApi.error('获取待审批列表失败')
   } finally {
     loading.value = false
   }
@@ -40,13 +41,13 @@ const approve = async (id, isApproved) => {
       params: { approver: '管理员', status, comment }
     })
     if (res.code === 200) {
-      ElMessage.success(isApproved ? '审批通过' : '已拒绝')
+      messageApi.success(isApproved ? '审批通过' : '已拒绝')
       fetchPendingList()
     } else {
-      ElMessage.error('审批失败')
+      messageApi.error('审批失败')
     }
   } catch (error) {
-    ElMessage.error('审批失败')
+    messageApi.error('审批失败')
   }
 }
 

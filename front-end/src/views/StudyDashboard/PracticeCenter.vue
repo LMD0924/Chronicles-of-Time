@@ -228,9 +228,10 @@
 </template>
 
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import request from '@/utils/request.js'
 
 const props = defineProps({
@@ -360,10 +361,10 @@ const startExam = async () => {
         startedAt: Date.now()
       })
       startTimer()
-      ElMessage.success(`已抽取 ${questions.value.length} 道题`)
+      messageApi.success(`已抽取 ${questions.value.length} 道题`)
     }
   } catch (error) {
-    ElMessage.error(error.msg || error.message || '组卷失败')
+    messageApi.error(error.msg || error.message || '组卷失败')
   } finally {
     loading.value = false
   }
@@ -397,10 +398,10 @@ const submitExam = async () => {
       resultData.value = res.data
       stopTimer()
       await fetchHistory()
-      ElMessage.success('提交成功')
+      messageApi.success('提交成功')
     }
   } catch (error) {
-    ElMessage.error(error.msg || error.message || '提交失败')
+    messageApi.error(error.msg || error.message || '提交失败')
   } finally {
     submitting.value = false
   }
@@ -425,7 +426,7 @@ const loadHistoryDetail = async (sessionId) => {
       stopTimer()
     }
   } catch (error) {
-    ElMessage.error('历史详情加载失败')
+    messageApi.error('历史详情加载失败')
   }
 }
 

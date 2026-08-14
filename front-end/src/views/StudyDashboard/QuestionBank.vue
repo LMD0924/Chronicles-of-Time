@@ -163,8 +163,8 @@
 </template>
 
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, onMounted, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/request.js'
 
 const props = defineProps({
@@ -235,7 +235,7 @@ const fetchQuestions = async () => {
     if (res.code === 200) questions.value = res.data || []
   } catch (error) {
     console.error('获取题目失败', error)
-    ElMessage.error('题目加载失败')
+    messageApi.error('题目加载失败')
   }
 }
 
@@ -275,7 +275,7 @@ const isCorrect = (label) => form.correctAnswer.split(',').filter(Boolean).inclu
 
 const saveQuestion = async () => {
   if (!form.subjectName || !form.questionTitle || !form.correctAnswer) {
-    ElMessage.warning('请填写科目、题干和正确答案')
+    messageApi.warning('请填写科目、题干和正确答案')
     return
   }
   saving.value = true
@@ -291,12 +291,12 @@ const saveQuestion = async () => {
       auditStatus: 'pending'
     })
     if (res.code === 200) {
-      ElMessage.success('已提交，等待管理员审核')
+      messageApi.success('已提交，等待管理员审核')
       showModal.value = false
       await fetchQuestions()
     }
   } catch (error) {
-    ElMessage.error(error.msg || '提交失败')
+    messageApi.error(error.msg || '提交失败')
   } finally {
     saving.value = false
   }
@@ -307,11 +307,11 @@ const deleteQuestion = async (id) => {
   try {
     const res = await request.delete(`/question/delete/${id}`)
     if (res.code === 200) {
-      ElMessage.success('删除成功')
+      messageApi.success('删除成功')
       await fetchQuestions()
     }
   } catch {
-    ElMessage.error('删除失败')
+    messageApi.error('删除失败')
   }
 }
 

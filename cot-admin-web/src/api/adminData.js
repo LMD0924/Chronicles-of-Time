@@ -15,6 +15,9 @@ export const adminDataApi = {
   create(moduleKey, data) {
     return request.post(`/admin/data/modules/${moduleKey}`, data)
   },
+  publishNotification(id) {
+    return request.post(`/notifications/admin/${id}/publish`, null, { silentError: true })
+  },
   update(moduleKey, id, data) {
     return request.put(`/admin/data/modules/${moduleKey}/${id}`, data)
   },

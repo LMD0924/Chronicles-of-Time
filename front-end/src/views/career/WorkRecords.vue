@@ -1,6 +1,7 @@
 <script setup>
+import messageApi from '@/utils/messageApi'
 import { computed, onMounted, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
 import Nav from '@/components/Nav.vue'
@@ -144,14 +145,14 @@ const saveProfile = async () => {
   const res = await request.post('/workplace/profile', profileForm.value)
   profile.value = res.data
   profileForm.value = { ...emptyProfile(), ...res.data }
-  ElMessage.success('职业档案已保存')
+  messageApi.success('职业档案已保存')
   await loadAll()
 }
 
 const saveGoal = async () => {
-  if (!goalForm.value.goalName.trim()) return ElMessage.warning('请填写目标名称')
+  if (!goalForm.value.goalName.trim()) return messageApi.warning('请填写目标名称')
   await request.post('/workplace/goals', goalForm.value)
-  ElMessage.success('目标已保存')
+  messageApi.success('目标已保存')
   goalForm.value = emptyGoal()
   await loadAll()
 }
@@ -160,14 +161,14 @@ const editGoal = (item) => { goalForm.value = { ...emptyGoal(), ...item } }
 const deleteGoal = async (item) => {
   await ElMessageBox.confirm(`确认删除目标「${item.goalName}」及其任务？`, '删除目标', { type: 'warning' })
   await request.delete(`/workplace/goals/${item.id}`)
-  ElMessage.success('目标已删除')
+  messageApi.success('目标已删除')
   await loadAll()
 }
 
 const saveTask = async () => {
-  if (!taskForm.value.taskName.trim()) return ElMessage.warning('请填写任务名称')
+  if (!taskForm.value.taskName.trim()) return messageApi.warning('请填写任务名称')
   await request.post('/workplace/tasks', taskForm.value)
-  ElMessage.success('任务已保存')
+  messageApi.success('任务已保存')
   taskForm.value = { ...emptyTask(), goalId: activeGoals.value[0]?.id || null }
   await loadAll()
 }
@@ -180,23 +181,23 @@ const updateTaskStatus = async (item, status) => {
 const deleteTask = async (item) => {
   await ElMessageBox.confirm(`确认删除任务「${item.taskName}」？`, '删除任务', { type: 'warning' })
   await request.delete(`/workplace/tasks/${item.id}`)
-  ElMessage.success('任务已删除')
+  messageApi.success('任务已删除')
   await loadAll()
 }
 
 const saveInterview = async () => {
-  if (!interviewForm.value.companyName.trim()) return ElMessage.warning('请填写公司名称')
+  if (!interviewForm.value.companyName.trim()) return messageApi.warning('请填写公司名称')
   await request.post('/workplace/interviews', interviewForm.value)
-  ElMessage.success('面试记录已保存')
+  messageApi.success('面试记录已保存')
   interviewForm.value = emptyInterview()
   await loadAll()
 }
 const editInterview = (item) => { interviewForm.value = { ...emptyInterview(), ...item } }
 
 const saveReview = async () => {
-  if (!reviewForm.value.wins.trim() && !reviewForm.value.problems.trim()) return ElMessage.warning('至少填写一个复盘项')
+  if (!reviewForm.value.wins.trim() && !reviewForm.value.problems.trim()) return messageApi.warning('至少填写一个复盘项')
   await request.post('/workplace/reviews', reviewForm.value)
-  ElMessage.success('工作复盘已保存')
+  messageApi.success('工作复盘已保存')
   reviewForm.value = emptyReview()
   await loadAll()
 }
