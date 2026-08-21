@@ -85,6 +85,11 @@ public class UserController {
         return RestBean.success(users);
     }
 
+    @GetMapping("/public/stats")
+    public RestBean<Map<String, Object>> publicStats() {
+        return RestBean.success(Map.of("totalUsers", userService.count()));
+    }
+
 
     /**
      * 上传头像

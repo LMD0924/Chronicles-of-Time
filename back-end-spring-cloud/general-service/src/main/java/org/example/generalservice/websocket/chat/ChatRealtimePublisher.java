@@ -38,6 +38,7 @@ public class ChatRealtimePublisher {
         putText(data, "contentType", message.getContentType());
         putText(data, "content", message.getContent());
         putText(data, "createdAt", message.getCreatedAt());
+        putText(data, "recalledAt", message.getRecalledAt());
         if (message.getReadCount() != null) {
             data.put("readCount", message.getReadCount());
         }

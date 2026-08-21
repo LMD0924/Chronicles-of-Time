@@ -14,6 +14,7 @@ import MajorCompare from '@/views/university/features/MajorCompare.vue'
 import CertificateArchive from '@/views/university/features/CertificateArchive.vue'
 import ThesisBoard from '@/views/university/features/ThesisBoard.vue'
 import ElectiveCommunity from '@/views/university/features/ElectiveCommunity.vue'
+import CampusOrganizations from '@/views/university/features/CampusOrganizations.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -29,6 +30,7 @@ const tabs = [
   { key: 'thesis', label: '论文看板', icon: '📄' },
   { key: 'tree', label: '课程树', icon: '🌳', external: '/CourseTree' },
   { key: 'community', label: '选课参考', icon: '💬' },
+  { key: 'campus', label: '社团学生会', icon: '🏛️' },
 ]
 
 const activeTab = ref(route.query.tab || 'schedule')
@@ -37,6 +39,7 @@ const menuItems = [
   { key: 'hub', label: '大学中心', icon: '🎓', path: '/UniversityHub' },
   { key: 'tree', label: '课程树', icon: '🌳', path: '/CourseTree' },
   { key: 'paper', label: '写论文', icon: '📝', path: '/Paper' },
+  { key: 'campus', label: '社团学生会', icon: '🏛️', path: '/UniversityHub?tab=campus' },
 ]
 
 const currentComponent = computed(() => {
@@ -48,6 +51,7 @@ const currentComponent = computed(() => {
     cert: CertificateArchive,
     thesis: ThesisBoard,
     community: ElectiveCommunity,
+    campus: CampusOrganizations,
   }
   return map[activeTab.value]
 })
@@ -103,7 +107,7 @@ onMounted(() => loadMajors())
 
         <component
           :is="currentComponent"
-          v-if="currentComponent && currentMajorId"
+          v-if="currentComponent && (currentMajorId || activeTab === 'campus')"
           :major-id="currentMajorId"
           :is-dark="isDark"
         />

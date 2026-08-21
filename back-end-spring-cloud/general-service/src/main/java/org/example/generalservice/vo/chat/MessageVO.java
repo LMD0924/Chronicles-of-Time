@@ -18,6 +18,7 @@ public class MessageVO {
     private String contentType;
     private String content;
     private LocalDateTime createdAt;
+    private LocalDateTime recalledAt;
     private Integer readCount;
     private Integer unreadCount;
     private Boolean readByMe;

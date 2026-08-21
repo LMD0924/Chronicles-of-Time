@@ -248,6 +248,28 @@ public class ChatController {
         }
     }
 
+    @DeleteMapping("/messages/{messageId}")
+    public RestBean<Boolean> deleteMessage(@PathVariable Long messageId, HttpServletRequest request) {
+        Long userId = currentUserId(request);
+        if (userId == null) return RestBean.fail(401, "用户未登录");
+        try {
+            return RestBean.success("消息已从当前会话删除", chatService.deleteMessage(userId, messageId));
+        } catch (IllegalArgumentException exception) {
+            return RestBean.fail(400, exception.getMessage());
+        }
+    }
+
+    @PutMapping("/messages/{messageId}/recall")
+    public RestBean<MessageVO> recallMessage(@PathVariable Long messageId, HttpServletRequest request) {
+        Long userId = currentUserId(request);
+        if (userId == null) return RestBean.fail(401, "用户未登录");
+        try {
+            return RestBean.success("消息已撤回", chatService.recallMessage(userId, messageId));
+        } catch (IllegalArgumentException exception) {
+            return RestBean.fail(400, exception.getMessage());
+        }
+    }
+
     @GetMapping("/admin/groups")
     public RestBean<List<GroupVO>> adminGroups(@RequestParam(required = false) String keyword,
                                                 HttpServletRequest request) {

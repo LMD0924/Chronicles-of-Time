@@ -359,7 +359,7 @@ const getUserInfo = () => {
 const getGrowthSummary = async () => {
   try {
     const response = await request.get('/activity/summary')
-    growthSummary.value = { ...growthSummary.value, ...(response.data || {}) }
+    growthSummary.value = { ...growthSummary.value, ...response.data }
   } catch {
     // 导航仍可使用，成长服务不可用时展示默认等级。
   }

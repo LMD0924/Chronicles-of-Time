@@ -15,8 +15,8 @@ import {
 } from "@/utils/theme.js";
 import AdvancedPageTransition from '@/components/AdvancedPageTransition.vue';
 import request from "@/utils/request.js";
-import { message } from 'ant-design-vue'
-import { ChatDotRound, Collection, EditPen, RefreshRight, Trophy } from '@element-plus/icons-vue'
+import messageApi from '@/utils/messageApi'
+import { ChatDotRound, Collection, EditPen, RefreshRight, Search, Trophy } from '@element-plus/icons-vue'
 
 // 页面过渡组件引用
 const transitionRef = ref(null);
@@ -30,7 +30,6 @@ const showUserMenu = ref(false)
 const isDark = ref(getStoredTheme() === ThemeType.DARK)
 const texts = ref(['拾光记 · 弥补当时那个迷茫的自己'])
 const UserInfo = ref({})
-const [MessageApi,contextHolder] = message.useMessage();
 
 const homeNavItems = computed(() => [
   { id: 'home', name: '首页', icon: '🏠', stages: ['all', 'high_school', 'university', 'workplace'] },
@@ -136,13 +135,27 @@ const animatedStats = ref({
   moments: 0,
   days: 0
 })
+const statTargets = ref({ users: 0, moments: 0, days: 0 })
 
 //获取用户信息
 const getUserInfo =()=>{
   request.get('/user/getUserById',{},(message,data)=>{
     UserInfo.value=data
+    const createdAt = data?.createTime || data?.createdAt
+    statTargets.value.days = createdAt
+      ? Math.max(1, Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000) + 1)
+      : 0
     loadTimeline(data?.id)
   })
+}
+
+const loadPlatformStats = async () => {
+  try {
+    const response = await request.get('/user/public/stats')
+    statTargets.value.users = Number(response.data?.totalUsers || 0)
+  } catch {
+    statTargets.value.users = 0
+  }
 }
 
 // 时光轴节点预览
@@ -174,6 +187,10 @@ const navigateWithTransition = (path) => {
   } else {
     router.push(target)
   }
+}
+
+const openGlobalSearch = () => {
+  window.dispatchEvent(new CustomEvent('app:open-search'))
 }
 
 // 处理阶段点击
@@ -328,6 +345,8 @@ const loadTimeline = async (userId) => {
   }
 
   timelineData.value = items.sort((a, b) => String(b.sortDate || '').localeCompare(String(a.sortDate || '')))
+  statTargets.value.moments = timelineData.value.length
+  animateNumbers()
   await nextTick()
   if (timelinePreviewRef.value) timelinePreviewRef.value.scrollTop = 0
   initScrollAnimation()
@@ -444,11 +463,11 @@ const loadQuotes = async (selectLatest = false) => {
 const publishQuote = async () => {
   const content = quoteDraft.value.trim()
   if (!content) {
-    MessageApi.warning('请先写下想分享的寄语')
+    messageApi.warning('请先写下想分享的寄语')
     return
   }
   if (content.length > 200) {
-    MessageApi.warning('寄语不能超过 200 个字')
+    messageApi.warning('寄语不能超过 200 个字')
     return
   }
 
@@ -465,9 +484,9 @@ const publishQuote = async () => {
     if (res.code !== 200) throw new Error(res.message || '发表失败')
     quoteDraft.value = ''
     await loadQuotes(true)
-    MessageApi.success('寄语已发表')
+    messageApi.success('寄语已发表')
   } catch (error) {
-    MessageApi.error(error.message || '寄语发表失败')
+    messageApi.error(error.message || '寄语发表失败')
   } finally {
     quotePublishing.value = false
   }
@@ -491,7 +510,7 @@ const refreshQuote = () => {
 
 // 数字滚动动画
 const animateNumbers = () => {
-  const targets = [50000, 120000, 365]
+  const targets = [statTargets.value.users, statTargets.value.moments, statTargets.value.days]
   const intervals = targets.map((target, i) => {
     let current = 0
     const increment = target / 50
@@ -631,6 +650,7 @@ const stageVisible = (stages) => preferredStage.value === 'all' || stages.includ
 
 onMounted(() => {
   getUserInfo()
+  loadPlatformStats().then(animateNumbers)
   loadQuotes()
   quoteRotationTimer = window.setInterval(refreshQuote, 5000)
   if (isDark.value) {
@@ -675,7 +695,6 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <contextHolder></contextHolder>
   <AdvancedPageTransition ref="transitionRef" :duration="10000" @complete="handleTransitionComplete" />
 
   <!-- 浮动窗口 - 已修复 -->
@@ -811,6 +830,16 @@ onUnmounted(() => {
                 <button
                   type="button"
                   class="home-quick-link"
+                  title="全局搜索（Ctrl+K）"
+                  aria-label="打开全局搜索"
+                  @click="openGlobalSearch"
+                >
+                  <Search />
+                  <span>搜索</span>
+                </button>
+                <button
+                  type="button"
+                  class="home-quick-link"
                   title="成长等级与每日任务"
                   @click="navigateWithTransition('/DailyCheckin')"
                 >
@@ -886,15 +915,15 @@ onUnmounted(() => {
               </p>
               <div class="flex gap-8 mb-8">
                 <div>
-                  <div class="text-3xl font-bold">{{ animatedStats.users }}+</div>
+                  <div class="text-3xl font-bold">{{ animatedStats.users }}</div>
                   <div class="text-sm ">成长记录者</div>
                 </div>
                 <div>
-                  <div class="text-3xl font-bold">{{ animatedStats.moments }}+</div>
+                  <div class="text-3xl font-bold">{{ animatedStats.moments }}</div>
                   <div class="text-sm">珍藏瞬间</div>
                 </div>
                 <div>
-                  <div class="text-3xl font-bold">{{ animatedStats.days }}+</div>
+                  <div class="text-3xl font-bold">{{ animatedStats.days }}</div>
                   <div class="text-sm">陪伴天数</div>
                 </div>
               </div>

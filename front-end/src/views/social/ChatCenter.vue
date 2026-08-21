@@ -30,6 +30,7 @@ const remarkEditorVisible = ref(false)
 const remarkText = ref('')
 const uploading = ref(false)
 const uploadProgress = ref(0)
+const pendingAttachment = ref(null)
 const groupManageVisible = ref(false)
 const groupMembers = ref([])
 const groupMemberKeyword = ref('')
@@ -100,6 +101,14 @@ const appendRealtimeMessage = async (message) => {
   if (!isMessageForActiveConversation(message)) return
 
   const existing = messages.value.findIndex(item => String(item.id) === String(message.id))
+  if (message.recalledAt) {
+    if (existing >= 0) messages.value.splice(existing, 1)
+    if (isPinnedMessage(message)) {
+      active.value = { ...active.value, pinnedMessageId: null, pinnedMessage: null, pinnedMessageSenderName: null }
+    }
+    fetchConversations()
+    return
+  }
   if (existing >= 0) {
     Object.assign(messages.value[existing], message)
     return
@@ -184,6 +193,8 @@ const createGroup = async () => {
 
 const openConversation = async (item) => {
   active.value = item
+  messageText.value = ''
+  pendingAttachment.value = null
   messages.value = []
   messagesLoaded.value = false
   await fetchMessages({ showLoading: true, scrollToLatest: true })
@@ -224,6 +235,7 @@ const hasMessageChanges = (nextMessages, currentMessages) => {
       || message.content !== current.content
       || message.senderId !== current.senderId
       || message.createdAt !== current.createdAt
+      || message.recalledAt !== current.recalledAt
   })
 }
 
@@ -285,8 +297,12 @@ const sendChatPayload = async ({ contentType, content }, conversation = active.v
 const sendMessage = async () => {
   if (!active.value) return messageApi.warning('请先选择会话')
   const content = messageText.value.trim()
-  if (!content) return
-  await sendChatPayload({ contentType: 'TEXT', content })
+  if (!content && !pendingAttachment.value) return
+  if (pendingAttachment.value) {
+    await sendChatPayload(pendingAttachment.value)
+    pendingAttachment.value = null
+  }
+  if (content) await sendChatPayload({ contentType: 'TEXT', content })
   messageText.value = ''
 }
 
@@ -321,7 +337,7 @@ const uploadAttachment = async (event) => {
       uploadProgress.value = progress
     })
     const data = uploadRes.data
-    await sendChatPayload({
+    pendingAttachment.value = {
       contentType: isImage ? 'IMAGE' : 'FILE',
       content: JSON.stringify({
         name: data.originalFilename || file.name,
@@ -329,7 +345,9 @@ const uploadAttachment = async (event) => {
         size: data.fileSize || file.size,
         thumbnailUrl: data.thumbnailUrl || '',
       }),
-    }, conversation)
+    }
+    if (!sameConversation(conversation)) pendingAttachment.value = null
+    else messageApi.success('附件已加入输入框，点击发送后才会发出')
   } finally {
     uploading.value = false
     uploadProgress.value = 0
@@ -452,8 +470,35 @@ const updateGroupMemberRole = async (member, role) => {
 
 const sendEmoji = async (emoji) => {
   if (!active.value || !canSend.value) return
-  await sendChatPayload({ contentType: 'EMOJI', content: emoji })
+  messageText.value += emoji
   emojiPickerVisible.value = false
+}
+
+const isPinnedMessage = message => active.value?.conversationType === 'GROUP'
+  && String(active.value?.pinnedMessageId || '') === String(message?.id || '')
+
+const togglePinnedMessage = async (message) => {
+  if (isPinnedMessage(message)) await unpinGroupMessage()
+  else await pinGroupMessage(message.id)
+}
+
+const canRecallMessage = message => Boolean(message?.mine && message?.createdAt
+  && Date.now() - new Date(message.createdAt).getTime() <= 120000)
+
+const deleteMessage = async (message) => {
+  await request.delete(`/chat/messages/${message.id}`)
+  messages.value = messages.value.filter(item => String(item.id) !== String(message.id))
+  messageApi.success('消息已从当前会话删除')
+}
+
+const recallMessage = async (message) => {
+  if (!canRecallMessage(message)) return messageApi.warning('消息发送超过 2 分钟，无法撤回')
+  await request.put(`/chat/messages/${message.id}/recall`, {})
+  messages.value = messages.value.filter(item => String(item.id) !== String(message.id))
+  if (isPinnedMessage(message)) {
+    active.value = { ...active.value, pinnedMessageId: null, pinnedMessage: null, pinnedMessageSenderName: null }
+  }
+  messageApi.success('消息已撤回')
 }
 
 const markRead = async (messageList) => {
@@ -646,10 +691,12 @@ onUnmounted(() => {
                     <Document />
                     <span><strong>{{ attachmentData(msg).name }}</strong><small>{{ formatFileSize(attachmentData(msg).size) || '点击下载' }}</small></span>
                   </a>
-                  <div v-if="isGroupOwner && active?.conversationType === 'GROUP'" class="message-admin-action">
-                    <button type="button" title="置顶此消息" @click="pinGroupMessage(msg.id)">置顶</button>
+                  <div class="message-admin-action">
+                    <button v-if="isGroupOwner && active?.conversationType === 'GROUP'" type="button" :title="isPinnedMessage(msg) ? '取消置顶' : '置顶此消息'" @click="togglePinnedMessage(msg)">{{ isPinnedMessage(msg) ? '取消置顶' : '置顶' }}</button>
+                    <button v-if="canRecallMessage(msg)" type="button" title="两分钟内可撤回" @click="recallMessage(msg)">撤回</button>
+                    <button type="button" title="仅从我的会话中删除" @click="deleteMessage(msg)">删除</button>
                   </div>
-                  <div class="read-line">
+                  <div v-if="msg.mine" class="read-line">
                     <span v-if="active.conversationType === 'GROUP'">已读 {{ msg.readCount || 0 }} / 未读 {{ msg.unreadCount || 0 }}</span>
                     <span v-else>{{ msg.unreadCount === 0 ? '对方已读' : '送达' }}</span>
                   </div>
@@ -659,16 +706,21 @@ onUnmounted(() => {
           </div>
 
           <footer class="chat-input">
+            <div v-if="pendingAttachment" class="attachment-draft">
+              <Document />
+              <span><strong>{{ attachmentData(pendingAttachment).name }}</strong><small>{{ formatFileSize(attachmentData(pendingAttachment).size) || '待发送附件' }}</small></span>
+              <button type="button" title="移除附件" aria-label="移除附件" @click="pendingAttachment = null">×</button>
+            </div>
             <textarea v-model="messageText" rows="3" :disabled="uploading || !canSend" :placeholder="canSend ? '输入消息，Enter 发送，Shift+Enter 换行' : '当前无法发言'" @keydown.enter.exact.prevent="sendMessage"></textarea>
             <div class="input-tools">
               <input ref="fileInputRef" class="hidden-file-input" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar" @change="uploadAttachment">
               <div class="emoji-picker-wrap">
-                <button class="emoji-toggle" type="button" :disabled="!active || uploading || !canSend" title="发送表情" aria-label="发送表情" @click="emojiPickerVisible = !emojiPickerVisible">☺</button>
+                <button class="emoji-toggle" type="button" :disabled="!active || uploading || !canSend" title="选择表情" aria-label="选择表情" @click="emojiPickerVisible = !emojiPickerVisible">☺</button>
                 <div v-if="emojiPickerVisible" class="emoji-picker">
                   <button v-for="emoji in emojis" :key="emoji" type="button" @click="sendEmoji(emoji)">{{ emoji }}</button>
                 </div>
               </div>
-              <button class="attachment-button" type="button" :disabled="!active || uploading || !canSend" title="发送图片或文件" aria-label="发送图片或文件" @click="chooseFile">
+              <button class="attachment-button" type="button" :disabled="!active || uploading || !canSend" title="选择图片或文件" aria-label="选择图片或文件" @click="chooseFile">
                 <Picture v-if="!uploading" /><FolderOpened v-else />
                 <span>{{ uploading ? `上传中 ${uploadProgress}%` : '附件' }}</span>
               </button>
@@ -1440,6 +1492,25 @@ onUnmounted(() => {
   border-top: 1px solid var(--app-border);
   padding: 14px;
 }
+
+.attachment-draft {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 9px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: rgb(var(--theme-primary-rgb) / 0.07);
+  padding: 8px 10px;
+  color: var(--app-text-secondary);
+}
+
+.attachment-draft > svg { width: 20px; flex: 0 0 20px; color: var(--theme-primary); }
+.attachment-draft > span { min-width: 0; flex: 1; }
+.attachment-draft strong, .attachment-draft small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attachment-draft strong { font-size: 12px; }
+.attachment-draft small { margin-top: 2px; color: var(--app-text-muted); font-size: 10px; }
+.attachment-draft > button { width: 28px; min-height: 28px; padding: 0; background: transparent; color: var(--app-text-muted); box-shadow: none; }
 
 .chat-input textarea {
   resize: none;

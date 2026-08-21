@@ -499,8 +499,8 @@ html.dark {
 /* Unified theme system: eight image-derived palettes and shared component treatments. */
 :root {
   --app-canvas: #f2efe7;
-  --app-dark-canvas: #151a1b;
-  --app-dark-surface: #202829;
+  --app-dark-canvas: #000000;
+  --app-dark-surface: #0a0a0a;
   --app-card-solid: #fbfaf6;
   --app-control-height: 2.5rem;
   --app-radius-lg: 10px;
@@ -518,9 +518,9 @@ html.dark {
   --app-surface-muted: var(--app-dark-canvas);
   --app-card: var(--app-dark-surface);
   --app-card-solid: var(--app-dark-surface);
-  --app-text: #eef3f2;
-  --app-text-secondary: #c8d1d2;
-  --app-text-muted: #92a0a2;
+  --app-text: #f5f5f5;
+  --app-text-secondary: #d4d4d4;
+  --app-text-muted: #a3a3a3;
   --app-elevation: 0 18px 36px -28px rgb(0 0 0 / 0.68);
   --app-elevation-float: 0 26px 56px -34px rgb(0 0 0 / 0.78);
 }
@@ -661,6 +661,19 @@ select {
 .app-top-nav,
 nav.fixed {
   border-bottom: 1px solid transparent;
+}
+
+html.dark nav.fixed,
+html.dark .app-global-nav {
+  background: rgb(0 0 0 / 0.96) !important;
+  border-bottom-color: rgb(255 255 255 / 0.1) !important;
+}
+
+html.dark .app-shell,
+html.dark .app-page-bg,
+html.dark .app-shell-dark {
+  background-color: #000 !important;
+  background-image: none !important;
 }
 
 nav.fixed[class*='bg-white'],
@@ -930,6 +943,37 @@ input[type='radio'] {
   animation: friendly-notice 420ms var(--app-motion-snappy) both;
 }
 
+/* Feedback status palette used by messageApi. */
+.cot-message {
+  --cot-message-accent: #2673dd;
+  --cot-message-rgb: 38 115 221;
+}
+
+.cot-message--success.el-message {
+  --cot-message-accent: #0f9f6e;
+  --cot-message-rgb: 15 159 110;
+}
+
+.cot-message--warning.el-message {
+  --cot-message-accent: #d08200;
+  --cot-message-rgb: 208 130 0;
+}
+
+.cot-message--error.el-message {
+  --cot-message-accent: #dc3f4b;
+  --cot-message-rgb: 220 63 75;
+}
+
+.cot-message--info.el-message {
+  --cot-message-accent: #2673dd;
+  --cot-message-rgb: 38 115 221;
+}
+
+.cot-message--loading.el-message {
+  --cot-message-accent: #64748b;
+  --cot-message-rgb: 100 116 139;
+}
+
 .el-tag,
 .ant-tag {
   border-radius: 6px !important;
@@ -974,5 +1018,149 @@ input[type='radio'] {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Final feedback polish: compact, calm and consistent across Element Plus and Ant Design. */
+.cot-message.el-message {
+  width: min(380px, calc(100vw - 32px));
+  min-width: 0;
+  max-width: none;
+  min-height: 0;
+  padding: 11px 38px 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--cot-message-accent) 20%, var(--app-border)) !important;
+  border-radius: 12px !important;
+  background: color-mix(in srgb, var(--app-card-solid) 94%, var(--cot-message-accent)) !important;
+  box-shadow: 0 14px 34px -24px rgb(15 23 42 / 0.55), 0 3px 10px -7px rgb(var(--cot-message-rgb) / 0.35) !important;
+  backdrop-filter: blur(18px) saturate(1.12);
+}
+
+.cot-message.el-message::before {
+  width: 3px;
+  border-radius: 3px;
+  inset: 8px auto 8px 0;
+}
+
+.cot-message.el-message .el-message__icon {
+  width: 25px;
+  height: 25px;
+  margin-right: 10px;
+  padding: 5px;
+  flex-basis: 25px;
+  border: 1px solid rgb(var(--cot-message-rgb) / 0.16);
+  border-radius: 8px;
+  background: rgb(var(--cot-message-rgb) / 0.08);
+}
+
+.cot-message.el-message .el-message__content {
+  color: var(--app-text) !important;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.cot-message.el-message .el-message__closeBtn {
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  color: var(--app-text-muted) !important;
+}
+
+.cot-message.el-message .el-message__closeBtn:hover {
+  color: var(--cot-message-accent) !important;
+  transform: translateY(-50%) scale(1.08);
+}
+
+.cot-message--loading.el-message .el-message__icon {
+  animation: cot-message-spin 900ms linear infinite;
+}
+
+.el-message-box {
+  width: min(420px, calc(100vw - 32px)) !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 1px solid var(--app-border) !important;
+  border-radius: 14px !important;
+  background: var(--app-card-solid) !important;
+  box-shadow: 0 26px 70px -30px rgb(15 23 42 / 0.55) !important;
+}
+
+.el-message-box__header {
+  padding: 19px 22px 13px !important;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.el-message-box__title {
+  font-size: 16px !important;
+  font-weight: 750 !important;
+  letter-spacing: 0 !important;
+}
+
+.el-message-box__headerbtn {
+  top: 17px !important;
+  right: 17px !important;
+}
+
+.el-message-box__content {
+  padding: 16px 22px 20px !important;
+  color: var(--app-text-secondary) !important;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.el-message-box__btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  padding: 13px 22px 18px !important;
+  border-top: 1px solid var(--app-border);
+}
+
+.el-message-box__btns .el-button {
+  min-width: 76px;
+  min-height: 36px;
+  border-radius: 8px !important;
+  font-size: 13px;
+}
+
+.el-message-box__btns .el-button--primary {
+  border-color: var(--theme-primary) !important;
+  background: var(--theme-primary) !important;
+  box-shadow: 0 7px 16px -10px rgb(var(--theme-primary-rgb) / 0.75) !important;
+}
+
+.el-message-box__btns .el-button:not(.el-button--primary) {
+  border-color: var(--app-border) !important;
+  background: transparent !important;
+  color: var(--app-text-secondary) !important;
+}
+
+.el-message-box__btns .el-button:not(.el-button--primary):hover {
+  border-color: var(--app-border-strong) !important;
+  background: var(--app-surface-muted) !important;
+  color: var(--app-text) !important;
+}
+
+.ant-message-notice-content {
+  padding: 10px 14px !important;
+  border: 1px solid var(--app-border) !important;
+  border-radius: 10px !important;
+  background: var(--app-card-solid) !important;
+  color: var(--app-text) !important;
+  box-shadow: 0 14px 34px -24px rgb(15 23 42 / 0.55) !important;
+}
+
+.ant-message-success .anticon { color: #0f9f6e !important; }
+.ant-message-warning .anticon { color: #d08200 !important; }
+.ant-message-error .anticon { color: #dc3f4b !important; }
+.ant-message-info .anticon { color: #2673dd !important; }
+
+@keyframes cot-message-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 520px) {
+  .cot-message.el-message {
+    width: calc(100vw - 24px);
   }
 }

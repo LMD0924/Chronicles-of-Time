@@ -45,6 +45,7 @@ public class ChatServiceImpl implements ChatService {
     private final ChatGroupMemberMapper memberMapper;
     private final ChatMessageMapper messageMapper;
     private final ChatMessageReadMapper readMapper;
+    private final ChatMessageHiddenMapper hiddenMapper;
     private final UserServiceClient userServiceClient;
     private final ApplicationEventPublisher eventPublisher;
     private final ActivityService activityService;
@@ -363,7 +364,6 @@ public class ChatServiceImpl implements ChatService {
         message.setContent(dto.getContent().trim());
         message.setCreatedAt(LocalDateTime.now());
         messageMapper.insert(message);
-        markMessageRead(message.getId(), currentUserId);
         MessageVO result = toMessageVO(message, currentUserId);
         eventPublisher.publishEvent(new ChatMessageCreatedEvent(realtimeDeliveries(message)));
         return result;
@@ -391,7 +391,11 @@ public class ChatServiceImpl implements ChatService {
         wrapper.orderByDesc(ChatMessage::getId).last("LIMIT " + safeLimit);
         List<ChatMessage> rows = messageMapper.selectList(wrapper);
         Collections.reverse(rows);
-        return rows.stream().map(message -> toMessageVO(message, currentUserId)).collect(Collectors.toList());
+        Set<Long> hiddenIds = hiddenMapper.selectList(new LambdaQueryWrapper<ChatMessageHidden>()
+                        .eq(ChatMessageHidden::getUserId, currentUserId))
+                .stream().map(ChatMessageHidden::getMessageId).collect(Collectors.toSet());
+        return rows.stream().filter(message -> !hiddenIds.contains(message.getId()))
+                .map(message -> toMessageVO(message, currentUserId)).collect(Collectors.toList());
     }
 
     @Override
@@ -402,7 +406,9 @@ public class ChatServiceImpl implements ChatService {
         }
         List<ChatMessage> messages = resolveMessagesForRead(currentUserId, dto);
         for (ChatMessage message : messages) {
-            markMessageRead(message.getId(), currentUserId);
+            if (!Objects.equals(message.getSenderId(), currentUserId)) {
+                markMessageRead(message.getId(), currentUserId);
+            }
         }
         if (GROUP.equals(normalizeType(dto.getConversationType())) && dto.getGroupId() != null) {
             ChatGroupMember member = memberMapper.selectOne(new LambdaQueryWrapper<ChatGroupMember>()
@@ -415,6 +421,64 @@ public class ChatServiceImpl implements ChatService {
             }
         }
         return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteMessage(Long currentUserId, Long messageId) {
+        ChatMessage message = requireVisibleMessage(currentUserId, messageId);
+        Long exists = hiddenMapper.selectCount(new LambdaQueryWrapper<ChatMessageHidden>()
+                .eq(ChatMessageHidden::getMessageId, messageId)
+                .eq(ChatMessageHidden::getUserId, currentUserId));
+        if (exists == 0) {
+            ChatMessageHidden hidden = new ChatMessageHidden();
+            hidden.setMessageId(message.getId());
+            hidden.setUserId(currentUserId);
+            hidden.setHiddenAt(LocalDateTime.now());
+            hiddenMapper.insert(hidden);
+        }
+        if (!Objects.equals(message.getSenderId(), currentUserId)) {
+            markMessageRead(message.getId(), currentUserId);
+        }
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public MessageVO recallMessage(Long currentUserId, Long messageId) {
+        ChatMessage message = requireVisibleMessage(currentUserId, messageId);
+        if (!Objects.equals(message.getSenderId(), currentUserId)) {
+            throw new IllegalArgumentException("只能撤回自己发送的消息");
+        }
+        if (message.getRecalledAt() != null) {
+            throw new IllegalArgumentException("消息已经撤回");
+        }
+        if (message.getCreatedAt() == null || message.getCreatedAt().plusMinutes(2).isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("消息发送超过 2 分钟，无法撤回");
+        }
+        message.setRecalledAt(LocalDateTime.now());
+        messageMapper.updateById(message);
+        ChatGroup group = message.getGroupId() == null ? null : groupMapper.selectById(message.getGroupId());
+        if (group != null && Objects.equals(group.getPinnedMessageId(), message.getId())) {
+            group.setPinnedMessageId(null);
+            group.setUpdatedAt(LocalDateTime.now());
+            groupMapper.updateById(group);
+        }
+        MessageVO result = toMessageVO(message, currentUserId);
+        eventPublisher.publishEvent(new ChatMessageCreatedEvent(realtimeDeliveries(message)));
+        return result;
+    }
+
+    private ChatMessage requireVisibleMessage(Long currentUserId, Long messageId) {
+        ChatMessage message = messageMapper.selectById(messageId);
+        if (message == null) throw new IllegalArgumentException("消息不存在");
+        if (GROUP.equals(message.getConversationType())) {
+            requireGroupMember(message.getGroupId(), currentUserId);
+        } else if (!Objects.equals(message.getSenderId(), currentUserId)
+                && !Objects.equals(message.getReceiverId(), currentUserId)) {
+            throw new IllegalArgumentException("无权操作此消息");
+        }
+        return message;
     }
 
     @Override
@@ -660,7 +724,8 @@ public class ChatServiceImpl implements ChatService {
     private List<ChatMessage> resolveMessagesForRead(Long currentUserId, ReadMessageDTO dto) {
         String type = normalizeType(dto.getConversationType());
         LambdaQueryWrapper<ChatMessage> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(ChatMessage::getConversationType, type);
+        wrapper.eq(ChatMessage::getConversationType, type)
+                .isNull(ChatMessage::getRecalledAt);
         if (dto.getMessageIds() != null && !dto.getMessageIds().isEmpty()) {
             wrapper.in(ChatMessage::getId, dto.getMessageIds());
         }
@@ -771,13 +836,14 @@ public class ChatServiceImpl implements ChatService {
                 .eq(ChatMessageRead::getUserId, currentUserId)) > 0);
         vo.setMine(Objects.equals(message.getSenderId(), currentUserId));
         int readCount = readMapper.selectCount(new LambdaQueryWrapper<ChatMessageRead>()
-                .eq(ChatMessageRead::getMessageId, message.getId())).intValue();
+                .eq(ChatMessageRead::getMessageId, message.getId())
+                .ne(ChatMessageRead::getUserId, message.getSenderId())).intValue();
         vo.setReadCount(readCount);
         if (GROUP.equals(message.getConversationType()) && message.getGroupId() != null) {
             ChatGroup group = groupMapper.selectById(message.getGroupId());
-            vo.setUnreadCount(Math.max(0, value(group == null ? null : group.getMemberCount()) - readCount));
+            vo.setUnreadCount(Math.max(0, value(group == null ? null : group.getMemberCount()) - 1 - readCount));
         } else {
-            vo.setUnreadCount(readCount >= 2 ? 0 : 1);
+            vo.setUnreadCount(readCount >= 1 ? 0 : 1);
         }
         return vo;
     }
@@ -785,6 +851,7 @@ public class ChatServiceImpl implements ChatService {
     private ChatMessage latestPrivateMessage(Long userId, Long friendId) {
         return messageMapper.selectOne(new LambdaQueryWrapper<ChatMessage>()
                 .eq(ChatMessage::getConversationType, PRIVATE)
+                .isNull(ChatMessage::getRecalledAt)
                 .and(q -> q.eq(ChatMessage::getSenderId, userId).eq(ChatMessage::getReceiverId, friendId)
                         .or()
                         .eq(ChatMessage::getSenderId, friendId).eq(ChatMessage::getReceiverId, userId))
@@ -796,6 +863,7 @@ public class ChatServiceImpl implements ChatService {
         return messageMapper.selectOne(new LambdaQueryWrapper<ChatMessage>()
                 .eq(ChatMessage::getConversationType, GROUP)
                 .eq(ChatMessage::getGroupId, groupId)
+                .isNull(ChatMessage::getRecalledAt)
                 .orderByDesc(ChatMessage::getId)
                 .last("LIMIT 1"));
     }
@@ -804,7 +872,8 @@ public class ChatServiceImpl implements ChatService {
         List<ChatMessage> messages = messageMapper.selectList(new LambdaQueryWrapper<ChatMessage>()
                 .eq(ChatMessage::getConversationType, PRIVATE)
                 .eq(ChatMessage::getSenderId, friendId)
-                .eq(ChatMessage::getReceiverId, userId));
+                .eq(ChatMessage::getReceiverId, userId)
+                .isNull(ChatMessage::getRecalledAt));
         return (int) messages.stream()
                 .filter(message -> readMapper.selectCount(new LambdaQueryWrapper<ChatMessageRead>()
                         .eq(ChatMessageRead::getMessageId, message.getId())
@@ -823,7 +892,8 @@ public class ChatServiceImpl implements ChatService {
         List<ChatMessage> messages = messageMapper.selectList(new LambdaQueryWrapper<ChatMessage>()
                 .eq(ChatMessage::getConversationType, GROUP)
                 .eq(ChatMessage::getGroupId, groupId)
-                .ne(ChatMessage::getSenderId, userId));
+                .ne(ChatMessage::getSenderId, userId)
+                .isNull(ChatMessage::getRecalledAt));
         return (int) messages.stream()
                 .filter(message -> readMapper.selectCount(new LambdaQueryWrapper<ChatMessageRead>()
                         .eq(ChatMessageRead::getMessageId, message.getId())

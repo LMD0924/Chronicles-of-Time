@@ -1950,6 +1950,15 @@ CREATE TABLE IF NOT EXISTS chat_message_read (
   KEY idx_chat_read_user (user_id, read_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Message read receipts';
 
+CREATE TABLE IF NOT EXISTS chat_message_hidden (
+  id BIGINT NOT NULL PRIMARY KEY,
+  message_id BIGINT NOT NULL,
+  user_id BIGINT NOT NULL,
+  hidden_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_chat_message_hidden (message_id, user_id),
+  KEY idx_chat_message_hidden_user (user_id, hidden_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Per-user hidden chat messages';
+
 -- Chronicles of Time field upgrades.
 -- Adds columns required by current entities and upgraded features.
 -- Run after 01_schema.sql.

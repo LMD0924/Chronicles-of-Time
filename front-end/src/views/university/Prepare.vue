@@ -2,8 +2,11 @@
   文件说明：拾光记前台应用大学阶段页面组件，承载大学阶段场景的界面展示、交互操作和数据承接。
 -->
 <script setup>
+defineOptions({ name: 'UniversityPreparation' })
+
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { Search } from '@element-plus/icons-vue'
 import ThemeToggleButton from '@/components/ThemeToggleButton.vue'
 import { getStoredTheme, ThemeType, onThemeChange } from "@/utils/theme.js"
 import request from "@/utils/request.js"
@@ -15,6 +18,10 @@ const isScrolled = ref(false)
 const showBackTop = ref(false)
 const loading = ref(false)
 const UserInfo = ref({})
+
+const openGlobalSearch = () => {
+  window.dispatchEvent(new CustomEvent('app:open-search'))
+}
 
 // 表单数据
 const formData = ref({
@@ -211,7 +218,7 @@ const getUserInfoData = async () => {
       if (res.data.majorId) formData.value.majorId = res.data.majorId
       if (res.data.choose) formData.value.choose = res.data.choose
     }
-  } catch (error) {
+  } catch {
     // 没有记录是正常的
     console.log('暂无用户规划信息')
   }
@@ -352,6 +359,15 @@ onMounted(() => {
 
             <!-- 右侧用户区域 -->
             <div class="flex items-center gap-4">
+              <button
+                class="nav-icon-action"
+                type="button"
+                title="全局搜索（Ctrl+K）"
+                aria-label="打开全局搜索"
+                @click="openGlobalSearch"
+              >
+                <Search />
+              </button>
               <ThemeToggleButton />
               <div class="flex items-center gap-2 cursor-pointer group" @click="goToProfile">
                 <div class="relative w-9 h-9 rounded-full overflow-hidden border-2 border-brand-200 group-hover:border-brand-400 transition-colors">

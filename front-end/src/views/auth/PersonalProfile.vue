@@ -2,16 +2,15 @@
   文件说明：拾光记前台应用认证与登录页面组件，承载认证与登录场景的界面展示、交互操作和数据承接。
 -->
 <script setup>
-import { ref, onMounted, computed, nextTick, onUnmounted } from 'vue'
+import { ref, onMounted, computed, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
 import { getStoredTheme, onThemeChange, ThemeType } from '@/utils/theme'
-import { message } from 'ant-design-vue'
+import messageApi from '@/utils/messageApi'
 import Nav from '@/components/Nav.vue'
 import { Check, Close, Delete, Edit } from '@element-plus/icons-vue'
 
-const [messageApi, contextHolder] = message.useMessage();
 const router = useRouter()
 const route = useRoute()
 const loading = ref(true)
@@ -42,7 +41,6 @@ const stats = ref({
 // 发表的文章列表
 const myArticles = ref([])
 const articlesLoading = ref(false)
-const articlesPage = ref(1)
 const articlesTotal = ref(0)
 
 // 点赞的文章列表
@@ -60,6 +58,7 @@ const commentsLoading = ref(false)
 // 成长记录列表
 const growthRecords = ref([])
 const recordsLoading = ref(false)
+const educations = ref([])
 
 // 我的每日寄语
 const myQuotes = ref([])
@@ -112,7 +111,7 @@ const fetchUserInfo = async () => {
       userInfo.value = data
       console.log("用户信息：", userInfo.value)
     })
-  } catch (error) {
+  } catch {
     messageApi.error('获取用户信息失败')
   } finally {
     loading.value = false
@@ -240,6 +239,15 @@ const fetchMyQuotes = async () => {
   }
 }
 
+const fetchEducations = async () => {
+  try {
+    const response = await request.get('/resume/getCompleteResume')
+    educations.value = response.data?.educationList || []
+  } catch {
+    educations.value = []
+  }
+}
+
 // 加载所有数据
 const loadUserData = async () => {
   if (!userInfo.value?.id) return
@@ -249,7 +257,8 @@ const loadUserData = async () => {
     fetchFavoritedArticles(),
     fetchMyComments(),
     fetchGrowthRecords(),
-    fetchMyQuotes()
+    fetchMyQuotes(),
+    fetchEducations()
   ])
 
   // 更新成就进度
@@ -452,7 +461,7 @@ const handleLogout = async () => {
     localStorage.removeItem('user_info')
     messageApi.success('已退出登录')
     router.push('/login')
-  } catch (_) {
+  } catch {
     // 用户取消退出
   }
 }
@@ -474,7 +483,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <contextHolder />
   <div :class="[isDark ? 'app-shell-dark' : 'app-shell-light', 'app-shell min-h-screen']">
     <Nav :isDark="isDark" :menuItems="[{ key: 'profile', label: '个人档案', icon: '👤', path: '/PersonalProfile' }, { key: 'resume', label: '简历', icon: '📄', path: '/Resume' }]" />
 
@@ -573,6 +581,22 @@ onMounted(async () => {
                 <div :class="isDark ? 'text-gray-400' : 'text-gray-500'" class="text-xs">评论数量</div>
               </div>
             </div>
+          </div>
+
+          <div :class="[isDark ? 'bg-white/10 border border-white/20' : 'bg-white shadow-sm', 'rounded-2xl p-5']">
+            <div class="mb-4 flex items-center justify-between gap-3">
+              <h3 class="font-semibold flex items-center gap-2" :class="isDark ? 'text-white' : 'text-gray-800'">🎓 教育经历</h3>
+              <button type="button" class="text-xs font-medium text-brand-600" @click="$router.push('/Resume')">编辑</button>
+            </div>
+            <div v-if="educations.length" class="space-y-4">
+              <article v-for="item in educations" :key="item.id" class="border-l-2 border-brand-400 pl-3">
+                <strong class="block text-sm" :class="isDark ? 'text-white' : 'text-gray-800'">{{ item.schoolName }}</strong>
+                <span class="mt-1 block text-xs" :class="isDark ? 'text-gray-300' : 'text-gray-600'">{{ item.degree || '学历待完善' }} · {{ item.major || '专业待完善' }}</span>
+                <small class="mt-1 block text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ item.startDate || '待定' }} 至 {{ item.isCurrent ? '至今' : (item.endDate || '待定') }}</small>
+                <p v-if="item.description" class="mt-2 text-xs leading-relaxed" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ item.description }}</p>
+              </article>
+            </div>
+            <button v-else type="button" class="w-full rounded-lg border border-dashed border-gray-300 py-6 text-sm text-gray-500" @click="$router.push('/Resume')">添加教育经历</button>
           </div>
 
           <!-- 成就徽章 -->

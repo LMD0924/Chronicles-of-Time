@@ -2,7 +2,9 @@
   文件说明：拾光记前台应用高中阶段页面组件，承载高中阶段场景的界面展示、交互操作和数据承接。
 -->
 <script setup>
-import {ref, computed, onMounted, watch, nextTick, provide, onUnmounted} from 'vue'
+defineOptions({ name: 'VolunteerPlanning' })
+
+import {ref, computed, onMounted, watch, provide} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import request from '@/utils/request.js'
 import { getUserInfo as getStoredUserInfo } from '@/utils/token.js'
@@ -24,6 +26,7 @@ provide('isDark', isDark)
 // 用户信息
 const userId = ref(1)
 const UserInfo = ref({})
+const userReady = ref(false)
 
 // 志愿方案数据
 const volunteerPlans = ref([])
@@ -49,10 +52,12 @@ const getUserInfo = async () => {
     if (storedUser && storedUser.id) {
       userId.value = storedUser.id
       UserInfo.value = storedUser
+      userReady.value = true
     } else {
-      request.get('/user/getUserById', {}, (msg, data) => {
+      await request.get('/user/getUserById', {}, (msg, data) => {
         UserInfo.value = data
         userId.value = data.id
+        userReady.value = true
       })
     }
   } catch (error) {
@@ -134,11 +139,14 @@ onMounted(() => {
           <div>
             <keep-alive>
               <component
+                v-if="userReady"
                 :is="currentComponent"
+                :key="`${activeTab}-${userId}`"
                 :user-id="userId"
                 :volunteer-plans="volunteerPlans"
                 @update-count="handleUpdateCount"
               />
+              <div v-else class="app-card-surface p-8 text-center text-gray-500">正在加载你的志愿数据...</div>
             </keep-alive>
           </div>
         </div>

@@ -29,6 +29,8 @@ public interface ChatService {
     MessageVO sendMessage(Long currentUserId, SendMessageDTO dto);
     List<MessageVO> messages(Long currentUserId, String conversationType, Long targetId, Long beforeId, Integer limit);
     boolean markRead(Long currentUserId, ReadMessageDTO dto);
+    boolean deleteMessage(Long currentUserId, Long messageId);
+    MessageVO recallMessage(Long currentUserId, Long messageId);
     List<ConversationVO> conversations(Long currentUserId);
     List<GroupVO> adminGroups(String keyword);
     List<FriendVO> adminFriendships(String keyword);

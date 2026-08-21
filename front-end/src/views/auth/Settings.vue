@@ -186,7 +186,7 @@ onMounted(load)
 
           <div class="settings-font-preview" :class="fontPreviewClass(currentFont)">
             <span>字体预览</span>
-            <strong>拾光记 · 让每一次考试和成长都有迹可循</strong>
+            <strong>拾光记 · 弥补当时那个迷茫的自己</strong>
           </div>
         </div>
         <div class="app-card-surface p-6 space-y-4">
